@@ -10,6 +10,7 @@ export const brasilNoviembre2026: Trip = {
   destinations: ["Porto de Galinhas", "Maragogi"],
   travelers: 2,
   status: "planning",
+  coastal: true,
   summary:
     "13 días en Brasil partidos en dos bases: Porto de Galinhas (urbano, vivo, jangadas) y Maragogi (tranquilo, con el Tour Galés en pico de marea baja durante la supermoon del 24-nov-2026).",
 

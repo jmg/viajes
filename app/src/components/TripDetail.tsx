@@ -1,53 +1,86 @@
-import { useState } from "react";
-import type { Trip } from "../types";
+import { useMemo, useState } from "react";
+import type { Currency, Trip } from "../types";
 import { formatDateRange, daysBetween } from "../lib/format";
+import { autoStatus, STATUS_LABEL } from "../lib/status";
+import { computeMoonPhases, computeTideWindows } from "../lib/moon";
 import { FlightTable } from "./FlightTable";
-import { Itinerary } from "./Itinerary";
 import { MoonTidePanel } from "./MoonTidePanel";
-import { BudgetTable } from "./BudgetTable";
-import { Checklist } from "./Checklist";
-import { LinksList } from "./LinksList";
+import { ChecklistEditor } from "./editors/ChecklistEditor";
+import { LinksEditor } from "./editors/LinksEditor";
+import { BudgetEditor } from "./editors/BudgetEditor";
+import { ItineraryEditor } from "./editors/ItineraryEditor";
+import { Countdown } from "./Countdown";
 
 type Props = {
   trip: Trip;
+  currency: Currency;
+  onCurrencyChange: (c: Currency) => void;
+  onChange: (trip: Trip) => void;
+  onEdit: () => void;
+  onDelete: () => void;
   onBack: () => void;
 };
 
 type TabId = "overview" | "flights" | "itinerary" | "moon" | "budget" | "checklist" | "links";
 
-export function TripDetail({ trip, onBack }: Props) {
-  const tabs: { id: TabId; label: string; show: boolean }[] = [
-    { id: "overview", label: "Resumen", show: true },
-    { id: "flights", label: "Vuelos", show: !!trip.flightOptions?.length },
-    { id: "itinerary", label: "Itinerario", show: !!trip.itinerary?.length },
-    { id: "moon", label: "Luna y mareas", show: !!(trip.moonPhases?.length || trip.tideWindows?.length) },
-    { id: "budget", label: "Presupuesto", show: !!trip.budget?.length },
-    { id: "checklist", label: "Checklist", show: !!trip.checklist?.length },
-    { id: "links", label: "Links", show: !!trip.links?.length },
+export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit, onDelete, onBack }: Props) {
+  const status = autoStatus(trip);
+
+  const tabs: { id: TabId; label: string }[] = [
+    { id: "overview", label: "Resumen" },
+    { id: "flights", label: "Vuelos" },
+    { id: "itinerary", label: "Itinerario" },
+    { id: "moon", label: "Luna y mareas" },
+    { id: "budget", label: "Presupuesto" },
+    { id: "checklist", label: "Checklist" },
+    { id: "links", label: "Links" },
   ];
 
-  const visibleTabs = tabs.filter((t) => t.show);
+  if (!trip.coastal && !trip.moonPhases?.length) {
+    tabs.splice(tabs.findIndex((t) => t.id === "moon"), 1);
+  }
+
   const [active, setActive] = useState<TabId>("overview");
+
+  const computedPhases = useMemo(() => {
+    if (trip.moonPhases?.length) return trip.moonPhases;
+    if (!trip.coastal) return [];
+    return computeMoonPhases(trip.startDate, trip.endDate);
+  }, [trip.coastal, trip.startDate, trip.endDate, trip.moonPhases]);
+
+  const computedWindows = useMemo(() => {
+    if (trip.tideWindows?.length) return trip.tideWindows;
+    if (!trip.coastal) return [];
+    return computeTideWindows(computedPhases);
+  }, [trip.tideWindows, trip.coastal, computedPhases]);
 
   return (
     <div className="trip-detail">
-      <button className="back-button" onClick={onBack}>
-        ← Volver a viajes
-      </button>
+      <button className="back-button" onClick={onBack}>← Volver</button>
 
       <header className="trip-header">
-        <h1>{trip.title}</h1>
-        {trip.subtitle && <p className="subtitle">{trip.subtitle}</p>}
+        <div className="trip-header-top">
+          <div>
+            <span className={`status-pill status-${status}`}>{STATUS_LABEL[status]}</span>
+            <h1>{trip.title}</h1>
+            {trip.subtitle && <p className="subtitle">{trip.subtitle}</p>}
+          </div>
+          <div className="header-actions">
+            <button className="button-secondary" onClick={onEdit}>✎ Editar</button>
+            <button className="button-danger" onClick={onDelete}>🗑 Eliminar</button>
+          </div>
+        </div>
         <div className="trip-meta-row">
           <span>📅 {formatDateRange(trip.startDate, trip.endDate)}</span>
           <span>📍 {trip.destinations.join(" → ")}</span>
           <span>{daysBetween(trip.startDate, trip.endDate)} días</span>
           <span>👥 {trip.travelers}</span>
+          <span><Countdown trip={trip} /></span>
         </div>
       </header>
 
       <nav className="tabs">
-        {visibleTabs.map((t) => (
+        {tabs.map((t) => (
           <button
             key={t.id}
             className={active === t.id ? "tab active" : "tab"}
@@ -60,26 +93,62 @@ export function TripDetail({ trip, onBack }: Props) {
 
       <section className="tab-content">
         {active === "overview" && <Overview trip={trip} />}
-        {active === "flights" && trip.flightOptions && (
-          <FlightTable
-            options={trip.flightOptions}
-            criteria={trip.flightCriteria}
-            recommendedId={trip.recommendedFlightId}
+
+        {active === "flights" && (
+          trip.flightOptions?.length ? (
+            <FlightTable
+              options={trip.flightOptions}
+              criteria={trip.flightCriteria}
+              recommendedId={trip.recommendedFlightId}
+            />
+          ) : (
+            <EmptyState
+              message="Todavía no hay opciones de vuelo cargadas."
+              hint="Las opciones de vuelos por ahora se cargan editando el archivo TS del viaje."
+            />
+          )
+        )}
+
+        {active === "itinerary" && (
+          <ItineraryEditor
+            days={trip.itinerary ?? []}
+            onChange={(itinerary) => onChange({ ...trip, itinerary })}
           />
         )}
-        {active === "itinerary" && trip.itinerary && (
-          <Itinerary days={trip.itinerary} />
-        )}
+
         {active === "moon" && (
-          <MoonTidePanel phases={trip.moonPhases} windows={trip.tideWindows} />
+          computedPhases.length || computedWindows.length ? (
+            <MoonTidePanel phases={computedPhases} windows={computedWindows} />
+          ) : (
+            <EmptyState
+              message="Marcá este viaje como costero para ver las fases lunares y ventanas de marea."
+            />
+          )
         )}
-        {active === "budget" && trip.budget && (
-          <BudgetTable items={trip.budget} />
+
+        {active === "budget" && (
+          <BudgetEditor
+            items={trip.budget ?? []}
+            currency={currency}
+            onCurrencyChange={onCurrencyChange}
+            onChange={(budget) => onChange({ ...trip, budget })}
+          />
         )}
-        {active === "checklist" && trip.checklist && (
-          <Checklist tripId={trip.id} items={trip.checklist} />
+
+        {active === "checklist" && (
+          <ChecklistEditor
+            tripId={trip.id}
+            items={trip.checklist ?? []}
+            onChange={(checklist) => onChange({ ...trip, checklist })}
+          />
         )}
-        {active === "links" && trip.links && <LinksList links={trip.links} />}
+
+        {active === "links" && (
+          <LinksEditor
+            links={trip.links ?? []}
+            onChange={(links) => onChange({ ...trip, links })}
+          />
+        )}
       </section>
     </div>
   );
@@ -89,7 +158,11 @@ function Overview({ trip }: { trip: Trip }) {
   const top = trip.flightOptions?.find((o) => o.id === trip.recommendedFlightId);
   return (
     <div className="overview">
-      {trip.summary && <p className="summary">{trip.summary}</p>}
+      {trip.summary ? (
+        <p className="summary">{trip.summary}</p>
+      ) : (
+        <p className="summary muted">Sin descripción. Tocá <strong>Editar</strong> para agregar una.</p>
+      )}
       {top && (
         <div className="callout">
           <h3>🏆 Vuelo recomendado</h3>
@@ -108,6 +181,15 @@ function Overview({ trip }: { trip: Trip }) {
           {top.comment && <p className="callout-comment">{top.comment}</p>}
         </div>
       )}
+    </div>
+  );
+}
+
+function EmptyState({ message, hint }: { message: string; hint?: string }) {
+  return (
+    <div className="empty-state">
+      <p>{message}</p>
+      {hint && <p className="hint">{hint}</p>}
     </div>
   );
 }

@@ -70,6 +70,10 @@ export type LinkRef = {
   category?: string;
 };
 
+export type TripStatus = "planning" | "booked" | "in-progress" | "past";
+
+export type Currency = "USD" | "EUR" | "ARS" | "BRL" | "GBP" | "MXN" | "CLP";
+
 export type Trip = {
   id: string;
   title: string;
@@ -79,7 +83,9 @@ export type Trip = {
   origin: string;
   destinations: string[];
   travelers: number;
-  status: "planning" | "booked" | "past";
+  status: TripStatus;
+  /** If true the moon phases tab is shown and phases are auto-computed when not provided */
+  coastal?: boolean;
   summary?: string;
 
   // Secciones opcionales — cada viaje activa las que aplica
