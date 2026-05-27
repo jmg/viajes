@@ -3,8 +3,15 @@ import type { Trip } from "../types";
 import { TEMPLATES, applyTemplate } from "../lib/templates";
 import type { TemplateId } from "../lib/templates";
 
+type Prefill = {
+  destinationName?: string;
+  month?: number;
+  duration?: number;
+};
+
 type Props = {
   trip?: Trip;
+  prefill?: Prefill;
   onSave: (trip: Trip) => void;
   onCancel: () => void;
 };
@@ -14,14 +21,28 @@ const newId = (): string => {
   return `trip-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 };
 
-export function TripForm({ trip, onSave, onCancel }: Props) {
+const computePrefillDates = (month?: number, duration?: number): { start: string; end: string } => {
+  if (!month) return { start: "", end: "" };
+  const now = new Date();
+  let year = now.getFullYear();
+  if (month <= now.getMonth() + 1) year += 1; // próxima ocurrencia del mes
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month - 1, Math.min(28, (duration ?? 7)));
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  return { start: fmt(start), end: fmt(end) };
+};
+
+export function TripForm({ trip, prefill, onSave, onCancel }: Props) {
   const isEdit = !!trip;
-  const [title, setTitle] = useState(trip?.title ?? "");
+  const prefillDates = computePrefillDates(prefill?.month, prefill?.duration);
+  const prefillTitle = prefill?.destinationName ? `Viaje a ${prefill.destinationName}` : "";
+
+  const [title, setTitle] = useState(trip?.title ?? prefillTitle);
   const [subtitle, setSubtitle] = useState(trip?.subtitle ?? "");
-  const [startDate, setStartDate] = useState(trip?.startDate ?? "");
-  const [endDate, setEndDate] = useState(trip?.endDate ?? "");
+  const [startDate, setStartDate] = useState(trip?.startDate ?? prefillDates.start);
+  const [endDate, setEndDate] = useState(trip?.endDate ?? prefillDates.end);
   const [origin, setOrigin] = useState(trip?.origin ?? "");
-  const [destinations, setDestinations] = useState(trip?.destinations.join(", ") ?? "");
+  const [destinations, setDestinations] = useState(trip?.destinations.join(", ") ?? prefill?.destinationName ?? "");
   const [travelers, setTravelers] = useState(trip?.travelers ?? 1);
   const [status, setStatus] = useState<Trip["status"]>(trip?.status ?? "planning");
   const [coastal, setCoastal] = useState(trip?.coastal ?? false);

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Currency, Trip } from "./types";
 import { useTrips } from "./hooks/useTrips";
 import { TripCard } from "./components/TripCard";
@@ -8,23 +8,43 @@ import { Modal } from "./components/Modal";
 import { Filters } from "./components/Filters";
 import type { FilterId } from "./components/Filters";
 import { ImportExport } from "./components/ImportExport";
+import { Discover } from "./components/Discover";
+import { DestinationDetail } from "./components/DestinationDetail";
+import { DESTINATIONS } from "./destinations/data";
+import type { RecommendationCriteria } from "./destinations/types";
 import { autoStatus } from "./lib/status";
 import { loadCurrency, saveCurrency } from "./lib/storage";
 
+type View = "trips" | "discover";
+type TripFormPrefill = { destinationName?: string; month?: number; duration?: number };
+type EditingState = Trip | { mode: "new"; prefill?: TripFormPrefill } | null;
+
+const WISHLIST_KEY = "viajes:wishlist:v1";
+
 export function App() {
   const { trips, upsert, remove, restoreSeeds, replaceAll } = useTrips();
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [editing, setEditing] = useState<Trip | "new" | null>(null);
+  const [view, setView] = useState<View>("trips");
+  const [activeTripId, setActiveTripId] = useState<string | null>(null);
+  const [activeDestination, setActiveDestination] = useState<{ id: string; month?: number } | null>(null);
+  const [editing, setEditing] = useState<EditingState>(null);
   const [filter, setFilter] = useState<FilterId>("all");
   const [showImportExport, setShowImportExport] = useState(false);
   const [currency, setCurrency] = useState<Currency>(() => loadCurrency());
+  const [wishlist, setWishlist] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(WISHLIST_KEY) ?? "[]"); } catch { return []; }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
+  }, [wishlist]);
 
   const handleCurrency = (c: Currency) => {
     setCurrency(c);
     saveCurrency(c);
   };
 
-  const active = activeId ? trips.find((t) => t.id === activeId) ?? null : null;
+  const activeTrip = activeTripId ? trips.find((t) => t.id === activeTripId) ?? null : null;
+  const activeDest = activeDestination ? DESTINATIONS.find((d) => d.id === activeDestination.id) ?? null : null;
 
   const filtered = useMemo(() => {
     const withStatus = trips.map((t) => ({ trip: t, status: autoStatus(t) }));
@@ -36,7 +56,6 @@ export function App() {
     return withStatus
       .filter((x) => matchFilter(x.status))
       .sort((a, b) => {
-        // upcoming first by date, then in-progress, then past (most recent first)
         const order = { "in-progress": 0, planning: 1, booked: 1, past: 2 };
         const oa = order[a.status];
         const ob = order[b.status];
@@ -64,7 +83,7 @@ export function App() {
     if (!t) return;
     if (!confirm(`¿Eliminar "${t.title}"? Esta acción no se puede deshacer.`)) return;
     remove(id);
-    if (activeId === id) setActiveId(null);
+    if (activeTripId === id) setActiveTripId(null);
   };
 
   const handleImport = (imported: Trip[], mode: "merge" | "replace") => {
@@ -78,85 +97,151 @@ export function App() {
     setShowImportExport(false);
   };
 
+  const handleCreateTripFromDestination = (destId: string, criteria?: RecommendationCriteria) => {
+    const d = DESTINATIONS.find((x) => x.id === destId);
+    if (!d) return;
+    setActiveDestination(null);
+    setEditing({
+      mode: "new",
+      prefill: {
+        destinationName: d.name,
+        month: criteria?.month,
+        duration: criteria?.duration ?? d.suggestedDuration?.min,
+      },
+    });
+  };
+
+  const toggleWishlist = (id: string) =>
+    setWishlist((curr) => curr.includes(id) ? curr.filter((x) => x !== id) : [...curr, id]);
+
+  const isInWishlist = (id: string): boolean => wishlist.includes(id);
+
+  // Renderiza la home con tabs
+  const isHome = !activeTrip && !activeDest;
+
   return (
     <div className="app">
-      {!active && (
+      {isHome && (
         <>
           <header className="home-header">
             <div className="home-header-top">
               <div>
                 <h1>✈️ Viajes</h1>
-                <p>Planeá viajes con vuelos, itinerario, mareas, presupuesto y checklist.</p>
+                <p>Descubrí destinos según el clima y planeá tu próxima aventura.</p>
               </div>
               <div className="home-actions">
                 <button className="button-secondary" onClick={() => setShowImportExport(true)}>
                   ⇅ Import/Export
                 </button>
-                <button className="button-primary" onClick={() => setEditing("new")}>
+                <button className="button-primary" onClick={() => setEditing({ mode: "new" })}>
                   + Nuevo viaje
                 </button>
               </div>
             </div>
+            <nav className="main-tabs">
+              <button className={`main-tab ${view === "trips" ? "active" : ""}`} onClick={() => setView("trips")}>
+                📋 Mis viajes ({trips.length})
+              </button>
+              <button className={`main-tab ${view === "discover" ? "active" : ""}`} onClick={() => setView("discover")}>
+                🌎 Descubrir destinos
+                {wishlist.length > 0 && <span className="wishlist-count">❤️ {wishlist.length}</span>}
+              </button>
+            </nav>
           </header>
 
-          <Filters value={filter} counts={counts} onChange={setFilter} />
+          {view === "trips" && (
+            <>
+              <Filters value={filter} counts={counts} onChange={setFilter} />
 
-          {filtered.length === 0 ? (
-            <div className="empty-state">
-              {trips.length === 0 ? (
-                <>
-                  <p>Todavía no tenés viajes cargados.</p>
-                  <p>
-                    <button className="button-primary" onClick={() => setEditing("new")}>+ Crear mi primer viaje</button>
-                  </p>
-                  <p className="hint">
-                    <button className="link-button" onClick={restoreSeeds}>O cargar el ejemplo "Brasil noviembre 2026"</button>
-                  </p>
-                </>
+              {filtered.length === 0 ? (
+                <div className="empty-state">
+                  {trips.length === 0 ? (
+                    <>
+                      <p>Todavía no tenés viajes cargados.</p>
+                      <p>
+                        <button className="button-primary" onClick={() => setEditing({ mode: "new" })}>+ Crear mi primer viaje</button>
+                        {" "}o{" "}
+                        <button className="button-secondary" onClick={() => setView("discover")}>🌎 Descubrir destinos</button>
+                      </p>
+                      <p className="hint">
+                        <button className="link-button" onClick={restoreSeeds}>O cargar el ejemplo "Brasil noviembre 2026"</button>
+                      </p>
+                    </>
+                  ) : (
+                    <p>No hay viajes en esta vista. Probá otro filtro.</p>
+                  )}
+                </div>
               ) : (
-                <p>No hay viajes en esta vista. Probá otro filtro.</p>
+                <div className="trip-grid">
+                  {filtered.map((t) => (
+                    <TripCard
+                      key={t.id}
+                      trip={t}
+                      onOpen={setActiveTripId}
+                      onEdit={(id) => {
+                        const t = trips.find((x) => x.id === id);
+                        if (t) setEditing(t);
+                      }}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </div>
               )}
-            </div>
-          ) : (
-            <div className="trip-grid">
-              {filtered.map((t) => (
-                <TripCard
-                  key={t.id}
-                  trip={t}
-                  onOpen={setActiveId}
-                  onEdit={(id) => setEditing(trips.find((x) => x.id === id) ?? null)}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </div>
+            </>
+          )}
+
+          {view === "discover" && (
+            <Discover
+              onCreateTripFromDestination={handleCreateTripFromDestination}
+              onOpenDestination={(id, criteria) => setActiveDestination({ id, month: criteria.month })}
+              wishlist={wishlist}
+              onToggleWishlist={toggleWishlist}
+            />
           )}
         </>
       )}
 
-      {active && (
+      {activeTrip && (
         <TripDetail
-          trip={active}
+          trip={activeTrip}
           currency={currency}
           onCurrencyChange={handleCurrency}
           onChange={upsert}
-          onEdit={() => setEditing(active)}
-          onDelete={() => handleDelete(active.id)}
-          onBack={() => setActiveId(null)}
+          onEdit={() => setEditing(activeTrip)}
+          onDelete={() => handleDelete(activeTrip.id)}
+          onBack={() => setActiveTripId(null)}
         />
+      )}
+
+      {activeDest && (
+        <div className="dest-detail-wrap">
+          <button className="back-button" onClick={() => setActiveDestination(null)}>← Volver</button>
+          <DestinationDetail
+            destination={activeDest}
+            highlightMonth={activeDestination?.month}
+            isInWishlist={isInWishlist(activeDest.id)}
+            onToggleWishlist={() => toggleWishlist(activeDest.id)}
+            onCreateTrip={() => handleCreateTripFromDestination(activeDest.id, {
+              month: activeDestination?.month ?? new Date().getMonth() + 1,
+              duration: activeDest.suggestedDuration?.min,
+            })}
+          />
+        </div>
       )}
 
       {editing && (
         <Modal
-          title={editing === "new" ? "Nuevo viaje" : "Editar viaje"}
+          title={"mode" in editing ? "Nuevo viaje" : "Editar viaje"}
           onClose={() => setEditing(null)}
           wide
         >
           <TripForm
-            trip={editing === "new" ? undefined : editing}
+            trip={"mode" in editing ? undefined : editing}
+            prefill={"mode" in editing ? editing.prefill : undefined}
             onSave={(trip) => {
               upsert(trip);
               setEditing(null);
-              if (editing === "new") setActiveId(trip.id);
+              if ("mode" in editing) setActiveTripId(trip.id);
             }}
             onCancel={() => setEditing(null)}
           />
