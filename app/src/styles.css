@@ -744,7 +744,7 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
 }
 .button-ai:hover { filter: brightness(1.1); }
 .button-ai:disabled { opacity: .6; cursor: progress; }
-.ai-bar { margin-bottom: 16px; }
+.ai-bar { margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
 .ai-panel {
   background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(99,102,241,0.08));
   border: 1px solid #6366f1;

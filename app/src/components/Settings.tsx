@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Settings as SettingsType, AiModel } from "../lib/settings";
 import { AI_MODEL_LABEL } from "../lib/settings";
+import { getStats, clearStats, EVENT_LABEL } from "../lib/analytics";
 
 type Props = {
   settings: SettingsType;
@@ -17,6 +18,11 @@ export function Settings({ settings, onSave, onClose }: Props) {
   const [supabaseAnonKey, setSupabaseAnonKey] = useState(settings.supabaseAnonKey);
   const [skyscannerAffiliate, setSkyscannerAffiliate] = useState(settings.skyscannerAffiliate);
   const [bookingAffiliate, setBookingAffiliate] = useState(settings.bookingAffiliate);
+  const [analyticsEndpoint, setAnalyticsEndpoint] = useState(settings.analyticsEndpoint);
+  const [stats, setStats] = useState(() => getStats());
+  const [showStats, setShowStats] = useState(false);
+
+  const sortedStats = Object.entries(stats.counts).sort((a, b) => b[1] - a[1]);
 
   const save = () => {
     onSave({
@@ -27,6 +33,7 @@ export function Settings({ settings, onSave, onClose }: Props) {
       supabaseAnonKey: supabaseAnonKey.trim(),
       skyscannerAffiliate: skyscannerAffiliate.trim(),
       bookingAffiliate: bookingAffiliate.trim(),
+      analyticsEndpoint: analyticsEndpoint.trim(),
     });
     onClose();
   };
@@ -103,6 +110,37 @@ export function Settings({ settings, onSave, onClose }: Props) {
           <span>Skyscanner — associate ID</span>
           <input type="text" value={skyscannerAffiliate} onChange={(e) => setSkyscannerAffiliate(e.target.value)} placeholder="abc123" />
         </label>
+      </div>
+
+      <div className="settings-section">
+        <h3>📊 Analytics de uso</h3>
+        <p className="settings-hint">
+          Los eventos de uso se cuentan localmente (privado). Si ponés un endpoint, también
+          se reenvían ahí (POST JSON) para agregación real entre usuarios.
+        </p>
+        <label className="field">
+          <span>Endpoint de analytics (opcional)</span>
+          <input type="text" value={analyticsEndpoint} onChange={(e) => setAnalyticsEndpoint(e.target.value)} placeholder="https://tu-endpoint/track" />
+        </label>
+        <button type="button" className="link-button" onClick={() => setShowStats((v) => !v)}>
+          {showStats ? "Ocultar" : "Ver"} uso local
+        </button>
+        {showStats && (
+          sortedStats.length ? (
+            <table className="budget-table">
+              <tbody>
+                {sortedStats.map(([ev, n]) => (
+                  <tr key={ev}><td>{EVENT_LABEL[ev] ?? ev}</td><td className="num">{n}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          ) : <p className="settings-hint">Todavía no hay eventos registrados.</p>
+        )}
+        {showStats && sortedStats.length > 0 && (
+          <button type="button" className="button-secondary" onClick={() => { clearStats(); setStats(getStats()); }}>
+            Borrar datos de uso
+          </button>
+        )}
       </div>
 
       <div className="form-actions">

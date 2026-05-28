@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { SupabaseClient, Session } from "@supabase/supabase-js";
 import { signIn, signUp, signOut, describeCloudError, SETUP_SQL } from "../lib/cloud";
+import { track } from "../lib/analytics";
 
 type Props = {
   client: SupabaseClient | null;
@@ -39,6 +40,7 @@ export function CloudPanel({ client, session, onSync, onConfigure }: Props) {
         setInfo("Cuenta creada. Si tu proyecto pide confirmación por email, revisá tu casilla; si no, ya podés iniciar sesión.");
       } else {
         await signIn(client, email.trim(), password);
+        track("cloud_login");
         setInfo("Sesión iniciada. Sincronizando…");
       }
       setPassword("");

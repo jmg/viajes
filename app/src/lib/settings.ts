@@ -11,6 +11,8 @@ export type Settings = {
   /** Afiliado opcional (revenue): ID de Skyscanner/Booking para deep links */
   skyscannerAffiliate: string;
   bookingAffiliate: string;
+  /** Endpoint opcional para reenviar eventos de uso (analytics) */
+  analyticsEndpoint: string;
 };
 
 const KEY = "viajes:settings:v1";
@@ -23,6 +25,7 @@ const DEFAULTS: Settings = {
   supabaseAnonKey: "",
   skyscannerAffiliate: "",
   bookingAffiliate: "",
+  analyticsEndpoint: "",
 };
 
 export function loadSettings(): Settings {

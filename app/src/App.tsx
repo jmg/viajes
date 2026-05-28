@@ -26,6 +26,7 @@ import { loadCurrency, saveCurrency } from "./lib/storage";
 import { loadSettings, saveSettings } from "./lib/settings";
 import type { Settings as SettingsType } from "./lib/settings";
 import { getSharedTripFromHash, clearShareHash } from "./lib/share";
+import { setAnalyticsEndpoint, track } from "./lib/analytics";
 import { createCloudClient, getSession, pullTrips, pushTrip, deleteTripCloud, mergeTrips } from "./lib/cloud";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -65,6 +66,10 @@ export function App() {
   useEffect(() => {
     localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
   }, [wishlist]);
+
+  useEffect(() => {
+    setAnalyticsEndpoint(settings.analyticsEndpoint);
+  }, [settings.analyticsEndpoint]);
 
   const [cloud, setCloud] = useState<SupabaseClient | null>(null);
 
@@ -138,6 +143,11 @@ export function App() {
     saveCurrency(c);
   };
 
+  const openDiscover = () => {
+    setView("discover");
+    track("discover_open");
+  };
+
   const activeTrip = activeTripId ? trips.find((t) => t.id === activeTripId) ?? null : null;
   const activeDest = activeDestination ? DESTINATIONS.find((d) => d.id === activeDestination.id) ?? null : null;
 
@@ -206,7 +216,11 @@ export function App() {
   };
 
   const toggleWishlist = (id: string) =>
-    setWishlist((curr) => curr.includes(id) ? curr.filter((x) => x !== id) : [...curr, id]);
+    setWishlist((curr) => {
+      if (curr.includes(id)) return curr.filter((x) => x !== id);
+      track("wishlist_add", { id });
+      return [...curr, id];
+    });
 
   const isInWishlist = (id: string): boolean => wishlist.includes(id);
 
@@ -254,7 +268,7 @@ export function App() {
               <button className={`main-tab ${view === "trips" ? "active" : ""}`} onClick={() => setView("trips")}>
                 📋 Mis viajes ({trips.length})
               </button>
-              <button className={`main-tab ${view === "discover" ? "active" : ""}`} onClick={() => setView("discover")}>
+              <button className={`main-tab ${view === "discover" ? "active" : ""}`} onClick={openDiscover}>
                 🌎 Descubrir destinos
                 {wishlist.length > 0 && <span className="wishlist-count">❤️ {wishlist.length}</span>}
               </button>
@@ -268,7 +282,7 @@ export function App() {
                   settings={settings}
                   loggedIn={!!session}
                   onNewTrip={() => { dismissOnboarding(); setEditing({ mode: "new" }); }}
-                  onDiscover={() => { dismissOnboarding(); setView("discover"); }}
+                  onDiscover={() => { dismissOnboarding(); openDiscover(); }}
                   onImportReservation={() => { dismissOnboarding(); setShowReservation(true); }}
                   onOpenSettings={() => setShowSettings(true)}
                   onOpenCloud={() => setShowCloud(true)}
@@ -285,7 +299,7 @@ export function App() {
                       <p>
                         <button className="button-primary" onClick={() => setEditing({ mode: "new" })}>+ Crear mi primer viaje</button>
                         {" "}o{" "}
-                        <button className="button-secondary" onClick={() => setView("discover")}>🌎 Descubrir destinos</button>
+                        <button className="button-secondary" onClick={openDiscover}>🌎 Descubrir destinos</button>
                       </p>
                       <p className="hint">
                         <button className="link-button" onClick={restoreSeeds}>O cargar el ejemplo "Brasil noviembre 2026"</button>
@@ -339,7 +353,7 @@ export function App() {
             onDelete={() => handleDelete(activeTrip.id)}
             onBack={() => setActiveTripId(null)}
             onOpenSettings={() => setShowSettings(true)}
-            onShare={() => setSharingTrip(activeTrip)}
+            onShare={() => { setSharingTrip(activeTrip); track("share_open"); }}
           />
         </Suspense>
       )}
@@ -373,6 +387,7 @@ export function App() {
             prefill={"mode" in editing ? editing.prefill : undefined}
             onSave={(trip) => {
               handleUpsert(trip);
+              track("mode" in editing ? "trip_create" : "trip_edit");
               setEditing(null);
               if ("mode" in editing) setActiveTripId(trip.id);
             }}

@@ -3,6 +3,7 @@ import type { Trip } from "../types";
 import type { Settings } from "../lib/settings";
 import { parseReservation, describeAiError } from "../lib/ai";
 import type { ParsedReservation } from "../lib/ai";
+import { track } from "../lib/analytics";
 
 type Props = {
   settings: Settings;
@@ -29,6 +30,7 @@ export function ReservationImport({ settings, onCreateTrip, onOpenSettings }: Pr
     try {
       const r = await parseReservation(settings.anthropicApiKey, settings.aiModel, text);
       setResult(r);
+      track("reservation_parse", { type: r.type });
     } catch (e) {
       setError(describeAiError(e));
     } finally {
@@ -61,6 +63,7 @@ export function ReservationImport({ settings, onCreateTrip, onOpenSettings }: Pr
         ? [{ label: `${result.type} — código ${result.confirmationCode}`, category: "Reservas" }]
         : undefined,
     };
+    track("reservation_create");
     onCreateTrip(trip);
   };
 

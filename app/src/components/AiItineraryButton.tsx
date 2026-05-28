@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { ItineraryDay, Trip } from "../types";
 import type { Settings } from "../lib/settings";
 import { generateItinerary, describeAiError } from "../lib/ai";
+import { draftItinerary } from "../lib/draftItinerary";
+import { track } from "../lib/analytics";
 
 type Props = {
   trip: Trip;
@@ -30,6 +32,7 @@ export function AiItineraryButton({ trip, settings, hasExisting, onApply, onOpen
         preferences: preferences.trim() || undefined,
       });
       onApply(days);
+      track("ai_itinerary");
       setOpen(false);
       setPreferences("");
     } catch (e) {
@@ -39,11 +42,19 @@ export function AiItineraryButton({ trip, settings, hasExisting, onApply, onOpen
     }
   };
 
+  const draft = () => {
+    onApply(draftItinerary(trip));
+    track("draft_itinerary");
+  };
+
   if (!open) {
     return (
       <div className="ai-bar">
         <button className="button-ai" onClick={() => setOpen(true)}>
           ✨ Generar itinerario con IA
+        </button>
+        <button className="button-secondary" onClick={draft} title="Arma un esqueleto editable sin usar IA">
+          📝 Borrador rápido (sin IA)
         </button>
       </div>
     );
@@ -54,8 +65,11 @@ export function AiItineraryButton({ trip, settings, hasExisting, onApply, onOpen
       <h4>✨ Generar itinerario con IA</h4>
       {noKey ? (
         <div className="ai-no-key">
-          <p>Necesitás configurar tu API key de Anthropic para usar esta función.</p>
-          <button className="button-primary" onClick={onOpenSettings}>Ir a Configuración</button>
+          <p>Necesitás configurar tu API key de Anthropic para generar con IA. Mientras tanto, podés armar un borrador sin IA.</p>
+          <div className="form-actions">
+            <button className="button-secondary" onClick={() => { draft(); setOpen(false); }}>📝 Borrador sin IA</button>
+            <button className="button-primary" onClick={onOpenSettings}>Ir a Configuración</button>
+          </div>
         </div>
       ) : (
         <>
