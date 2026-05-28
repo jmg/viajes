@@ -844,17 +844,6 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
 .onboarding-dot.warn { background: var(--warn); }
 .onboarding-dot.off { background: var(--border); }
 
-/* Cloud */
-.cloud-panel { display: grid; gap: 12px; }
-.cloud-status { display: flex; align-items: center; gap: 8px; font-size: 15px; }
-.cloud-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
-.cloud-dot.online { background: var(--good); box-shadow: 0 0 8px var(--good); }
-.sql-block {
-  background: #0a1120; border: 1px solid var(--border); border-radius: 8px;
-  padding: 12px; font-size: 11px; overflow-x: auto; color: var(--muted);
-  white-space: pre; font-family: ui-monospace, monospace;
-}
-
 /* Reservation import */
 .reservation-import { display: grid; gap: 12px; }
 .reservation-result {

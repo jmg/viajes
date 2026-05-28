@@ -22,21 +22,16 @@ Abrir http://localhost:5173
 - **Gastos con split**: balances y settlement entre viajeros.
 - **Reservar**: deep links a Google Flights / Skyscanner / Booking / GetYourGuide (con afiliado opcional).
 - **Compartir por link**: link de solo lectura (sin servidor).
-- **Sincronización en la nube** (opcional, BYOC): tu propio proyecto de Supabase.
 - **PWA**: instalable y offline.
+
+Los datos se guardan localmente (localStorage). Para mover viajes entre dispositivos
+usá Export/Import (JSON) o el link de compartir.
 
 ## Configuración (todo opcional, en ⚙ Configuración)
 
 ### IA — itinerarios e import de reservas
 Pegá tu **API key de Anthropic** (console.anthropic.com). Se guarda solo en tu navegador
 y se usa directo contra la API de Anthropic. Elegí modelo (Opus/Sonnet/Haiku).
-
-### Sincronización — Supabase (BYOC)
-1. Creá un proyecto gratis en supabase.com.
-2. En Configuración pegá la **Project URL** y la **anon key** (Settings → API).
-3. Abrí **☁️ Cuenta** → "Ver SQL de setup" y corré ese SQL en el SQL editor de Supabase
-   (crea la tabla `trips` con RLS por usuario).
-4. Creá una cuenta / iniciá sesión. Los viajes se sincronizan (last-write-wins).
 
 ### Afiliados (revenue, opcional)
 Cargá tu `aid` de Booking.com y/o tu associate ID de Skyscanner; los deep links de la
@@ -56,7 +51,6 @@ src/
 ├── destinations/            # Catálogo + tipos del recomendador
 ├── lib/
 │   ├── ai.ts                # Anthropic SDK: itinerario + parse de reservas
-│   ├── cloud.ts             # Supabase: auth + sync
 │   ├── booking.ts           # Deep links de reserva (afiliados)
 │   ├── recommender.ts       # Scoring por clima
 │   ├── share.ts             # Compartir por URL

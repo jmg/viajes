@@ -14,8 +14,6 @@ export function Settings({ settings, onSave, onClose }: Props) {
   const [model, setModel] = useState<AiModel>(settings.aiModel);
   const [origin, setOrigin] = useState(settings.originCity);
   const [show, setShow] = useState(false);
-  const [supabaseUrl, setSupabaseUrl] = useState(settings.supabaseUrl);
-  const [supabaseAnonKey, setSupabaseAnonKey] = useState(settings.supabaseAnonKey);
   const [skyscannerAffiliate, setSkyscannerAffiliate] = useState(settings.skyscannerAffiliate);
   const [bookingAffiliate, setBookingAffiliate] = useState(settings.bookingAffiliate);
   const [analyticsEndpoint, setAnalyticsEndpoint] = useState(settings.analyticsEndpoint);
@@ -29,8 +27,6 @@ export function Settings({ settings, onSave, onClose }: Props) {
       anthropicApiKey: apiKey.trim(),
       aiModel: model,
       originCity: origin.trim(),
-      supabaseUrl: supabaseUrl.trim(),
-      supabaseAnonKey: supabaseAnonKey.trim(),
       skyscannerAffiliate: skyscannerAffiliate.trim(),
       bookingAffiliate: bookingAffiliate.trim(),
       analyticsEndpoint: analyticsEndpoint.trim(),
@@ -78,22 +74,6 @@ export function Settings({ settings, onSave, onClose }: Props) {
               <option key={m} value={m}>{AI_MODEL_LABEL[m]}</option>
             ))}
           </select>
-        </label>
-      </div>
-
-      <div className="settings-section">
-        <h3>☁️ Sincronización (Supabase)</h3>
-        <p className="settings-hint">
-          Sincronizá tus viajes entre dispositivos con tu propio proyecto de Supabase (gratis).
-          Creá un proyecto en supabase.com y pegá la URL y la anon key (Settings → API).
-        </p>
-        <label className="field">
-          <span>Supabase URL</span>
-          <input type="text" value={supabaseUrl} onChange={(e) => setSupabaseUrl(e.target.value)} placeholder="https://xxxx.supabase.co" />
-        </label>
-        <label className="field">
-          <span>Supabase anon key</span>
-          <input type="password" value={supabaseAnonKey} onChange={(e) => setSupabaseAnonKey(e.target.value)} placeholder="eyJhbGci..." autoComplete="off" />
         </label>
       </div>
 

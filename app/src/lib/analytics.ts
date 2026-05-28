@@ -65,7 +65,6 @@ export const EVENT_LABEL: Record<string, string> = {
   reservation_parse: "Reservas parseadas",
   reservation_create: "Viajes desde reserva",
   share_open: "Veces que se compartió",
-  cloud_login: "Inicios de sesión",
   booking_click: "Clicks en reservar",
   wishlist_add: "Guardados en wishlist",
 };

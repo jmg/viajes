@@ -2,18 +2,15 @@ import type { Settings } from "../lib/settings";
 
 type Props = {
   settings: Settings;
-  loggedIn: boolean;
   onNewTrip: () => void;
   onDiscover: () => void;
   onOpenSettings: () => void;
-  onOpenCloud: () => void;
   onImportReservation: () => void;
   onDismiss: () => void;
 };
 
-export function Onboarding({ settings, loggedIn, onNewTrip, onDiscover, onOpenSettings, onOpenCloud, onImportReservation, onDismiss }: Props) {
+export function Onboarding({ settings, onNewTrip, onDiscover, onOpenSettings, onImportReservation, onDismiss }: Props) {
   const hasAi = !!settings.anthropicApiKey;
-  const hasCloud = !!settings.supabaseUrl && !!settings.supabaseAnonKey;
 
   return (
     <div className="onboarding">
@@ -51,14 +48,6 @@ export function Onboarding({ settings, loggedIn, onNewTrip, onDiscover, onOpenSe
             <span>{hasAi ? "Configurada" : "Pegá tu API key de Anthropic"}</span>
           </div>
           <span className="onboarding-go">Configurar →</span>
-        </div>
-        <div className="onboarding-status" onClick={onOpenCloud} role="button" tabIndex={0}>
-          <span className={`onboarding-dot ${loggedIn ? "on" : hasCloud ? "warn" : "off"}`} />
-          <div>
-            <strong>☁️ Sincronización entre dispositivos</strong>
-            <span>{loggedIn ? "Conectado" : hasCloud ? "Configurada — iniciá sesión" : "Conectá tu proyecto Supabase"}</span>
-          </div>
-          <span className="onboarding-go">Cuenta →</span>
         </div>
       </div>
 

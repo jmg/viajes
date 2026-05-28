@@ -10,10 +10,8 @@ export function useTrips() {
     saveTrips(trips);
   }, [trips]);
 
-  const upsert = useCallback((trip: Trip, opts?: { touch?: boolean }) => {
-    // touch=true marca updatedAt=ahora (edición del usuario). Para merges de
-    // cloud pasamos touch=false para conservar el timestamp original.
-    const stamped = opts?.touch === false ? trip : { ...trip, updatedAt: new Date().toISOString() };
+  const upsert = useCallback((trip: Trip) => {
+    const stamped = { ...trip, updatedAt: new Date().toISOString() };
     setTrips((curr) => {
       const idx = curr.findIndex((t) => t.id === stamped.id);
       if (idx >= 0) {
