@@ -98,6 +98,60 @@ export async function generateItinerary({ apiKey, model, trip, preferences }: Ge
     .sort((a, b) => a.dayNumber - b.dayNumber);
 }
 
+export type ParsedReservation = {
+  type: "vuelo" | "hotel" | "tour" | "auto" | "otro";
+  title: string;
+  origin?: string;
+  destination?: string;
+  startDate?: string;
+  endDate?: string;
+  provider?: string;
+  confirmationCode?: string;
+  details: string;
+};
+
+const RESERVATION_SCHEMA = {
+  type: "object",
+  properties: {
+    type: { type: "string", enum: ["vuelo", "hotel", "tour", "auto", "otro"] },
+    title: { type: "string" },
+    origin: { type: "string" },
+    destination: { type: "string" },
+    startDate: { type: "string", description: "Fecha ISO YYYY-MM-DD o vacío" },
+    endDate: { type: "string", description: "Fecha ISO YYYY-MM-DD o vacío" },
+    provider: { type: "string" },
+    confirmationCode: { type: "string" },
+    details: { type: "string", description: "Resumen legible de la reserva" },
+  },
+  required: ["type", "title", "details"],
+  additionalProperties: false,
+} as const;
+
+export async function parseReservation(apiKey: string, model: AiModel, text: string): Promise<ParsedReservation> {
+  const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+
+  const stream = client.messages.stream({
+    model,
+    max_tokens: 4000,
+    system:
+      "Extraés datos de confirmaciones de reservas de viaje (vuelos, hoteles, tours, autos) pegadas por el usuario. " +
+      "Devolvés un objeto estructurado. Convertí fechas a ISO YYYY-MM-DD. Si un campo no aparece, dejalo vacío. " +
+      "El resumen 'details' debe ser breve y legible, en español.",
+    messages: [{ role: "user", content: `Extraé los datos de esta reserva:\n\n${text}` }],
+    output_config: { format: { type: "json_schema", schema: RESERVATION_SCHEMA } },
+  } as Anthropic.MessageStreamParams);
+
+  const message = await stream.finalMessage();
+  const textBlock = message.content.find((b) => b.type === "text");
+  if (!textBlock || textBlock.type !== "text") throw new Error("Respuesta vacía del modelo.");
+
+  try {
+    return JSON.parse(textBlock.text) as ParsedReservation;
+  } catch {
+    throw new Error("No se pudo interpretar la reserva.");
+  }
+}
+
 export function describeAiError(e: unknown): string {
   if (e instanceof Anthropic.AuthenticationError) return "API key inválida. Revisá tu clave en Configuración.";
   if (e instanceof Anthropic.RateLimitError) return "Límite de tasa alcanzado. Esperá unos segundos y reintentá.";

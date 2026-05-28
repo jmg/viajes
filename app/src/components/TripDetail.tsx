@@ -12,6 +12,7 @@ import { BudgetEditor } from "./editors/BudgetEditor";
 import { ItineraryEditor } from "./editors/ItineraryEditor";
 import { ExpensesEditor } from "./editors/ExpensesEditor";
 import { AiItineraryButton } from "./AiItineraryButton";
+import { BookingLinks } from "./BookingLinks";
 import { Countdown } from "./Countdown";
 
 type Props = {
@@ -27,7 +28,7 @@ type Props = {
   onShare: () => void;
 };
 
-type TabId = "overview" | "flights" | "itinerary" | "moon" | "budget" | "expenses" | "checklist" | "links";
+type TabId = "overview" | "flights" | "itinerary" | "moon" | "budget" | "expenses" | "checklist" | "links" | "booking";
 
 export function TripDetail({ trip, currency, settings, onCurrencyChange, onChange, onEdit, onDelete, onBack, onOpenSettings, onShare }: Props) {
   const status = autoStatus(trip);
@@ -41,6 +42,7 @@ export function TripDetail({ trip, currency, settings, onCurrencyChange, onChang
     { id: "expenses", label: "Gastos" },
     { id: "checklist", label: "Checklist" },
     { id: "links", label: "Links" },
+    { id: "booking", label: "Reservar" },
   ];
 
   if (!trip.coastal && !trip.moonPhases?.length) {
@@ -178,6 +180,8 @@ export function TripDetail({ trip, currency, settings, onCurrencyChange, onChang
             onChange={(links) => onChange({ ...trip, links })}
           />
         )}
+
+        {active === "booking" && <BookingLinks trip={trip} settings={settings} />}
       </section>
     </div>
   );

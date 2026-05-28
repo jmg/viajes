@@ -114,6 +114,9 @@ export type Trip = {
 
   travelerNames?: string[];
   expenses?: Expense[];
+
+  /** ISO timestamp de última modificación, usado para sync cloud (last-write-wins) */
+  updatedAt?: string;
 };
 
 export type FlightCriterion = {

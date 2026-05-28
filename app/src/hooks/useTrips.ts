@@ -10,15 +10,18 @@ export function useTrips() {
     saveTrips(trips);
   }, [trips]);
 
-  const upsert = useCallback((trip: Trip) => {
+  const upsert = useCallback((trip: Trip, opts?: { touch?: boolean }) => {
+    // touch=true marca updatedAt=ahora (edición del usuario). Para merges de
+    // cloud pasamos touch=false para conservar el timestamp original.
+    const stamped = opts?.touch === false ? trip : { ...trip, updatedAt: new Date().toISOString() };
     setTrips((curr) => {
-      const idx = curr.findIndex((t) => t.id === trip.id);
+      const idx = curr.findIndex((t) => t.id === stamped.id);
       if (idx >= 0) {
         const next = curr.slice();
-        next[idx] = trip;
+        next[idx] = stamped;
         return next;
       }
-      return [...curr, trip];
+      return [...curr, stamped];
     });
   }, []);
 

@@ -796,6 +796,37 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
 .shared-list li { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
 .shared-list a { color: var(--accent); text-decoration: none; }
 
+/* Cloud */
+.cloud-panel { display: grid; gap: 12px; }
+.cloud-status { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+.cloud-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+.cloud-dot.online { background: var(--good); box-shadow: 0 0 8px var(--good); }
+.sql-block {
+  background: #0a1120; border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px; font-size: 11px; overflow-x: auto; color: var(--muted);
+  white-space: pre; font-family: ui-monospace, monospace;
+}
+
+/* Reservation import */
+.reservation-import { display: grid; gap: 12px; }
+.reservation-result {
+  background: var(--surface); border: 1px solid var(--accent);
+  border-radius: 10px; padding: 14px;
+}
+.reservation-result h4 { margin: 0 0 8px; text-transform: capitalize; }
+.reservation-result ul { margin: 0 0 8px; padding-left: 18px; font-size: 14px; }
+
+/* Booking */
+.booking-links { display: grid; gap: 16px; }
+.booking-section h3 { margin: 0 0 8px; font-size: 16px; }
+.booking-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.booking-link {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px; font-size: 14px;
+  color: var(--accent); text-decoration: none;
+}
+.booking-link:hover { border-color: var(--accent); }
+
 /* Responsive */
 @media (max-width: 600px) {
   .field-row { grid-template-columns: 1fr; }

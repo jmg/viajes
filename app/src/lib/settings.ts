@@ -4,6 +4,13 @@ export type Settings = {
   anthropicApiKey: string;
   aiModel: AiModel;
   originCity: string;
+  /** Supabase URL del proyecto del usuario (BYOC) */
+  supabaseUrl: string;
+  /** Supabase anon/public key */
+  supabaseAnonKey: string;
+  /** Afiliado opcional (revenue): ID de Skyscanner/Booking para deep links */
+  skyscannerAffiliate: string;
+  bookingAffiliate: string;
 };
 
 const KEY = "viajes:settings:v1";
@@ -12,6 +19,10 @@ const DEFAULTS: Settings = {
   anthropicApiKey: "",
   aiModel: "claude-opus-4-8",
   originCity: "Buenos Aires",
+  supabaseUrl: "",
+  supabaseAnonKey: "",
+  skyscannerAffiliate: "",
+  bookingAffiliate: "",
 };
 
 export function loadSettings(): Settings {
