@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Currency, Trip } from "../types";
+import type { Settings } from "../lib/settings";
 import { formatDateRange, daysBetween } from "../lib/format";
 import { autoStatus, STATUS_LABEL } from "../lib/status";
 import { computeMoonPhases, computeTideWindows } from "../lib/moon";
@@ -9,21 +10,26 @@ import { ChecklistEditor } from "./editors/ChecklistEditor";
 import { LinksEditor } from "./editors/LinksEditor";
 import { BudgetEditor } from "./editors/BudgetEditor";
 import { ItineraryEditor } from "./editors/ItineraryEditor";
+import { ExpensesEditor } from "./editors/ExpensesEditor";
+import { AiItineraryButton } from "./AiItineraryButton";
 import { Countdown } from "./Countdown";
 
 type Props = {
   trip: Trip;
   currency: Currency;
+  settings: Settings;
   onCurrencyChange: (c: Currency) => void;
   onChange: (trip: Trip) => void;
   onEdit: () => void;
   onDelete: () => void;
   onBack: () => void;
+  onOpenSettings: () => void;
+  onShare: () => void;
 };
 
-type TabId = "overview" | "flights" | "itinerary" | "moon" | "budget" | "checklist" | "links";
+type TabId = "overview" | "flights" | "itinerary" | "moon" | "budget" | "expenses" | "checklist" | "links";
 
-export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit, onDelete, onBack }: Props) {
+export function TripDetail({ trip, currency, settings, onCurrencyChange, onChange, onEdit, onDelete, onBack, onOpenSettings, onShare }: Props) {
   const status = autoStatus(trip);
 
   const tabs: { id: TabId; label: string }[] = [
@@ -32,6 +38,7 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
     { id: "itinerary", label: "Itinerario" },
     { id: "moon", label: "Luna y mareas" },
     { id: "budget", label: "Presupuesto" },
+    { id: "expenses", label: "Gastos" },
     { id: "checklist", label: "Checklist" },
     { id: "links", label: "Links" },
   ];
@@ -66,6 +73,7 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
             {trip.subtitle && <p className="subtitle">{trip.subtitle}</p>}
           </div>
           <div className="header-actions">
+            <button className="button-secondary" onClick={onShare}>🔗 Compartir</button>
             <button className="button-secondary" onClick={onEdit}>✎ Editar</button>
             <button className="button-danger" onClick={onDelete}>🗑 Eliminar</button>
           </div>
@@ -110,10 +118,19 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
         )}
 
         {active === "itinerary" && (
-          <ItineraryEditor
-            days={trip.itinerary ?? []}
-            onChange={(itinerary) => onChange({ ...trip, itinerary })}
-          />
+          <>
+            <AiItineraryButton
+              trip={trip}
+              settings={settings}
+              hasExisting={!!trip.itinerary?.length}
+              onApply={(itinerary) => onChange({ ...trip, itinerary })}
+              onOpenSettings={onOpenSettings}
+            />
+            <ItineraryEditor
+              days={trip.itinerary ?? []}
+              onChange={(itinerary) => onChange({ ...trip, itinerary })}
+            />
+          </>
         )}
 
         {active === "moon" && (
@@ -132,6 +149,18 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
             currency={currency}
             onCurrencyChange={onCurrencyChange}
             onChange={(budget) => onChange({ ...trip, budget })}
+          />
+        )}
+
+        {active === "expenses" && (
+          <ExpensesEditor
+            expenses={trip.expenses ?? []}
+            travelerNames={trip.travelerNames ?? []}
+            travelers={trip.travelers}
+            currency={currency}
+            onCurrencyChange={onCurrencyChange}
+            onChange={(expenses) => onChange({ ...trip, expenses })}
+            onNamesChange={(travelerNames) => onChange({ ...trip, travelerNames })}
           />
         )}
 

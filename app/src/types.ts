@@ -64,6 +64,16 @@ export type ChecklistItem = {
   category?: string;
 };
 
+export type Expense = {
+  id: string;
+  date: string;
+  label: string;
+  category?: string;
+  amountUsd: number;
+  paidBy: string;
+  splitBetween: string[];
+};
+
 export type LinkRef = {
   label: string;
   url: string;
@@ -101,6 +111,9 @@ export type Trip = {
   budget?: BudgetItem[];
   checklist?: ChecklistItem[];
   links?: LinkRef[];
+
+  travelerNames?: string[];
+  expenses?: Expense[];
 };
 
 export type FlightCriterion = {

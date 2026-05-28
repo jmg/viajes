@@ -10,10 +10,16 @@ import type { FilterId } from "./components/Filters";
 import { ImportExport } from "./components/ImportExport";
 import { Discover } from "./components/Discover";
 import { DestinationDetail } from "./components/DestinationDetail";
+import { Settings } from "./components/Settings";
+import { ShareDialog } from "./components/ShareDialog";
+import { SharedTripView } from "./components/SharedTripView";
 import { DESTINATIONS } from "./destinations/data";
 import type { RecommendationCriteria } from "./destinations/types";
 import { autoStatus } from "./lib/status";
 import { loadCurrency, saveCurrency } from "./lib/storage";
+import { loadSettings, saveSettings } from "./lib/settings";
+import type { Settings as SettingsType } from "./lib/settings";
+import { getSharedTripFromHash, clearShareHash } from "./lib/share";
 
 type View = "trips" | "discover";
 type TripFormPrefill = { destinationName?: string; month?: number; duration?: number };
@@ -30,6 +36,10 @@ export function App() {
   const [filter, setFilter] = useState<FilterId>("all");
   const [showImportExport, setShowImportExport] = useState(false);
   const [currency, setCurrency] = useState<Currency>(() => loadCurrency());
+  const [settings, setSettings] = useState<SettingsType>(() => loadSettings());
+  const [showSettings, setShowSettings] = useState(false);
+  const [sharingTrip, setSharingTrip] = useState<Trip | null>(null);
+  const [sharedTrip, setSharedTrip] = useState<Trip | null>(() => getSharedTripFromHash());
   const [wishlist, setWishlist] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem(WISHLIST_KEY) ?? "[]"); } catch { return []; }
   });
@@ -37,6 +47,25 @@ export function App() {
   useEffect(() => {
     localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
   }, [wishlist]);
+
+  const handleSettings = (s: SettingsType) => {
+    setSettings(s);
+    saveSettings(s);
+  };
+
+  const saveSharedCopy = () => {
+    if (!sharedTrip) return;
+    const copy: Trip = { ...sharedTrip, id: `${sharedTrip.id}-copy-${Date.now().toString(36)}`, title: `${sharedTrip.title} (copia)` };
+    upsert(copy);
+    clearShareHash();
+    setSharedTrip(null);
+    setActiveTripId(copy.id);
+  };
+
+  const dismissShared = () => {
+    clearShareHash();
+    setSharedTrip(null);
+  };
 
   const handleCurrency = (c: Currency) => {
     setCurrency(c);
@@ -116,6 +145,15 @@ export function App() {
 
   const isInWishlist = (id: string): boolean => wishlist.includes(id);
 
+  // Vista de viaje compartido tiene prioridad sobre todo lo demás.
+  if (sharedTrip) {
+    return (
+      <div className="app">
+        <SharedTripView trip={sharedTrip} onSaveCopy={saveSharedCopy} onDismiss={dismissShared} />
+      </div>
+    );
+  }
+
   // Renderiza la home con tabs
   const isHome = !activeTrip && !activeDest;
 
@@ -130,6 +168,9 @@ export function App() {
                 <p>Descubrí destinos según el clima y planeá tu próxima aventura.</p>
               </div>
               <div className="home-actions">
+                <button className="button-secondary" onClick={() => setShowSettings(true)}>
+                  ⚙ Configuración
+                </button>
                 <button className="button-secondary" onClick={() => setShowImportExport(true)}>
                   ⇅ Import/Export
                 </button>
@@ -205,11 +246,14 @@ export function App() {
         <TripDetail
           trip={activeTrip}
           currency={currency}
+          settings={settings}
           onCurrencyChange={handleCurrency}
           onChange={upsert}
           onEdit={() => setEditing(activeTrip)}
           onDelete={() => handleDelete(activeTrip.id)}
           onBack={() => setActiveTripId(null)}
+          onOpenSettings={() => setShowSettings(true)}
+          onShare={() => setSharingTrip(activeTrip)}
         />
       )}
 
@@ -251,6 +295,18 @@ export function App() {
       {showImportExport && (
         <Modal title="Import / Export" onClose={() => setShowImportExport(false)}>
           <ImportExport trips={trips} onImport={handleImport} />
+        </Modal>
+      )}
+
+      {showSettings && (
+        <Modal title="Configuración" onClose={() => setShowSettings(false)}>
+          <Settings settings={settings} onSave={handleSettings} onClose={() => setShowSettings(false)} />
+        </Modal>
+      )}
+
+      {sharingTrip && (
+        <Modal title="Compartir viaje" onClose={() => setSharingTrip(null)}>
+          <ShareDialog trip={sharingTrip} />
         </Modal>
       )}
     </div>
