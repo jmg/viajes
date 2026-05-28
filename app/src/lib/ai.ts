@@ -1,6 +1,9 @@
-import Anthropic from "@anthropic-ai/sdk";
+import type AnthropicNS from "@anthropic-ai/sdk";
 import type { ItineraryDay, Trip } from "../types";
 import type { AiModel } from "./settings";
+
+// El SDK de Anthropic se importa dinámicamente para mantenerlo fuera del bundle
+// inicial: solo se descarga cuando el usuario realmente genera/parsea con IA.
 
 export type GenerateParams = {
   apiKey: string;
@@ -44,6 +47,7 @@ Reglas:
 - Tené en cuenta el clima de la época y las preferencias del viajero.`;
 
 export async function generateItinerary({ apiKey, model, trip, preferences }: GenerateParams): Promise<ItineraryDay[]> {
+  const { default: Anthropic } = await import("@anthropic-ai/sdk");
   const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
 
   const userPrompt = [
@@ -65,7 +69,7 @@ export async function generateItinerary({ apiKey, model, trip, preferences }: Ge
     messages: [{ role: "user", content: userPrompt }],
     // Structured outputs: constrain the response to our itinerary schema.
     output_config: { format: { type: "json_schema", schema: ITINERARY_SCHEMA } },
-  } as Anthropic.MessageStreamParams);
+  } as AnthropicNS.MessageStreamParams);
 
   const message = await stream.finalMessage();
 
@@ -128,6 +132,7 @@ const RESERVATION_SCHEMA = {
 } as const;
 
 export async function parseReservation(apiKey: string, model: AiModel, text: string): Promise<ParsedReservation> {
+  const { default: Anthropic } = await import("@anthropic-ai/sdk");
   const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
 
   const stream = client.messages.stream({
@@ -139,7 +144,7 @@ export async function parseReservation(apiKey: string, model: AiModel, text: str
       "El resumen 'details' debe ser breve y legible, en español.",
     messages: [{ role: "user", content: `Extraé los datos de esta reserva:\n\n${text}` }],
     output_config: { format: { type: "json_schema", schema: RESERVATION_SCHEMA } },
-  } as Anthropic.MessageStreamParams);
+  } as AnthropicNS.MessageStreamParams);
 
   const message = await stream.finalMessage();
   const textBlock = message.content.find((b) => b.type === "text");
@@ -152,12 +157,17 @@ export async function parseReservation(apiKey: string, model: AiModel, text: str
   }
 }
 
+// Duck-typing en vez de instanceof para no depender estáticamente del SDK
+// (así el SDK no entra al bundle inicial).
 export function describeAiError(e: unknown): string {
-  if (e instanceof Anthropic.AuthenticationError) return "API key inválida. Revisá tu clave en Configuración.";
-  if (e instanceof Anthropic.RateLimitError) return "Límite de tasa alcanzado. Esperá unos segundos y reintentá.";
-  if (e instanceof Anthropic.PermissionDeniedError) return "Tu API key no tiene permiso para este modelo.";
-  if (e instanceof Anthropic.APIConnectionError) return "Error de conexión. Revisá tu internet.";
-  if (e instanceof Anthropic.APIError) return `Error de la API (${e.status ?? "?"}): ${e.message}`;
-  if (e instanceof Error) return e.message;
+  const err = e as { status?: number; message?: string; name?: string };
+  if (err?.status === 401) return "API key inválida. Revisá tu clave en Configuración.";
+  if (err?.status === 429) return "Límite de tasa alcanzado. Esperá unos segundos y reintentá.";
+  if (err?.status === 403) return "Tu API key no tiene permiso para este modelo.";
+  if (err?.name === "APIConnectionError" || /network|fetch|conn/i.test(err?.message ?? "")) {
+    return "Error de conexión. Revisá tu internet.";
+  }
+  if (typeof err?.status === "number") return `Error de la API (${err.status}): ${err.message ?? ""}`;
+  if (err?.message) return err.message;
   return "Error desconocido al generar el itinerario.";
 }

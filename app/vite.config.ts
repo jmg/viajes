@@ -17,6 +17,15 @@ export default defineConfig({
       { find: /^node:child_process$/, replacement: fileURLToPath(new URL("./src/shims/node-child_process.ts", import.meta.url)) },
     ],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom"],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     host: true,

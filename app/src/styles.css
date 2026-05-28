@@ -796,6 +796,54 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
 .shared-list li { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
 .shared-list a { color: var(--accent); text-decoration: none; }
 
+/* Loading fallback */
+.loading { color: var(--muted); padding: 40px; text-align: center; }
+
+/* Onboarding */
+.onboarding {
+  position: relative;
+  background: linear-gradient(135deg, rgba(56,189,248,0.1), rgba(99,102,241,0.06));
+  border: 1px solid var(--accent);
+  border-radius: 16px; padding: 24px; margin-bottom: 24px;
+  display: grid; gap: 16px;
+}
+.onboarding h2 { margin: 0; font-size: 24px; }
+.onboarding-close {
+  position: absolute; top: 14px; right: 14px;
+  background: transparent; border: 0; color: var(--muted);
+  cursor: pointer; font-size: 16px;
+}
+.onboarding-close:hover { color: var(--text); }
+.onboarding-actions {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;
+}
+.onboarding-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px; cursor: pointer;
+  display: grid; gap: 4px; text-align: left; color: var(--text);
+  transition: all .15s;
+}
+.onboarding-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.onboarding-card strong { font-size: 15px; }
+.onboarding-card span { color: var(--muted); font-size: 13px; }
+.onboarding-emoji { font-size: 28px; }
+.onboarding-setup { display: grid; gap: 8px; }
+.onboarding-setup h3 { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+.onboarding-status {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px; cursor: pointer;
+}
+.onboarding-status:hover { border-color: var(--accent); }
+.onboarding-status > div { flex: 1; display: grid; }
+.onboarding-status strong { font-size: 14px; }
+.onboarding-status span { color: var(--muted); font-size: 12px; }
+.onboarding-go { color: var(--accent); font-size: 13px; white-space: nowrap; }
+.onboarding-dot { width: 10px; height: 10px; border-radius: 999px; flex-shrink: 0; }
+.onboarding-dot.on { background: var(--good); box-shadow: 0 0 8px var(--good); }
+.onboarding-dot.warn { background: var(--warn); }
+.onboarding-dot.off { background: var(--border); }
+
 /* Cloud */
 .cloud-panel { display: grid; gap: 12px; }
 .cloud-status { display: flex; align-items: center; gap: 8px; font-size: 15px; }

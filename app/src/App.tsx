@@ -1,21 +1,24 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import type { Currency, Trip } from "./types";
 import { useTrips } from "./hooks/useTrips";
 import { TripCard } from "./components/TripCard";
-import { TripDetail } from "./components/TripDetail";
 import { TripForm } from "./components/TripForm";
 import { Modal } from "./components/Modal";
 import { Filters } from "./components/Filters";
 import type { FilterId } from "./components/Filters";
 import { ImportExport } from "./components/ImportExport";
-import { Discover } from "./components/Discover";
-import { DestinationDetail } from "./components/DestinationDetail";
 import { Settings } from "./components/Settings";
 import { ShareDialog } from "./components/ShareDialog";
 import { SharedTripView } from "./components/SharedTripView";
 import { CloudPanel } from "./components/CloudPanel";
 import { ReservationImport } from "./components/ReservationImport";
+import { Onboarding } from "./components/Onboarding";
+
+// Vistas pesadas (dataset de destinos / muchos editores) cargadas on-demand.
+const TripDetail = lazy(() => import("./components/TripDetail").then((m) => ({ default: m.TripDetail })));
+const Discover = lazy(() => import("./components/Discover").then((m) => ({ default: m.Discover })));
+const DestinationDetail = lazy(() => import("./components/DestinationDetail").then((m) => ({ default: m.DestinationDetail })));
 import { DESTINATIONS } from "./destinations/data";
 import type { RecommendationCriteria } from "./destinations/types";
 import { autoStatus } from "./lib/status";
@@ -23,13 +26,15 @@ import { loadCurrency, saveCurrency } from "./lib/storage";
 import { loadSettings, saveSettings } from "./lib/settings";
 import type { Settings as SettingsType } from "./lib/settings";
 import { getSharedTripFromHash, clearShareHash } from "./lib/share";
-import { getClient, getSession, pullTrips, pushTrip, deleteTripCloud, mergeTrips } from "./lib/cloud";
+import { createCloudClient, getSession, pullTrips, pushTrip, deleteTripCloud, mergeTrips } from "./lib/cloud";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 type View = "trips" | "discover";
 type TripFormPrefill = { destinationName?: string; month?: number; duration?: number };
 type EditingState = Trip | { mode: "new"; prefill?: TripFormPrefill } | null;
 
 const WISHLIST_KEY = "viajes:wishlist:v1";
+const ONBOARDED_KEY = "viajes:onboarded:v1";
 
 export function App() {
   const { trips, upsert, remove, restoreSeeds, replaceAll } = useTrips();
@@ -47,18 +52,33 @@ export function App() {
   const [sharingTrip, setSharingTrip] = useState<Trip | null>(null);
   const [sharedTrip, setSharedTrip] = useState<Trip | null>(() => getSharedTripFromHash());
   const [session, setSession] = useState<Session | null>(null);
+  const [onboarded, setOnboarded] = useState<boolean>(() => localStorage.getItem(ONBOARDED_KEY) === "1");
   const [wishlist, setWishlist] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem(WISHLIST_KEY) ?? "[]"); } catch { return []; }
   });
+
+  const dismissOnboarding = useCallback(() => {
+    localStorage.setItem(ONBOARDED_KEY, "1");
+    setOnboarded(true);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
   }, [wishlist]);
 
-  const cloud = useMemo(() => getClient(settings.supabaseUrl, settings.supabaseAnonKey), [settings.supabaseUrl, settings.supabaseAnonKey]);
+  const [cloud, setCloud] = useState<SupabaseClient | null>(null);
 
   const tripsRef = useRef(trips);
   useEffect(() => { tripsRef.current = trips; }, [trips]);
+
+  // Crear el cliente de Supabase (lazy: el SDK se descarga acá, no al iniciar).
+  useEffect(() => {
+    let active = true;
+    createCloudClient(settings.supabaseUrl, settings.supabaseAnonKey).then((c) => {
+      if (active) setCloud(c);
+    });
+    return () => { active = false; };
+  }, [settings.supabaseUrl, settings.supabaseAnonKey]);
 
   // Sesión Supabase: init + suscripción a cambios de auth.
   useEffect(() => {
@@ -243,6 +263,18 @@ export function App() {
 
           {view === "trips" && (
             <>
+              {!onboarded && (
+                <Onboarding
+                  settings={settings}
+                  loggedIn={!!session}
+                  onNewTrip={() => { dismissOnboarding(); setEditing({ mode: "new" }); }}
+                  onDiscover={() => { dismissOnboarding(); setView("discover"); }}
+                  onImportReservation={() => { dismissOnboarding(); setShowReservation(true); }}
+                  onOpenSettings={() => setShowSettings(true)}
+                  onOpenCloud={() => setShowCloud(true)}
+                  onDismiss={dismissOnboarding}
+                />
+              )}
               <Filters value={filter} counts={counts} onChange={setFilter} />
 
               {filtered.length === 0 ? (
@@ -283,44 +315,50 @@ export function App() {
           )}
 
           {view === "discover" && (
-            <Discover
-              onCreateTripFromDestination={handleCreateTripFromDestination}
-              onOpenDestination={(id, criteria) => setActiveDestination({ id, month: criteria.month })}
-              wishlist={wishlist}
-              onToggleWishlist={toggleWishlist}
-            />
+            <Suspense fallback={<div className="loading">Cargando…</div>}>
+              <Discover
+                onCreateTripFromDestination={handleCreateTripFromDestination}
+                onOpenDestination={(id, criteria) => setActiveDestination({ id, month: criteria.month })}
+                wishlist={wishlist}
+                onToggleWishlist={toggleWishlist}
+              />
+            </Suspense>
           )}
         </>
       )}
 
       {activeTrip && (
-        <TripDetail
-          trip={activeTrip}
-          currency={currency}
-          settings={settings}
-          onCurrencyChange={handleCurrency}
-          onChange={handleUpsert}
-          onEdit={() => setEditing(activeTrip)}
-          onDelete={() => handleDelete(activeTrip.id)}
-          onBack={() => setActiveTripId(null)}
-          onOpenSettings={() => setShowSettings(true)}
-          onShare={() => setSharingTrip(activeTrip)}
-        />
+        <Suspense fallback={<div className="loading">Cargando…</div>}>
+          <TripDetail
+            trip={activeTrip}
+            currency={currency}
+            settings={settings}
+            onCurrencyChange={handleCurrency}
+            onChange={handleUpsert}
+            onEdit={() => setEditing(activeTrip)}
+            onDelete={() => handleDelete(activeTrip.id)}
+            onBack={() => setActiveTripId(null)}
+            onOpenSettings={() => setShowSettings(true)}
+            onShare={() => setSharingTrip(activeTrip)}
+          />
+        </Suspense>
       )}
 
       {activeDest && (
         <div className="dest-detail-wrap">
           <button className="back-button" onClick={() => setActiveDestination(null)}>← Volver</button>
-          <DestinationDetail
-            destination={activeDest}
-            highlightMonth={activeDestination?.month}
-            isInWishlist={isInWishlist(activeDest.id)}
-            onToggleWishlist={() => toggleWishlist(activeDest.id)}
-            onCreateTrip={() => handleCreateTripFromDestination(activeDest.id, {
-              month: activeDestination?.month ?? new Date().getMonth() + 1,
-              duration: activeDest.suggestedDuration?.min,
-            })}
-          />
+          <Suspense fallback={<div className="loading">Cargando…</div>}>
+            <DestinationDetail
+              destination={activeDest}
+              highlightMonth={activeDestination?.month}
+              isInWishlist={isInWishlist(activeDest.id)}
+              onToggleWishlist={() => toggleWishlist(activeDest.id)}
+              onCreateTrip={() => handleCreateTripFromDestination(activeDest.id, {
+                month: activeDestination?.month ?? new Date().getMonth() + 1,
+                duration: activeDest.suggestedDuration?.min,
+              })}
+            />
+          </Suspense>
         </div>
       )}
 

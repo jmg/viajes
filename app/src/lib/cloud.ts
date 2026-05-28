@@ -1,6 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient, Session } from "@supabase/supabase-js";
 import type { Trip } from "../types";
+
+// @supabase/supabase-js se importa dinámicamente: solo se descarga cuando el
+// usuario configuró su proyecto (la mayoría arranca sin cloud).
 
 // BYOC: el usuario provee su propio proyecto de Supabase (URL + anon key).
 // Guardamos los viajes como filas { id, user_id, data jsonb, updated_at } con RLS.
@@ -19,11 +21,12 @@ create policy "own_trips" on public.trips
 let client: SupabaseClient | null = null;
 let clientKey = "";
 
-export function getClient(url: string, anonKey: string): SupabaseClient | null {
+export async function createCloudClient(url: string, anonKey: string): Promise<SupabaseClient | null> {
   if (!url || !anonKey) return null;
   const key = `${url}::${anonKey}`;
   if (client && clientKey === key) return client;
   try {
+    const { createClient } = await import("@supabase/supabase-js");
     client = createClient(url, anonKey, {
       auth: { persistSession: true, autoRefreshToken: true },
     });
