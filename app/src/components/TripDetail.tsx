@@ -13,7 +13,9 @@ import { ItineraryEditor } from "./editors/ItineraryEditor";
 import { ExpensesEditor } from "./editors/ExpensesEditor";
 import { AiItineraryButton } from "./AiItineraryButton";
 import { BookingLinks } from "./BookingLinks";
+import { TripPrintView } from "./TripPrintView";
 import { Countdown } from "./Countdown";
+import { track } from "../lib/analytics";
 
 type Props = {
   trip: Trip;
@@ -64,7 +66,8 @@ export function TripDetail({ trip, currency, settings, onCurrencyChange, onChang
   }, [trip.tideWindows, trip.coastal, computedPhases]);
 
   return (
-    <div className="trip-detail">
+    <>
+    <div className="trip-detail screen-only">
       <button className="back-button" onClick={onBack}>← Volver</button>
 
       <header className="trip-header">
@@ -75,6 +78,7 @@ export function TripDetail({ trip, currency, settings, onCurrencyChange, onChang
             {trip.subtitle && <p className="subtitle">{trip.subtitle}</p>}
           </div>
           <div className="header-actions">
+            <button className="button-secondary" onClick={() => { track("trip_print"); window.print(); }}>🖨 Imprimir / PDF</button>
             <button className="button-secondary" onClick={onShare}>🔗 Compartir</button>
             <button className="button-secondary" onClick={onEdit}>✎ Editar</button>
             <button className="button-danger" onClick={onDelete}>🗑 Eliminar</button>
@@ -184,6 +188,8 @@ export function TripDetail({ trip, currency, settings, onCurrencyChange, onChang
         {active === "booking" && <BookingLinks trip={trip} settings={settings} />}
       </section>
     </div>
+    <TripPrintView trip={trip} currency={currency} />
+    </>
   );
 }
 

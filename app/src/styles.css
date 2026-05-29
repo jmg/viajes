@@ -799,6 +799,30 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
 /* Loading fallback */
 .loading { color: var(--muted); padding: 40px; text-align: center; }
 
+/* Print / PDF */
+.print-only { display: none; }
+@media print {
+  body { background: #fff; color: #000; }
+  .screen-only, .modal-backdrop { display: none !important; }
+  .print-only { display: block; }
+  .print-view { color: #000; font-size: 12pt; line-height: 1.5; }
+  .print-view h1 { font-size: 22pt; margin: 0 0 4px; }
+  .print-view h2 { font-size: 15pt; margin: 18px 0 6px; border-bottom: 1px solid #999; padding-bottom: 2px; }
+  .print-view h3 { font-size: 12pt; margin: 10px 0 2px; }
+  .print-header { margin-bottom: 12px; }
+  .print-meta { color: #444; font-size: 10pt; }
+  .print-summary { font-style: italic; }
+  .print-day { margin-bottom: 8px; page-break-inside: avoid; }
+  .print-day-title { font-weight: bold; margin: 0 0 2px; }
+  .print-notes { color: #555; font-size: 10pt; }
+  .print-view ul { margin: 2px 0 6px; padding-left: 18px; }
+  .print-table { width: 100%; border-collapse: collapse; }
+  .print-table td { padding: 3px 6px; border-bottom: 1px solid #ddd; }
+  .print-total td { font-weight: bold; border-top: 2px solid #000; border-bottom: 0; }
+  .print-footer { margin-top: 24px; color: #999; font-size: 9pt; text-align: center; }
+  @page { margin: 1.5cm; }
+}
+
 /* Onboarding */
 .onboarding {
   position: relative;
