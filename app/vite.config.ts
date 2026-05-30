@@ -3,6 +3,8 @@ import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 
 export default defineConfig({
+  // Para GitHub Pages (subpath) el CI setea VITE_BASE=/viajes/. Local queda en "/".
+  base: process.env.VITE_BASE ?? "/",
   plugins: [react()],
   resolve: {
     // El SDK de Anthropic referencia varios builtins de Node desde submódulos
