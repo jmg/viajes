@@ -4,13 +4,79 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0e1726" />
-    <meta name="description" content="Planeá viajes y descubrí destinos según el clima" />
+
+    <title>Viajes — planeador y recomendador de destinos con IA</title>
+    <meta name="description" content="Planeá tu próximo viaje en minutos: descubrí destinos según el clima de la fecha, generá itinerarios día por día con IA, llevá presupuesto y gastos en grupo, y exportá todo al calendario o PDF. 100% en tu navegador, gratis, sin cuentas." />
+    <meta name="keywords" content="planeador de viajes, recomendador de destinos, itinerario con IA, clima por destino, presupuesto de viaje, gastos compartidos viaje, app de viajes, PWA viajes, gratis" />
+    <meta name="author" content="Viajes" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://jmg.com.ar/viajes/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Viajes" />
+    <meta property="og:title" content="Viajes — planeador y recomendador de destinos con IA" />
+    <meta property="og:description" content="Descubrí a dónde ir según el clima, generá el itinerario con IA y llevá los gastos del grupo. Local-first y gratis." />
+    <meta property="og:url" content="https://jmg.com.ar/viajes/" />
+    <meta property="og:image" content="https://jmg.com.ar/viajes/og.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="es_AR" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Viajes — planeador y recomendador de destinos con IA" />
+    <meta name="twitter:description" content="Descubrí a dónde ir según el clima, generá el itinerario con IA y llevá los gastos del grupo. Local-first y gratis." />
+    <meta name="twitter:image" content="https://jmg.com.ar/viajes/og.svg" />
+
+    <!-- Datos estructurados (Schema.org) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Viajes",
+        "alternateName": "Viajes — planeador y recomendador",
+        "url": "https://jmg.com.ar/viajes/",
+        "description": "Planeador y recomendador de destinos con IA. Descubrí a dónde ir según el clima de la fecha, generá itinerarios día por día, llevá presupuesto y gastos en grupo, y exportá todo al calendario o PDF.",
+        "applicationCategory": "TravelApplication",
+        "operatingSystem": "Web",
+        "inLanguage": "es-AR",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "featureList": [
+          "Recomendador de destinos por clima",
+          "Itinerarios generados con IA (Claude)",
+          "Import de reservas desde mail con IA",
+          "Gastos compartidos con balances",
+          "Exportar viaje a calendario (.ics) y PDF",
+          "Compartir viaje por link",
+          "PWA instalable y offline"
+        ]
+      }
+    </script>
+
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/icon.svg" />
-    <title>Viajes</title>
   </head>
   <body>
+    <noscript>
+      <div style="max-width:680px;margin:60px auto;padding:24px;font-family:system-ui,sans-serif;color:#e8edf7;background:#172238;border:1px solid #2c3a58;border-radius:14px;">
+        <h1 style="margin:0 0 8px;">✈️ Viajes — planeador y recomendador con IA</h1>
+        <p style="color:#94a3b8;">Planeá tu próximo viaje en minutos: descubrí destinos según el clima de la fecha, generá itinerarios día por día con IA, controlá presupuesto y gastos en grupo, y exportá todo a tu calendario o PDF.</p>
+        <h2 style="margin-top:24px;">Qué hace</h2>
+        <ul style="line-height:1.7;color:#cbd5e1;">
+          <li><strong>Descubrir destinos</strong> por clima del mes y preferencias (playa, montaña, ciudad…)</li>
+          <li><strong>Itinerarios con IA</strong> (tu propia API key de Anthropic) o borrador rápido sin IA</li>
+          <li><strong>Importar reservas</strong> pegando un mail de confirmación: la IA extrae los datos</li>
+          <li><strong>Gastos del grupo</strong> con balances y quién le debe a quién</li>
+          <li><strong>Reservar</strong> con links directos a Google Flights, Skyscanner, Booking y GetYourGuide</li>
+          <li><strong>Exportar a calendario</strong> (.ics) y a <strong>PDF</strong> para llevar offline</li>
+          <li><strong>Compartir</strong> el viaje por un link (sin servidor)</li>
+          <li><strong>PWA</strong> instalable, funciona offline</li>
+        </ul>
+        <p style="color:#94a3b8;margin-top:24px;">Esta app necesita JavaScript habilitado para funcionar.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

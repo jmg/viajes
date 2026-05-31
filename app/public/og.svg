@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a1120"/>
+      <stop offset="1" stop-color="#1e3a5f"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- top label -->
+  <text x="600" y="120" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22" letter-spacing="6" fill="#94a3b8">PLANEADOR Y RECOMENDADOR DE VIAJES</text>
+  <!-- title -->
+  <text x="600" y="280" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="120" font-weight="800" fill="#e8edf7">✈️ Viajes</text>
+  <!-- tagline -->
+  <text x="600" y="350" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" fill="#cbd5e1">
+    ¿A dónde voy? Descubrí destinos por clima y armá el itinerario con IA.
+  </text>
+  <!-- destination chips -->
+  <g transform="translate(0,460)" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24">
+    <g transform="translate(160,0)">
+      <rect width="200" height="60" rx="30" fill="#172238" stroke="#2c3a58"/>
+      <text x="100" y="38" text-anchor="middle" fill="#38bdf8">🏔 Bariloche</text>
+    </g>
+    <g transform="translate(390,0)">
+      <rect width="200" height="60" rx="30" fill="#172238" stroke="#2c3a58"/>
+      <text x="100" y="38" text-anchor="middle" fill="#38bdf8">🏖 Maragogi</text>
+    </g>
+    <g transform="translate(620,0)">
+      <rect width="200" height="60" rx="30" fill="#172238" stroke="#2c3a58"/>
+      <text x="100" y="38" text-anchor="middle" fill="#38bdf8">🏛 Lisboa</text>
+    </g>
+    <g transform="translate(850,0)">
+      <rect width="200" height="60" rx="30" fill="#172238" stroke="#2c3a58"/>
+      <text x="100" y="38" text-anchor="middle" fill="#38bdf8">🏯 Tokio</text>
+    </g>
+  </g>
+  <!-- accent bar -->
+  <rect x="0" y="612" width="1200" height="18" fill="url(#accent)"/>
+</svg>
