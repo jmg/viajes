@@ -16,6 +16,7 @@ import { BookingLinks } from "./BookingLinks";
 import { TripPrintView } from "./TripPrintView";
 import { Countdown } from "./Countdown";
 import { track } from "../lib/analytics";
+import { downloadTripIcs } from "../lib/calendar";
 
 type Props = {
   trip: Trip;
@@ -78,6 +79,7 @@ export function TripDetail({ trip, currency, settings, onCurrencyChange, onChang
             {trip.subtitle && <p className="subtitle">{trip.subtitle}</p>}
           </div>
           <div className="header-actions">
+            <button className="button-secondary" onClick={() => { track("trip_calendar"); downloadTripIcs(trip); }}>📅 Calendario</button>
             <button className="button-secondary" onClick={() => { track("trip_print"); window.print(); }}>🖨 Imprimir / PDF</button>
             <button className="button-secondary" onClick={onShare}>🔗 Compartir</button>
             <button className="button-secondary" onClick={onEdit}>✎ Editar</button>

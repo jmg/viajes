@@ -66,6 +66,7 @@ export const EVENT_LABEL: Record<string, string> = {
   reservation_create: "Viajes desde reserva",
   share_open: "Veces que se compartió",
   trip_print: "Impresiones / PDF",
+  trip_calendar: "Descargas a calendario (.ics)",
   booking_click: "Clicks en reservar",
   wishlist_add: "Guardados en wishlist",
 };

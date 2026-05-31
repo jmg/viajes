@@ -9,7 +9,10 @@ type Props = {
 
 const EMOJIS = ["📍", "🛫", "🛬", "🏖", "🌊", "🐢", "🤿", "🏝", "🛶", "🚐", "🌅", "🌕", "🛍", "🍽", "🏛", "🚗", "⛷", "🥾", "🏔", "🗺", "🎒", "🌃", "🌞", "🌙"];
 
+const today = (): string => new Date().toISOString().slice(0, 10);
+
 export function ItineraryEditor({ days, onChange }: Props) {
+  const todayIso = today();
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -37,7 +40,8 @@ export function ItineraryEditor({ days, onChange }: Props) {
     <div className="itinerary-editor">
       <ol className="itinerary">
         {days.map((d) => (
-          <li key={d.dayNumber} className="itinerary-day">
+          <li key={d.dayNumber} className={`itinerary-day${d.date === todayIso ? " today" : ""}`}>
+            {d.date === todayIso && <span className="today-badge">HOY</span>}
             {editingId === d.dayNumber ? (
               <DayForm
                 initial={d}
