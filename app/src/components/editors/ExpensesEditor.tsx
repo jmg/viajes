@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { Currency, Expense } from "../../types";
 import { CURRENCIES, formatAmount, SYMBOL } from "../../lib/currency";
+import { CurrencyConverter } from "../CurrencyConverter";
 
 type Props = {
   expenses: Expense[];
@@ -66,6 +67,7 @@ export function ExpensesEditor({ expenses, travelerNames, travelers, currency, o
 
   return (
     <div className="expenses-editor">
+      <CurrencyConverter defaultTarget={currency} />
       <div className="budget-currency">
         <label>
           Moneda

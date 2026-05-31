@@ -811,6 +811,30 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
 /* Loading fallback */
 .loading { color: var(--muted); padding: 40px; text-align: center; }
 
+/* Search row in Mis viajes */
+.search-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+.search-row .search-input { flex: 1; }
+
+/* Currency converter */
+.converter {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px; margin-bottom: 16px;
+}
+.converter-row { display: flex; gap: 8px; align-items: end; }
+.converter-field { flex: 1; display: grid; gap: 4px; }
+.converter-field label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.converter-input { display: flex; gap: 6px; }
+.converter-input select { width: 80px; flex: 0 0 80px; }
+.converter-input input { flex: 1; }
+.converter-input output {
+  flex: 1; padding: 10px 12px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 8px; font-size: 14px; font-variant-numeric: tabular-nums;
+  text-align: right; min-width: 0;
+}
+.converter-swap { align-self: end; margin-bottom: 1px; }
+.converter-hint { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
+
 /* Print / PDF */
 .print-only { display: none; }
 @media print {

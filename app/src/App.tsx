@@ -40,6 +40,7 @@ export function App() {
   const [activeDestination, setActiveDestination] = useState<{ id: string; month?: number } | null>(null);
   const [editing, setEditing] = useState<EditingState>(null);
   const [filter, setFilter] = useState<FilterId>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [showImportExport, setShowImportExport] = useState(false);
   const [currency, setCurrency] = useState<Currency>(() => loadCurrency());
   const [settings, setSettings] = useState<SettingsType>(() => loadSettings());
@@ -98,6 +99,12 @@ export function App() {
   const activeDest = activeDestination ? DESTINATIONS.find((d) => d.id === activeDestination.id) ?? null : null;
 
   const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const matchQuery = (t: Trip) => {
+      if (!q) return true;
+      const hay = [t.title, t.subtitle, t.summary, t.origin, ...t.destinations].filter(Boolean).join(" ").toLowerCase();
+      return hay.includes(q);
+    };
     const withStatus = trips.map((t) => ({ trip: t, status: autoStatus(t) }));
     const matchFilter = (s: string) => {
       if (filter === "all") return true;
@@ -105,7 +112,7 @@ export function App() {
       return s === filter;
     };
     return withStatus
-      .filter((x) => matchFilter(x.status))
+      .filter((x) => matchFilter(x.status) && matchQuery(x.trip))
       .sort((a, b) => {
         const order = { "in-progress": 0, planning: 1, booked: 1, past: 2 };
         const oa = order[a.status];
@@ -115,7 +122,7 @@ export function App() {
         return a.trip.startDate.localeCompare(b.trip.startDate);
       })
       .map((x) => x.trip);
-  }, [trips, filter]);
+  }, [trips, filter, searchQuery]);
 
   const counts = useMemo(() => {
     const c: Record<FilterId, number> = { all: 0, upcoming: 0, "in-progress": 0, past: 0 };
@@ -228,6 +235,18 @@ export function App() {
                   onDismiss={dismissOnboarding}
                 />
               )}
+              <div className="search-row">
+                <input
+                  className="search-input"
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="🔎 Buscar por título, destino o resumen…"
+                />
+                {searchQuery && (
+                  <button className="icon-button" onClick={() => setSearchQuery("")} title="Limpiar">✕</button>
+                )}
+              </div>
               <Filters value={filter} counts={counts} onChange={setFilter} />
 
               {filtered.length === 0 ? (
