@@ -16,7 +16,7 @@ Abrir http://localhost:5173
 ## Funcionalidades
 
 - **Mis viajes**: CRUD completo, estados automáticos, countdown, checklist, presupuesto multi-moneda, links, mareas/luna.
-- **Descubrir destinos**: recomendador por clima del mes + preferencias (70 destinos curados).
+- **Descubrir destinos**: recomendador por clima del mes + preferencias (94 destinos curados).
 - **Itinerario con IA** (opcional): genera el día a día con tu API key de Anthropic.
 - **Importar reserva** (opcional): pegás un mail de confirmación y la IA extrae los datos.
 - **Gastos con split**: balances y settlement entre viajeros.
@@ -36,6 +36,18 @@ y se usa directo contra la API de Anthropic. Elegí modelo (Opus/Sonnet/Haiku).
 ### Afiliados (revenue, opcional)
 Cargá tu `aid` de Booking.com y/o tu associate ID de Skyscanner; los deep links de la
 pestaña **Reservar** los incluyen.
+
+## Agregar destinos en bulk (con clima real)
+
+`scripts/fetch-climate.mjs` trae las normales mensuales desde Open-Meteo
+(ERA5, gratis, sin auth) para cualquier lat/lng. Editás la lista en
+`scripts/destinations-to-fetch.mjs` y corrés:
+
+```bash
+node scripts/fetch-climate.mjs > /tmp/new-destinations.txt
+```
+
+Ver `scripts/README.md` para el workflow completo.
 
 ## Agregar un viaje "de fábrica" (seed)
 

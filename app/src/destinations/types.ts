@@ -35,6 +35,9 @@ export type Destination = {
   region: string;
   hemisphere: Hemisphere;
   flag: string;
+  /** Lat/lng opcionales — útiles para mapa y para regenerar el clima con Open-Meteo. */
+  lat?: number;
+  lng?: number;
   categories: DestinationCategory[];
   /** 12 entries, ene…dic */
   climate: MonthClimate[];
