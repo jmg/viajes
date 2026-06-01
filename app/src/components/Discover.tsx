@@ -7,6 +7,7 @@ import { CATEGORY_EMOJI, CATEGORY_LABEL } from "../destinations/types";
 import { DESTINATIONS } from "../destinations/data";
 import { recommendDestinations } from "../lib/recommender";
 import { DestinationCard } from "./DestinationCard";
+import { WorldMap } from "./WorldMap";
 
 const MONTHS_FULL = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -35,6 +36,7 @@ export function Discover({ onCreateTripFromDestination: _, onOpenDestination, wi
   const [search, setSearch] = useState("");
   const [excludeRegions, setExcludeRegions] = useState<string[]>([]);
   const [onlyWishlist, setOnlyWishlist] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
   const criteria: RecommendationCriteria = useMemo(() => ({
     month,
@@ -200,6 +202,10 @@ export function Discover({ onCreateTripFromDestination: _, onOpenDestination, wi
       <div className="results-summary">
         <strong>{results.length}</strong> destinos encontrados ·{" "}
         <strong>{top}</strong> con clima ideal o bueno en {MONTHS_FULL[month - 1]}
+        <span className="view-toggle">
+          <button className={`toggle-btn ${viewMode === "list" ? "active" : ""}`} onClick={() => setViewMode("list")}>📋 Lista</button>
+          <button className={`toggle-btn ${viewMode === "map" ? "active" : ""}`} onClick={() => setViewMode("map")}>🗺 Mapa</button>
+        </span>
       </div>
 
       {results.length === 0 ? (
@@ -207,6 +213,8 @@ export function Discover({ onCreateTripFromDestination: _, onOpenDestination, wi
           <p>No hay destinos que cumplan estos filtros.</p>
           <button className="button-secondary" onClick={reset}>Reset filtros</button>
         </div>
+      ) : viewMode === "map" ? (
+        <WorldMap results={results} onOpen={(id) => onOpenDestination(id, criteria)} />
       ) : (
         <div className="dest-grid">
           {results.map((r) => (

@@ -811,6 +811,29 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
 /* Loading fallback */
 .loading { color: var(--muted); padding: 40px; text-align: center; }
 
+/* World map (Discover) */
+.view-toggle { float: right; display: inline-flex; gap: 4px; }
+.toggle-btn {
+  background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+  padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
+}
+.toggle-btn.active { background: var(--accent-strong); color: white; border-color: var(--accent-strong); }
+.world-map-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px;
+}
+.world-map { width: 100%; height: auto; display: block; border-radius: 8px; }
+.world-map .map-grid line { stroke: rgba(148, 163, 184, 0.18); stroke-width: 0.5; }
+.world-map .map-labels text { fill: rgba(148, 163, 184, 0.5); font-size: 9px; }
+.world-map .map-pin { cursor: pointer; transition: transform .1s; }
+.world-map .map-pin:hover circle { r: 7; }
+.map-legend {
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  margin-top: 10px; font-size: 12px; color: var(--muted);
+}
+.map-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 999px; margin-right: 4px; vertical-align: middle; }
+.map-missing { margin-left: auto; font-style: italic; }
+
 /* Search row in Mis viajes */
 .search-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
 .search-row .search-input { flex: 1; }
