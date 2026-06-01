@@ -14,6 +14,7 @@ import { ExpensesEditor } from "./editors/ExpensesEditor";
 import { AiItineraryButton } from "./AiItineraryButton";
 import { BookingLinks } from "./BookingLinks";
 import { TripPrintView } from "./TripPrintView";
+import { TodayPanel } from "./TodayPanel";
 import { Countdown } from "./Countdown";
 import { track } from "../lib/analytics";
 import { downloadTripIcs } from "../lib/calendar";
@@ -94,6 +95,8 @@ export function TripDetail({ trip, currency, settings, onCurrencyChange, onChang
           <span><Countdown trip={trip} /></span>
         </div>
       </header>
+
+      <TodayPanel trip={trip} onGoToItinerary={() => setActive("itinerary")} />
 
       <nav className="tabs">
         {tabs.map((t) => (

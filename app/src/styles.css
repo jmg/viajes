@@ -263,6 +263,28 @@ body {
   font-size: 10px; font-weight: 800; letter-spacing: 1px;
   padding: 2px 8px; border-radius: 999px;
 }
+
+/* Today panel (trip in progress) */
+.today-panel {
+  background: linear-gradient(135deg, rgba(251,191,36,0.10), rgba(56,189,248,0.06));
+  border: 1px solid var(--gold);
+  border-radius: 14px; padding: 16px; margin-bottom: 20px;
+  display: grid; gap: 12px;
+}
+.today-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.today-badge-inline {
+  background: var(--gold); color: #1a1206;
+  font-size: 11px; font-weight: 800; letter-spacing: 1px;
+  padding: 3px 9px; border-radius: 999px; margin-right: 10px;
+}
+.today-sub { color: var(--muted); font-size: 13px; }
+.today-content { display: grid; grid-template-columns: 60px 1fr; gap: 14px; align-items: start; }
+.today-emoji { font-size: 40px; text-align: center; }
+.today-location { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+.today-title { margin: 4px 0 8px; font-size: 18px; }
+.today-highlights { margin: 0; padding-left: 18px; line-height: 1.6; }
+.today-notes { color: var(--gold); font-size: 13px; margin: 8px 0 0; font-style: italic; }
+.today-empty { color: var(--muted); margin: 0; font-style: italic; }
 .day-marker { text-align: center; }
 .day-emoji { font-size: 28px; display: block; }
 .day-number { font-size: 12px; color: var(--muted); }

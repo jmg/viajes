@@ -50,6 +50,40 @@ const NEW_ZEALAND: LL[] = [
   [-34, 173], [-38, 178], [-41, 175], [-44, 171], [-47, 167], [-41, 172], [-37, 174], [-34, 173],
 ];
 
+// Islas / penínsulas adicionales — refinan el reconocimiento del mapa
+const MADAGASCAR: LL[] = [
+  [-12, 49], [-15, 50], [-22, 48], [-25, 46], [-25, 44], [-21, 44], [-15, 45], [-12, 49],
+];
+
+const ITALY_BOOT: LL[] = [
+  [46, 7], [46, 13], [45, 14], [42, 17], [40, 18], [38, 17], [38, 16], [40, 14], [44, 10], [46, 7],
+];
+
+const IBERIA: LL[] = [
+  [44, -10], [44, -2], [43, 4], [41, 3], [37, -2], [36, -6], [37, -9], [41, -9], [44, -10],
+];
+
+const KOREAN_PENINSULA: LL[] = [
+  [42, 128], [38, 130], [35, 130], [34, 127], [38, 125], [42, 128],
+];
+
+const INDIA: LL[] = [
+  [33, 75], [31, 88], [27, 89], [22, 92], [15, 80], [10, 79], [8, 77], [16, 73], [22, 70], [27, 70], [33, 75],
+];
+
+const CARIBBEAN: LL[] = [
+  [22, -74], [21, -71], [19, -69], [18, -67], [17, -62], [13, -61], [11, -62], [10, -66], [12, -71], [15, -75], [19, -77], [22, -78], [22, -74],
+];
+
+const JAPAN: LL[] = [
+  [45, 142], [42, 142], [38, 140], [36, 136], [34, 132], [32, 130], [35, 138], [40, 140], [45, 142],
+];
+
+const BRITISH_ISLES: LL[] = [
+  [58, -5], [55, -2], [52, 1], [51, -1], [50, -4], [54, -5], [55, -8], [58, -5],
+];
+
 export const CONTINENTS: LL[][] = [
-  NORTH_AMERICA, GREENLAND, SOUTH_AMERICA, EUROPE, AFRICA, ASIA, AUSTRALIA, NEW_ZEALAND,
+  NORTH_AMERICA, GREENLAND, SOUTH_AMERICA, EUROPE, IBERIA, ITALY_BOOT, BRITISH_ISLES,
+  AFRICA, MADAGASCAR, ASIA, INDIA, KOREAN_PENINSULA, JAPAN, AUSTRALIA, NEW_ZEALAND, CARIBBEAN,
 ];
