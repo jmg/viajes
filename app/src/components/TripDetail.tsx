@@ -15,6 +15,7 @@ import { AiItineraryButton } from "./AiItineraryButton";
 import { BookingLinks } from "./BookingLinks";
 import { TripPrintView } from "./TripPrintView";
 import { TodayPanel } from "./TodayPanel";
+import { WeatherSection } from "./WeatherSection";
 import { Countdown } from "./Countdown";
 import { track } from "../lib/analytics";
 import { downloadTripIcs } from "../lib/calendar";
@@ -111,7 +112,12 @@ export function TripDetail({ trip, currency, settings, onCurrencyChange, onChang
       </nav>
 
       <section className="tab-content">
-        {active === "overview" && <Overview trip={trip} />}
+        {active === "overview" && (
+          <>
+            <Overview trip={trip} />
+            <WeatherSection trip={trip} />
+          </>
+        )}
 
         {active === "flights" && (
           trip.flightOptions?.length ? (

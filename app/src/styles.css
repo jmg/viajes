@@ -285,6 +285,25 @@ body {
 .today-highlights { margin: 0; padding-left: 18px; line-height: 1.6; }
 .today-notes { color: var(--gold); font-size: 13px; margin: 8px 0 0; font-style: italic; }
 .today-empty { color: var(--muted); margin: 0; font-style: italic; }
+
+/* Weather section (real forecast / archive) */
+.weather-section {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px; margin-top: 16px;
+  display: grid; gap: 10px;
+}
+.weather-section h3 { margin: 0; font-size: 16px; }
+.weather-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(82px, 1fr)); gap: 8px;
+}
+.weather-day {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 6px; text-align: center;
+}
+.weather-date { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .3px; }
+.weather-emoji { font-size: 22px; margin: 4px 0; }
+.weather-temp { font-size: 13px; font-variant-numeric: tabular-nums; }
+.weather-rain { color: var(--muted); font-size: 11px; }
 .day-marker { text-align: center; }
 .day-emoji { font-size: 28px; display: block; }
 .day-number { font-size: 12px; color: var(--muted); }
