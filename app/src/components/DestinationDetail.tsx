@@ -5,6 +5,15 @@ import { ClimateChart } from "./ClimateChart";
 
 const MONTHS_FULL = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
+function tempBucket(t: number): string {
+  if (t < 0) return "temp-frigid";
+  if (t < 10) return "temp-cold";
+  if (t < 18) return "temp-cool";
+  if (t < 26) return "temp-warm";
+  if (t < 32) return "temp-hot";
+  return "temp-scorching";
+}
+
 const VISA_LABEL = {
   none: "Sin visa",
   evisa: "E-visa",
@@ -86,8 +95,13 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
             const isBest = d.bestMonths.includes(monthNum);
             const climate = d.climate[i];
             const rating = rateClimate(climate);
+            const avgTemp = (climate.highC + climate.lowC) / 2;
             return (
-              <div key={i} className={`month-cell rating-${rating.rating} ${isBest ? "best" : ""}`}>
+              <div
+                key={i}
+                className={`month-cell rating-${rating.rating} ${isBest ? "best" : ""} ${tempBucket(avgTemp)}`}
+                title={`${m} · ${climate.lowC}°/${climate.highC}° · ${climate.rainMm} mm`}
+              >
                 <div className="month-name">{m.slice(0, 3)}</div>
                 <div className="month-temp">{climate.lowC}°/{climate.highC}°</div>
                 <div className="month-rain">{climate.rainMm}mm</div>

@@ -21,7 +21,7 @@ Hashtags EN: `#TravelTech #AI #IndieDev #PWA #BuildInPublic`
 **Honestidad / debilidades a mencionar antes que te las marquen:**
 - No hay sync entre dispositivos (por elección: cero servidor).
 - BYOK suma fricción para no-técnicos (mitigación: borrador sin IA).
-- Solo 154 destinos curados (crecerá).
+- Solo 170 destinos curados (crecerá).
 
 ---
 
@@ -83,7 +83,7 @@ PWA, works offline.
 > Hi PH! 👋 I built Viajes because every travel app asks me "where do you want to go?" — but
 > sometimes I want the opposite: "I have these 12 days in March, where SHOULD I go?".
 >
-> So I made a planner that starts from the date and your preferences, scores 154 curated
+> So I made a planner that starts from the date and your preferences, scores 170 curated
 > destinations by climate match, and lets you build the trip from there with AI (using your
 > own Anthropic key — no subscription).
 >
@@ -153,7 +153,7 @@ Feedback bienvenido 🙏
 > Probarla: https://jmg.com.ar/viajes/
 > Código: https://github.com/jmg/viajes (MIT)
 >
-> Feedback bienvenido, especialmente qué destinos agregar (ahora hay 154 curados).
+> Feedback bienvenido, especialmente qué destinos agregar (ahora hay 170 curados).
 
 ### Reddit — r/travel / r/solotravel (en)
 
@@ -191,7 +191,7 @@ Feedback bienvenido 🙏
 > - Moon phase + tide windows are computed client-side from the synodic period for any
 >   coastal trip's date range — no API call.
 >
-> Honest gaps: no cloud sync (by choice), only 154 destinations, BYOK is friction for
+> Honest gaps: no cloud sync (by choice), only 170 destinations, BYOK is friction for
 > non-techies (there's a no-AI draft generator as fallback).
 >
 > Source: github.com/jmg/viajes (MIT). Roadmap: more destinations, a map view, Open-Meteo
@@ -251,7 +251,7 @@ Feedback bienvenido 🙏
 > No (todavía). Por elección de diseño: sin servidor = sin riesgo de leak de datos.
 > Para mover viajes, usá el botón Compartir (link) o Export/Import (JSON).
 
-**"¿Solo 154 destinos? ¿Es en serio?"**
+**"¿Solo 170 destinos? ¿Es en serio?"**
 > Sí, son destinos **curados con clima mensual real** — no scrape de Wikipedia. Estoy
 > sumando más; sugerencias bienvenidas en GitHub.
 
