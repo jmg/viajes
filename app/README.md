@@ -16,7 +16,7 @@ Abrir http://localhost:5173
 ## Funcionalidades
 
 - **Mis viajes**: CRUD completo, estados automáticos, countdown, checklist, presupuesto multi-moneda, links, mareas/luna.
-- **Descubrir destinos**: recomendador por clima del mes + preferencias (190 destinos curados).
+- **Descubrir destinos**: recomendador por clima del mes + preferencias (220 destinos curados).
 - **Itinerario con IA** (opcional): genera el día a día con tu API key de Anthropic.
 - **Importar reserva** (opcional): pegás un mail de confirmación y la IA extrae los datos.
 - **Gastos con split**: balances y settlement entre viajeros.
