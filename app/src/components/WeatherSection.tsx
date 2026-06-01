@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Trip } from "../types";
 import { DESTINATIONS } from "../destinations/data";
-import { fetchForecast, fetchHistorical, weatherEmoji, weatherLabel } from "../lib/forecast";
+import { fetchForecast, fetchHistorical, fetchMultiYearAverage, weatherEmoji, weatherLabel } from "../lib/forecast";
 import type { DailyWeather } from "../lib/forecast";
 import { daysUntilStart, daysUntilEnd } from "../lib/status";
 import { formatDate } from "../lib/format";
+
+const PRIOR_YEARS = 5;
 
 type Props = { trip: Trip };
 type Mode = "forecast" | "historical" | "prior_year";
@@ -17,12 +19,6 @@ function matchDestination(name: string) {
   });
 }
 
-function shiftYears(iso: string, years: number): string {
-  const d = new Date(iso + "T00:00:00Z");
-  d.setUTCFullYear(d.getUTCFullYear() + years);
-  return d.toISOString().slice(0, 10);
-}
-
 export function WeatherSection({ trip }: Props) {
   const dest = useMemo(
     () => trip.destinations.map(matchDestination).find((d) => d?.lat != null && d?.lng != null) ?? null,
@@ -33,18 +29,13 @@ export function WeatherSection({ trip }: Props) {
   const dEnd = daysUntilEnd(trip);
 
   let mode: Mode | null = null;
-  let queryStart = trip.startDate;
-  let queryEnd = trip.endDate;
-
   if (dStart <= 16 && dEnd >= 0) {
     mode = "forecast";
   } else if (dEnd < 0 && dEnd >= -90) {
     mode = "historical";
   } else if (dStart > 16) {
-    // Viaje muy lejos para forecast → mostramos lo que pasó el año pasado.
+    // Viaje muy lejos para forecast → promediamos las últimas 5 vueltas a estas fechas.
     mode = "prior_year";
-    queryStart = shiftYears(trip.startDate, -1);
-    queryEnd = shiftYears(trip.endDate, -1);
   }
 
   const [data, setData] = useState<DailyWeather[] | null>(null);
@@ -56,28 +47,28 @@ export function WeatherSection({ trip }: Props) {
     setError(null);
     if (!mode || !dest?.lat || !dest?.lng) return;
     setLoading(true);
-    const p =
-      mode === "forecast"
-        ? fetchForecast(dest.lat, dest.lng)
-        : fetchHistorical(dest.lat, dest.lng, queryStart, queryEnd);
+    let p: Promise<DailyWeather[]>;
+    if (mode === "forecast") p = fetchForecast(dest.lat, dest.lng);
+    else if (mode === "historical") p = fetchHistorical(dest.lat, dest.lng, trip.startDate, trip.endDate);
+    else p = fetchMultiYearAverage(dest.lat, dest.lng, trip.startDate, trip.endDate, PRIOR_YEARS);
     p.then(setData)
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
-  }, [mode, dest, queryStart, queryEnd]);
+  }, [mode, dest, trip.startDate, trip.endDate]);
 
   if (!mode) return null;
   if (!dest) return null;
 
-  const filtered = data?.filter((d) => d.date >= queryStart && d.date <= queryEnd) ?? [];
+  const filtered = data?.filter((d) => d.date >= trip.startDate && d.date <= trip.endDate) ?? [];
 
   const title =
     mode === "forecast" ? `🌤 Pronóstico — ${dest.name}` :
     mode === "historical" ? `📜 Tiempo histórico — ${dest.name}` :
-    `📅 El año pasado en estas fechas — ${dest.name}`;
+    `📅 Promedio últimos ${PRIOR_YEARS} años en estas fechas — ${dest.name}`;
 
   const subtitle =
     mode === "prior_year" ? (
-      <p className="settings-hint">Comparación con la misma semana del año pasado para tener expectativa real, en vez de promedios mensuales.</p>
+      <p className="settings-hint">Promedio día por día de los últimos {PRIOR_YEARS} años (datos ERA5). Más robusto que un único año atípico.</p>
     ) : null;
 
   return (

@@ -67,6 +67,60 @@ export async function fetchHistorical(lat: number, lng: number, start: string, e
   return data;
 }
 
+/** Promedia las últimas N vueltas a estas fechas (años anteriores) — más robusto que un solo año. */
+export async function fetchMultiYearAverage(
+  lat: number, lng: number, start: string, end: string, yearsBack: number,
+): Promise<DailyWeather[]> {
+  const shift = (iso: string, years: number) => {
+    const d = new Date(iso + "T00:00:00Z");
+    d.setUTCFullYear(d.getUTCFullYear() + years);
+    return d.toISOString().slice(0, 10);
+  };
+  const fetches: Promise<DailyWeather[]>[] = [];
+  for (let i = 1; i <= yearsBack; i++) {
+    fetches.push(fetchHistorical(lat, lng, shift(start, -i), shift(end, -i)));
+  }
+  const yearsData = await Promise.all(fetches);
+
+  // Agrupar por MM-DD para promediar entre años
+  const byMonthDay = new Map<string, DailyWeather[]>();
+  for (const yr of yearsData) {
+    for (const day of yr) {
+      const md = day.date.slice(5); // "MM-DD"
+      const arr = byMonthDay.get(md) ?? [];
+      arr.push(day);
+      byMonthDay.set(md, arr);
+    }
+  }
+
+  // Generar fechas objetivo del rango original y emitir promedios.
+  const out: DailyWeather[] = [];
+  const startMs = new Date(start + "T00:00:00Z").getTime();
+  const endMs = new Date(end + "T00:00:00Z").getTime();
+  for (let t = startMs; t <= endMs; t += 86_400_000) {
+    const date = new Date(t).toISOString().slice(0, 10);
+    const samples = byMonthDay.get(date.slice(5));
+    if (!samples?.length) continue;
+    out.push({
+      date,
+      tempMax: Math.round(samples.reduce((s, x) => s + x.tempMax, 0) / samples.length),
+      tempMin: Math.round(samples.reduce((s, x) => s + x.tempMin, 0) / samples.length),
+      precipMm: Math.round(samples.reduce((s, x) => s + x.precipMm, 0) / samples.length),
+      weatherCode: mostCommonCode(samples.map((x) => x.weatherCode)),
+    });
+  }
+  return out;
+}
+
+function mostCommonCode(codes: number[]): number {
+  const counts = new Map<number, number>();
+  for (const c of codes) counts.set(c, (counts.get(c) ?? 0) + 1);
+  let best = 0;
+  let bestCount = 0;
+  for (const [c, n] of counts) if (n > bestCount) { best = c; bestCount = n; }
+  return best;
+}
+
 // WMO weather codes → emoji + label.
 // https://open-meteo.com/en/docs#weathervariables
 export function weatherEmoji(code: number): string {
