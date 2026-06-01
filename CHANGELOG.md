@@ -9,7 +9,7 @@ Primer release público. La app pasa de un planeador del viaje a Brasil 2026 a u
 **planeador + recomendador de viajes** generalista, local-first, gratis y open source.
 
 ### Highlights
-- 🌎 **Recomendador de destinos por clima** con 250 destinos curados (12 meses de clima por destino).
+- 🌎 **Recomendador de destinos por clima** con 280 destinos curados (12 meses de clima por destino).
 - ✨ **Itinerarios con IA** (BYO API key de Anthropic) — modelo configurable (Opus / Sonnet / Haiku).
 - 📝 **Borrador rápido sin IA** que reparte los destinos por las fechas del viaje.
 - 📥 **Importar reservas** desde un mail pegado: la IA extrae proveedor, fechas y código.
