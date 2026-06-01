@@ -14,6 +14,34 @@ function tempBucket(t: number): string {
   return "temp-scorching";
 }
 
+function rainIcon(mm: number): string {
+  if (mm < 20) return "☀";
+  if (mm < 70) return "🌦";
+  if (mm < 150) return "🌧";
+  return "🌧🌧";
+}
+
+function TempSparkline({ climate }: { climate: { highC: number; lowC: number }[] }) {
+  const avgs = climate.map((c) => (c.highC + c.lowC) / 2);
+  const min = Math.min(...avgs);
+  const max = Math.max(...avgs);
+  const range = max - min || 1;
+  const pts = avgs.map((t, i) => {
+    const x = (i / 11) * 600;
+    const y = 50 - ((t - min) / range) * 40;
+    return [x, y] as const;
+  });
+  const linePath = pts.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+  const areaPath = `${linePath} L 600 50 L 0 50 Z`;
+  return (
+    <svg viewBox="0 0 600 50" className="temp-sparkline" preserveAspectRatio="none" aria-hidden>
+      <path d={areaPath} className="sparkline-fill" />
+      <path d={linePath} className="sparkline-line" />
+      {pts.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={3} className="sparkline-dot" />)}
+    </svg>
+  );
+}
+
 const VISA_LABEL = {
   none: "Sin visa",
   evisa: "E-visa",
@@ -89,6 +117,7 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
 
       <div className="dest-section">
         <h3>Mejores meses</h3>
+        <TempSparkline climate={d.climate} />
         <div className="months-grid">
           {MONTHS_FULL.map((m, i) => {
             const monthNum = i + 1;
@@ -104,7 +133,7 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
               >
                 <div className="month-name">{m.slice(0, 3)}</div>
                 <div className="month-temp">{climate.lowC}°/{climate.highC}°</div>
-                <div className="month-rain">{climate.rainMm}mm</div>
+                <div className="month-rain">{rainIcon(climate.rainMm)} {climate.rainMm}mm</div>
                 {isBest && <div className="month-star">⭐</div>}
               </div>
             );
