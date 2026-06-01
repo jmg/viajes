@@ -11,6 +11,13 @@ export type DailyWeather = {
   tempMax: number;
   tempMin: number;
   precipMm: number;
+  /** Variabilidad (1σ) — solo se setea cuando viene de promedio multi-año */
+  tempMaxStdev?: number;
+  tempMinStdev?: number;
+  /** Probabilidad de día lluvioso (>1mm) entre los años promediados — 0..1 */
+  rainyDayProb?: number;
+  /** Cuántos años se promediaron (solo multi-año) */
+  yearsAveraged?: number;
 };
 
 type Cached = { ts: number; data: DailyWeather[] };
@@ -93,7 +100,7 @@ export async function fetchMultiYearAverage(
     }
   }
 
-  // Generar fechas objetivo del rango original y emitir promedios.
+  // Generar fechas objetivo del rango original y emitir promedios + stats.
   const out: DailyWeather[] = [];
   const startMs = new Date(start + "T00:00:00Z").getTime();
   const endMs = new Date(end + "T00:00:00Z").getTime();
@@ -101,15 +108,34 @@ export async function fetchMultiYearAverage(
     const date = new Date(t).toISOString().slice(0, 10);
     const samples = byMonthDay.get(date.slice(5));
     if (!samples?.length) continue;
+    const maxs = samples.map((x) => x.tempMax);
+    const mins = samples.map((x) => x.tempMin);
+    const rains = samples.map((x) => x.precipMm);
+    const rainy = rains.filter((r) => r >= 1).length;
     out.push({
       date,
-      tempMax: Math.round(samples.reduce((s, x) => s + x.tempMax, 0) / samples.length),
-      tempMin: Math.round(samples.reduce((s, x) => s + x.tempMin, 0) / samples.length),
-      precipMm: Math.round(samples.reduce((s, x) => s + x.precipMm, 0) / samples.length),
+      tempMax: Math.round(mean(maxs)),
+      tempMin: Math.round(mean(mins)),
+      precipMm: Math.round(mean(rains)),
       weatherCode: mostCommonCode(samples.map((x) => x.weatherCode)),
+      tempMaxStdev: Math.round(stdev(maxs)),
+      tempMinStdev: Math.round(stdev(mins)),
+      rainyDayProb: rainy / samples.length,
+      yearsAveraged: samples.length,
     });
   }
   return out;
+}
+
+function mean(arr: number[]): number {
+  return arr.reduce((s, x) => s + x, 0) / arr.length;
+}
+
+function stdev(arr: number[]): number {
+  if (arr.length < 2) return 0;
+  const m = mean(arr);
+  const variance = arr.reduce((s, x) => s + (x - m) ** 2, 0) / arr.length;
+  return Math.sqrt(variance);
 }
 
 function mostCommonCode(codes: number[]): number {

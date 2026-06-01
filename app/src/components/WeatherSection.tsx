@@ -85,8 +85,18 @@ export function WeatherSection({ trip }: Props) {
             <div key={d.date} className="weather-day" title={weatherLabel(d.weatherCode)}>
               <div className="weather-date">{formatDate(d.date)}</div>
               <div className="weather-emoji">{weatherEmoji(d.weatherCode)}</div>
-              <div className="weather-temp">{d.tempMin}° / {d.tempMax}°</div>
+              <div className="weather-temp">
+                {d.tempMin}° / {d.tempMax}°
+                {d.tempMaxStdev != null && d.tempMaxStdev > 0 && (
+                  <span className="weather-stdev"> ±{d.tempMaxStdev}</span>
+                )}
+              </div>
               <div className="weather-rain">{d.precipMm} mm</div>
+              {d.rainyDayProb != null && (
+                <div className="weather-rainprob" title="Probabilidad de día con lluvia (>1mm)">
+                  💧 {Math.round(d.rainyDayProb * 100)}%
+                </div>
+              )}
             </div>
           ))}
         </div>
