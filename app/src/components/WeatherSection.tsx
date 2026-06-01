@@ -7,6 +7,7 @@ import { daysUntilStart, daysUntilEnd } from "../lib/status";
 import { formatDate } from "../lib/format";
 
 type Props = { trip: Trip };
+type Mode = "forecast" | "historical" | "prior_year";
 
 function matchDestination(name: string) {
   const lower = name.toLowerCase().trim();
@@ -14,6 +15,12 @@ function matchDestination(name: string) {
     const dn = d.name.toLowerCase();
     return dn === lower || d.id === lower || d.id === lower.replace(/\s+/g, "-") || dn.includes(lower) || lower.includes(dn);
   });
+}
+
+function shiftYears(iso: string, years: number): string {
+  const d = new Date(iso + "T00:00:00Z");
+  d.setUTCFullYear(d.getUTCFullYear() + years);
+  return d.toISOString().slice(0, 10);
 }
 
 export function WeatherSection({ trip }: Props) {
@@ -25,9 +32,20 @@ export function WeatherSection({ trip }: Props) {
   const dStart = daysUntilStart(trip);
   const dEnd = daysUntilEnd(trip);
 
-  let mode: "forecast" | "historical" | null = null;
-  if (dStart <= 16 && dEnd >= 0) mode = "forecast";
-  else if (dEnd < 0 && dEnd >= -90) mode = "historical";
+  let mode: Mode | null = null;
+  let queryStart = trip.startDate;
+  let queryEnd = trip.endDate;
+
+  if (dStart <= 16 && dEnd >= 0) {
+    mode = "forecast";
+  } else if (dEnd < 0 && dEnd >= -90) {
+    mode = "historical";
+  } else if (dStart > 16) {
+    // Viaje muy lejos para forecast → mostramos lo que pasó el año pasado.
+    mode = "prior_year";
+    queryStart = shiftYears(trip.startDate, -1);
+    queryEnd = shiftYears(trip.endDate, -1);
+  }
 
   const [data, setData] = useState<DailyWeather[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -41,25 +59,34 @@ export function WeatherSection({ trip }: Props) {
     const p =
       mode === "forecast"
         ? fetchForecast(dest.lat, dest.lng)
-        : fetchHistorical(dest.lat, dest.lng, trip.startDate, trip.endDate);
+        : fetchHistorical(dest.lat, dest.lng, queryStart, queryEnd);
     p.then(setData)
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
-  }, [mode, dest, trip.startDate, trip.endDate]);
+  }, [mode, dest, queryStart, queryEnd]);
 
   if (!mode) return null;
   if (!dest) return null;
 
-  const filtered = data?.filter((d) => d.date >= trip.startDate && d.date <= trip.endDate) ?? [];
+  const filtered = data?.filter((d) => d.date >= queryStart && d.date <= queryEnd) ?? [];
+
+  const title =
+    mode === "forecast" ? `🌤 Pronóstico — ${dest.name}` :
+    mode === "historical" ? `📜 Tiempo histórico — ${dest.name}` :
+    `📅 El año pasado en estas fechas — ${dest.name}`;
+
+  const subtitle =
+    mode === "prior_year" ? (
+      <p className="settings-hint">Comparación con la misma semana del año pasado para tener expectativa real, en vez de promedios mensuales.</p>
+    ) : null;
 
   return (
     <div className="weather-section">
-      <h3>
-        {mode === "forecast" ? "🌤 Pronóstico" : "📜 Tiempo histórico"} — {dest.name}
-      </h3>
+      <h3>{title}</h3>
+      {subtitle}
       {loading && <p className="settings-hint">Cargando datos de Open-Meteo…</p>}
       {error && (
-        <p className="form-error">No se pudo cargar el pronóstico ({error}). Mostramos solo las normales climáticas.</p>
+        <p className="form-error">No se pudo cargar ({error}). Las normales climáticas en Descubrir siguen disponibles.</p>
       )}
       {!loading && !error && filtered.length > 0 && (
         <div className="weather-grid">
