@@ -74,6 +74,44 @@ export async function fetchHistorical(lat: number, lng: number, start: string, e
   return data;
 }
 
+// Climatología precalculada (bajada a /public/climate/<id>.json por scripts/fetch-history.mjs).
+// Formato: { id, years, days: { "MM-DD": [tmax, tmin, precip, tmaxStd, tminStd, rainProb] } }
+type Climatology = { id: string; years: number; days: Record<string, number[]> };
+const climoCache = new Map<string, Climatology | null>();
+
+/** Promedio diario desde el archivo estático (sin API, sin límites). null si no existe. */
+export async function fetchPrecomputedAverage(
+  id: string, start: string, end: string,
+): Promise<DailyWeather[] | null> {
+  let obj = climoCache.get(id);
+  if (obj === undefined) {
+    try {
+      const res = await fetch(`${import.meta.env.BASE_URL}climate/${id}.json`);
+      obj = res.ok ? ((await res.json()) as Climatology) : null;
+    } catch {
+      obj = null;
+    }
+    climoCache.set(id, obj);
+  }
+  if (!obj) return null;
+
+  const out: DailyWeather[] = [];
+  const startMs = new Date(start + "T00:00:00Z").getTime();
+  const endMs = new Date(end + "T00:00:00Z").getTime();
+  for (let t = startMs; t <= endMs; t += 86_400_000) {
+    const date = new Date(t).toISOString().slice(0, 10);
+    const v = obj.days[date.slice(5)];
+    if (!v) continue;
+    out.push({
+      date,
+      tempMax: v[0], tempMin: v[1], precipMm: v[2],
+      tempMaxStdev: v[3], tempMinStdev: v[4], rainyDayProb: v[5],
+      weatherCode: 0, yearsAveraged: obj.years,
+    });
+  }
+  return out.length ? out : null;
+}
+
 /** Promedia las últimas N vueltas a estas fechas (años anteriores) — más robusto que un solo año. */
 export async function fetchMultiYearAverage(
   lat: number, lng: number, start: string, end: string, yearsBack: number,

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Trip } from "../types";
 import { DESTINATIONS } from "../destinations/data";
-import { fetchForecast, fetchHistorical, fetchMultiYearAverage, weatherEmoji } from "../lib/forecast";
+import { fetchForecast, fetchHistorical, fetchMultiYearAverage, fetchPrecomputedAverage, weatherEmoji } from "../lib/forecast";
 import type { DailyWeather } from "../lib/forecast";
 import { daysUntilStart, daysUntilEnd } from "../lib/status";
 import { formatDate } from "../lib/format";
@@ -69,7 +69,12 @@ export function WeatherSection({ trip, sampleEvery, maxDays }: Props) {
     let p: Promise<DailyWeather[]>;
     if (mode === "forecast") p = fetchForecast(dest.lat, dest.lng);
     else if (mode === "historical") p = fetchHistorical(dest.lat, dest.lng, trip.startDate, trip.endDate);
-    else p = fetchMultiYearAverage(dest.lat, dest.lng, trip.startDate, trip.endDate, PRIOR_YEARS);
+    else {
+      // Promedio 5 años: primero el archivo precalculado (sin API); si no está, la API.
+      const { lat, lng } = dest;
+      p = fetchPrecomputedAverage(dest.id, trip.startDate, trip.endDate)
+        .then((pre) => pre ?? fetchMultiYearAverage(lat, lng, trip.startDate, trip.endDate, PRIOR_YEARS));
+    }
     p.then(setData)
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
