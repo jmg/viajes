@@ -35,7 +35,7 @@ const ONBOARDED_KEY = "viajes:onboarded:v1";
 
 export function App() {
   const { trips, upsert, remove, restoreSeeds, replaceAll } = useTrips();
-  const [view, setView] = useState<View>("trips");
+  const [view, setView] = useState<View>("discover");
   const [activeTripId, setActiveTripId] = useState<string | null>(null);
   const [activeDestination, setActiveDestination] = useState<{ id: string; month?: number } | null>(null);
   const [editing, setEditing] = useState<EditingState>(null);
@@ -213,12 +213,12 @@ export function App() {
               </div>
             </div>
             <nav className="main-tabs">
-              <button className={`main-tab ${view === "trips" ? "active" : ""}`} onClick={() => setView("trips")}>
-                📋 Mis viajes ({trips.length})
-              </button>
               <button className={`main-tab ${view === "discover" ? "active" : ""}`} onClick={openDiscover}>
                 🌎 Descubrir destinos
                 {wishlist.length > 0 && <span className="wishlist-count">❤️ {wishlist.length}</span>}
+              </button>
+              <button className={`main-tab ${view === "trips" ? "active" : ""}`} onClick={() => setView("trips")}>
+                📋 Mis viajes ({trips.length})
               </button>
             </nav>
           </header>

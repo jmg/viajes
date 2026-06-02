@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
   DestinationCategory,
   RecommendationCriteria,
@@ -6,14 +6,17 @@ import type {
 import { CATEGORY_EMOJI, CATEGORY_LABEL } from "../destinations/types";
 import { DESTINATIONS } from "../destinations/data";
 import { recommendDestinations } from "../lib/recommender";
+import { loadDiscoverFilters, saveDiscoverFilters } from "../lib/storage";
 import { DestinationCard } from "./DestinationCard";
 import { WorldMap } from "./WorldMap";
+
+const SAVED = loadDiscoverFilters();
 
 const MONTHS_FULL = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 const CATEGORIES_ORDER: DestinationCategory[] = ["beach", "mountain", "city", "cultural", "nature", "snow", "desert", "tropical", "island", "lake", "wine", "wildlife"];
 
-const REGIONS = ["Sudamérica", "Norteamérica", "Centroamérica", "Europa", "Asia", "Oceanía", "África"];
+const REGIONS = ["Sudamérica", "Norteamérica", "Centroamérica", "Caribe", "Europa", "Asia", "Oceanía", "África"];
 
 type Props = {
   onCreateTripFromDestination: (destId: string, criteria: RecommendationCriteria) => void;
@@ -26,29 +29,40 @@ type Props = {
 export function Discover({ onCreateTripFromDestination: _, onOpenDestination, wishlist, onToggleWishlist, initialMonth }: Props) {
   const now = new Date();
   const [month, setMonth] = useState<number>(initialMonth ?? now.getMonth() + 1);
-  const [duration, setDuration] = useState<number>(10);
-  const [selectedCategories, setSelectedCategories] = useState<DestinationCategory[]>([]);
-  const [minTemp, setMinTemp] = useState(18);
-  const [maxTemp, setMaxTemp] = useState(28);
-  const [avoidRain, setAvoidRain] = useState(false);
-  const [maxCostTier, setMaxCostTier] = useState<"budget" | "mid" | "expensive">("expensive");
-  const [maxFlightHours, setMaxFlightHours] = useState<number | "any">("any");
+  const [duration, setDuration] = useState<number>(SAVED?.duration ?? 10);
+  const [selectedCategories, setSelectedCategories] = useState<DestinationCategory[]>(SAVED?.selectedCategories ?? []);
+  const [minTemp, setMinTemp] = useState(SAVED?.minTemp ?? 18);
+  const [maxTemp, setMaxTemp] = useState(SAVED?.maxTemp ?? 28);
+  const [rainPref, setRainPref] = useState(SAVED?.rainPref ?? 0);
+  const [maxCostTier, setMaxCostTier] = useState<"budget" | "mid" | "expensive">(SAVED?.maxCostTier ?? "expensive");
+  const [maxFlightHours, setMaxFlightHours] = useState<number | "any">(SAVED?.maxFlightHours ?? "any");
   const [search, setSearch] = useState("");
-  const [excludeRegions, setExcludeRegions] = useState<string[]>([]);
+  const [excludeRegions, setExcludeRegions] = useState<string[]>(SAVED?.excludeRegions ?? []);
   const [onlyWishlist, setOnlyWishlist] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
+
+  // Recordar los filtros entre sesiones (sliders, categorías, presupuesto, etc.).
+  useEffect(() => {
+    saveDiscoverFilters({
+      duration, selectedCategories, minTemp, maxTemp,
+      rainPref, maxCostTier, maxFlightHours, excludeRegions,
+    });
+  }, [duration, selectedCategories, minTemp, maxTemp, rainPref, maxCostTier, maxFlightHours, excludeRegions]);
+
+  // rainPref 0 = sin preferencia (tolerante) … 100 = lo más seco. Mapea a mm/mes máximos.
+  const maxRainMm = rainPref <= 3 ? undefined : Math.round(250 - (rainPref / 100) * 235);
 
   const criteria: RecommendationCriteria = useMemo(() => ({
     month,
     duration,
     categories: selectedCategories.length ? selectedCategories : undefined,
     preferredTempC: { min: minTemp, max: maxTemp },
-    avoidRain,
+    maxRainMm,
     maxCostTier,
     maxFlightHours: maxFlightHours === "any" ? undefined : maxFlightHours,
     search: search.trim() || undefined,
     excludeRegions: excludeRegions.length ? excludeRegions : undefined,
-  }), [month, duration, selectedCategories, minTemp, maxTemp, avoidRain, maxCostTier, maxFlightHours, search, excludeRegions]);
+  }), [month, duration, selectedCategories, minTemp, maxTemp, maxRainMm, maxCostTier, maxFlightHours, search, excludeRegions]);
 
   const allResults = useMemo(() => recommendDestinations(DESTINATIONS, criteria), [criteria]);
   const results = useMemo(
@@ -66,7 +80,7 @@ export function Discover({ onCreateTripFromDestination: _, onOpenDestination, wi
     setSelectedCategories([]);
     setMinTemp(18);
     setMaxTemp(28);
-    setAvoidRain(false);
+    setRainPref(0);
     setMaxCostTier("expensive");
     setMaxFlightHours("any");
     setSearch("");
@@ -85,7 +99,7 @@ export function Discover({ onCreateTripFromDestination: _, onOpenDestination, wi
 
       <div className="presets">
         <span className="presets-label">Quick:</span>
-        <button className="preset-chip" onClick={() => { setSelectedCategories(["beach", "tropical"]); setMinTemp(24); setMaxTemp(32); setAvoidRain(true); }}>
+        <button className="preset-chip" onClick={() => { setSelectedCategories(["beach", "tropical"]); setMinTemp(24); setMaxTemp(32); setRainPref(80); }}>
           🏖 Playa cálida y seca
         </button>
         <button className="preset-chip" onClick={() => { setSelectedCategories(["mountain", "snow"]); setMinTemp(-5); setMaxTemp(10); }}>
@@ -157,14 +171,24 @@ export function Discover({ onCreateTripFromDestination: _, onOpenDestination, wi
           <div className="field">
             <span>Temperatura ideal: {minTemp}° – {maxTemp}°C</span>
             <div className="range-pair">
-              <input type="range" min={-10} max={35} value={minTemp} onChange={(e) => setMinTemp(Math.min(parseInt(e.target.value, 10), maxTemp - 1))} />
-              <input type="range" min={-10} max={40} value={maxTemp} onChange={(e) => setMaxTemp(Math.max(parseInt(e.target.value, 10), minTemp + 1))} />
+              <span className="range-icon" title="Frío" aria-label="Frío">🥶</span>
+              <div className="range-sliders">
+                <input type="range" min={-10} max={35} value={minTemp} aria-label="Temperatura mínima" onChange={(e) => setMinTemp(Math.min(parseInt(e.target.value, 10), maxTemp - 1))} />
+                <input type="range" min={-10} max={40} value={maxTemp} aria-label="Temperatura máxima" onChange={(e) => setMaxTemp(Math.max(parseInt(e.target.value, 10), minTemp + 1))} />
+              </div>
+              <span className="range-icon" title="Calor" aria-label="Calor">🥵</span>
             </div>
           </div>
-          <label className="field checkbox">
-            <input type="checkbox" checked={avoidRain} onChange={(e) => setAvoidRain(e.target.checked)} />
-            <span>Evitar lluvia</span>
-          </label>
+          <div className="field">
+            <span>Lluvia: {rainPref <= 3 ? "sin preferencia" : `≤ ${maxRainMm} mm/mes`}</span>
+            <div className="range-pair">
+              <span className="range-icon" title="Más húmedo" aria-label="Más húmedo">💧</span>
+              <div className="range-sliders">
+                <input type="range" min={0} max={100} value={rainPref} aria-label="Preferencia de lluvia" onChange={(e) => setRainPref(parseInt(e.target.value, 10))} />
+              </div>
+              <span className="range-icon" title="Más seco" aria-label="Más seco">☀️</span>
+            </div>
+          </div>
         </div>
 
         <div className="filter-block">

@@ -1,7 +1,38 @@
 import type { Trip, Currency } from "../types";
+import type { DestinationCategory } from "../destinations/types";
 
 const TRIPS_KEY = "viajes:trips:v1";
 const CURRENCY_KEY = "viajes:currency";
+const DISCOVER_KEY = "viajes:discover-filters:v1";
+
+export type DiscoverFilters = {
+  duration: number;
+  selectedCategories: DestinationCategory[];
+  minTemp: number;
+  maxTemp: number;
+  /** 0 = sin preferencia (húmedo OK) … 100 = lo más seco posible. */
+  rainPref: number;
+  maxCostTier: "budget" | "mid" | "expensive";
+  maxFlightHours: number | "any";
+  excludeRegions: string[];
+};
+
+export function loadDiscoverFilters(): Partial<DiscoverFilters> | null {
+  try {
+    const raw = localStorage.getItem(DISCOVER_KEY);
+    return raw ? (JSON.parse(raw) as Partial<DiscoverFilters>) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveDiscoverFilters(f: DiscoverFilters): void {
+  try {
+    localStorage.setItem(DISCOVER_KEY, JSON.stringify(f));
+  } catch {
+    /* storage lleno o deshabilitado — no es crítico */
+  }
+}
 
 export function loadTrips(): Trip[] | null {
   try {

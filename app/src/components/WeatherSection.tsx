@@ -60,6 +60,7 @@ export function WeatherSection({ trip }: Props) {
   if (!dest) return null;
 
   const filtered = data?.filter((d) => d.date >= trip.startDate && d.date <= trip.endDate) ?? [];
+  const maxPrecip = Math.max(...filtered.map((d) => d.precipMm), 5);
 
   const title =
     mode === "forecast" ? `🌤 Pronóstico — ${dest.name}` :
@@ -90,6 +91,9 @@ export function WeatherSection({ trip }: Props) {
                 {d.tempMaxStdev != null && d.tempMaxStdev > 0 && (
                   <span className="weather-stdev"> ±{d.tempMaxStdev}</span>
                 )}
+              </div>
+              <div className="weather-rainbar" aria-hidden>
+                <span style={{ width: `${Math.round((d.precipMm / maxPrecip) * 100)}%` }} />
               </div>
               <div className="weather-rain">{d.precipMm} mm</div>
               {d.rainyDayProb != null && (

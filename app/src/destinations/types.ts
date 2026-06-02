@@ -56,7 +56,8 @@ export type RecommendationCriteria = {
   duration?: number;
   categories?: DestinationCategory[];
   preferredTempC?: { min: number; max: number };
-  avoidRain?: boolean;
+  /** Lluvia máxima buscada (mm/mes). undefined = sin preferencia (tolerante). */
+  maxRainMm?: number;
   maxCostTier?: CostTier;
   maxFlightHours?: number;
   excludeRegions?: string[];

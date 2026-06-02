@@ -10,26 +10,28 @@ import type {
 export function rateClimate(
   m: MonthClimate,
   preferredTempC?: { min: number; max: number },
-  avoidRain?: boolean,
+  maxRainMm?: number,
 ): { rating: ClimateRating; reasons: string[]; warnings: string[] } {
   const reasons: string[] = [];
   const warnings: string[] = [];
 
   const avg = (m.highC + m.lowC) / 2;
 
-  // Default: rango cómodo 18-28°C, evitar lluvia >150mm/mes
+  // Default: rango cómodo 18-28°C. Sin preferencia de lluvia → tolerancia amplia (250 mm/mes).
   const target = preferredTempC ?? { min: 18, max: 28 };
-  const heavyRainThreshold = 200;
-  const moderateRainThreshold = 100;
+  const rainTol = maxRainMm ?? 250;
 
   let tempScore: ClimateRating = "ideal";
   if (avg < target.min - 8 || avg > target.max + 8) tempScore = "avoid";
   else if (avg < target.min - 4 || avg > target.max + 4) tempScore = "ok";
   else if (avg < target.min || avg > target.max) tempScore = "good";
 
+  // Cuanto más a "seco" lleve el slider, menor rainTol y más penaliza la lluvia.
+  const rainRatio = m.rainMm / rainTol;
   let rainScore: ClimateRating = "ideal";
-  if (m.rainMm > heavyRainThreshold) rainScore = avoidRain ? "avoid" : "ok";
-  else if (m.rainMm > moderateRainThreshold) rainScore = avoidRain ? "ok" : "good";
+  if (rainRatio > 1.75) rainScore = "avoid";
+  else if (rainRatio > 1.0) rainScore = "ok";
+  else if (rainRatio > 0.55) rainScore = "good";
 
   if (avg >= target.min && avg <= target.max) {
     reasons.push(`Temperatura ideal (${Math.round(m.lowC)}–${Math.round(m.highC)}°C)`);
@@ -39,8 +41,11 @@ export function rateClimate(
     warnings.push(`Caluroso (${Math.round(m.lowC)}–${Math.round(m.highC)}°C)`);
   }
 
-  if (m.rainMm > heavyRainThreshold) warnings.push(`Mucha lluvia (${m.rainMm} mm)`);
+  if (m.rainMm > 200) warnings.push(`Mucha lluvia (${m.rainMm} mm)`);
   else if (m.rainMm < 30) reasons.push("Seco");
+  if (maxRainMm !== undefined && m.rainMm > maxRainMm && m.rainMm <= 200) {
+    warnings.push(`Más lluvia de la buscada (${m.rainMm} mm)`);
+  }
 
   if (m.seaTempC && m.seaTempC >= 24) reasons.push(`Mar a ${m.seaTempC}°C`);
 
@@ -80,7 +85,7 @@ export function recommendDestinations(
     }
 
     const climate = d.climate[monthIdx];
-    const climateEval = rateClimate(climate, criteria.preferredTempC, criteria.avoidRain);
+    const climateEval = rateClimate(climate, criteria.preferredTempC, criteria.maxRainMm);
 
     // Score base: clima
     let score = RATING_TO_SCORE[climateEval.rating];

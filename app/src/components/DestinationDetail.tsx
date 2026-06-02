@@ -21,23 +21,61 @@ function rainIcon(mm: number): string {
   return "🌧🌧";
 }
 
+/** Catmull-Rom → cubic Bézier para una curva suave. */
+function smoothPath(pts: readonly (readonly [number, number])[]): string {
+  if (pts.length < 2) return "";
+  let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] ?? p2;
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
+
 function TempSparkline({ climate }: { climate: { highC: number; lowC: number }[] }) {
+  const W = 600, H = 56, PAD = 8;
   const avgs = climate.map((c) => (c.highC + c.lowC) / 2);
   const min = Math.min(...avgs);
   const max = Math.max(...avgs);
   const range = max - min || 1;
   const pts = avgs.map((t, i) => {
-    const x = (i / 11) * 600;
-    const y = 50 - ((t - min) / range) * 40;
+    const x = (i / 11) * W;
+    const y = (H - PAD) - ((t - min) / range) * (H - PAD * 2);
     return [x, y] as const;
   });
-  const linePath = pts.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
-  const areaPath = `${linePath} L 600 50 L 0 50 Z`;
+  const linePath = smoothPath(pts);
+  const areaPath = `${linePath} L ${W} ${H} L 0 ${H} Z`;
+  const maxI = avgs.indexOf(max);
+  const minI = avgs.indexOf(min);
   return (
-    <svg viewBox="0 0 600 50" className="temp-sparkline" preserveAspectRatio="none" aria-hidden>
-      <path d={areaPath} className="sparkline-fill" />
+    <svg viewBox={`0 0 ${W} ${H}`} className="temp-sparkline" preserveAspectRatio="xMidYMid meet" aria-hidden>
+      <defs>
+        <linearGradient id="spark-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#f97316" stopOpacity="0.30" />
+          <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={areaPath} className="sparkline-fill" fill="url(#spark-fill)" />
       <path d={linePath} className="sparkline-line" />
-      {pts.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={3} className="sparkline-dot" />)}
+      {[maxI, minI].map((idx) => (
+        <g key={idx}>
+          <circle cx={pts[idx][0]} cy={pts[idx][1]} r={3.5} className="sparkline-dot" />
+          <text
+            x={Math.min(Math.max(pts[idx][0], 14), W - 14)}
+            y={idx === maxI ? pts[idx][1] - 6 : pts[idx][1] + 12}
+            className="sparkline-label"
+          >
+            {Math.round(avgs[idx])}°
+          </text>
+        </g>
+      ))}
     </svg>
   );
 }
@@ -64,6 +102,18 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
         <div>
           <h2>{d.name}</h2>
           <p className="dest-country">{d.country} · {d.region}</p>
+          <a
+            className="maps-link"
+            href={
+              d.lat != null && d.lng != null
+                ? `https://www.google.com/maps/search/?api=1&query=${d.lat},${d.lng}`
+                : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${d.name}, ${d.country}`)}`
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            📍 Ver en Google Maps
+          </a>
         </div>
         <button
           className={`wishlist-btn large ${isInWishlist ? "active" : ""}`}
