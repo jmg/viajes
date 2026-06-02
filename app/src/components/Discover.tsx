@@ -10,8 +10,6 @@ import { loadDiscoverFilters, saveDiscoverFilters } from "../lib/storage";
 import { DestinationCard } from "./DestinationCard";
 import { WorldMap } from "./WorldMap";
 
-const SAVED = loadDiscoverFilters();
-
 const MONTHS_FULL = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 const CATEGORIES_ORDER: DestinationCategory[] = ["beach", "mountain", "city", "cultural", "nature", "snow", "desert", "tropical", "island", "lake", "wine", "wildlife"];
@@ -28,26 +26,29 @@ type Props = {
 
 export function Discover({ onCreateTripFromDestination, onOpenDestination, wishlist, onToggleWishlist, initialMonth }: Props) {
   const now = new Date();
-  const [month, setMonth] = useState<number>(initialMonth ?? now.getMonth() + 1);
-  const [duration, setDuration] = useState<number>(SAVED?.duration ?? 10);
-  const [selectedCategories, setSelectedCategories] = useState<DestinationCategory[]>(SAVED?.selectedCategories ?? []);
-  const [minTemp, setMinTemp] = useState(SAVED?.minTemp ?? 18);
-  const [maxTemp, setMaxTemp] = useState(SAVED?.maxTemp ?? 28);
-  const [rainPref, setRainPref] = useState(SAVED?.rainPref ?? 0);
-  const [maxCostTier, setMaxCostTier] = useState<"budget" | "mid" | "expensive">(SAVED?.maxCostTier ?? "expensive");
-  const [maxFlightHours, setMaxFlightHours] = useState<number | "any">(SAVED?.maxFlightHours ?? "any");
-  const [search, setSearch] = useState("");
-  const [excludeRegions, setExcludeRegions] = useState<string[]>(SAVED?.excludeRegions ?? []);
-  const [onlyWishlist, setOnlyWishlist] = useState(false);
-  const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  // Se relee en cada montaje (al volver de un destino/viaje en la SPA no se pierde nada).
+  const saved = useMemo(() => loadDiscoverFilters() ?? {}, []);
+  const [month, setMonth] = useState<number>(saved.month ?? initialMonth ?? now.getMonth() + 1);
+  const [duration, setDuration] = useState<number>(saved.duration ?? 10);
+  const [selectedCategories, setSelectedCategories] = useState<DestinationCategory[]>(saved.selectedCategories ?? []);
+  const [minTemp, setMinTemp] = useState(saved.minTemp ?? 18);
+  const [maxTemp, setMaxTemp] = useState(saved.maxTemp ?? 28);
+  const [rainPref, setRainPref] = useState(saved.rainPref ?? 0);
+  const [maxCostTier, setMaxCostTier] = useState<"budget" | "mid" | "expensive">(saved.maxCostTier ?? "expensive");
+  const [maxFlightHours, setMaxFlightHours] = useState<number | "any">(saved.maxFlightHours ?? "any");
+  const [search, setSearch] = useState(saved.search ?? "");
+  const [excludeRegions, setExcludeRegions] = useState<string[]>(saved.excludeRegions ?? []);
+  const [onlyWishlist, setOnlyWishlist] = useState(saved.onlyWishlist ?? false);
+  const [viewMode, setViewMode] = useState<"list" | "map">(saved.viewMode ?? "list");
 
-  // Recordar los filtros entre sesiones (sliders, categorías, presupuesto, etc.).
+  // Recordar TODOS los selectores entre sesiones y navegación en la SPA.
   useEffect(() => {
     saveDiscoverFilters({
-      duration, selectedCategories, minTemp, maxTemp,
+      month, duration, selectedCategories, minTemp, maxTemp,
       rainPref, maxCostTier, maxFlightHours, excludeRegions,
+      search, onlyWishlist, viewMode,
     });
-  }, [duration, selectedCategories, minTemp, maxTemp, rainPref, maxCostTier, maxFlightHours, excludeRegions]);
+  }, [month, duration, selectedCategories, minTemp, maxTemp, rainPref, maxCostTier, maxFlightHours, excludeRegions, search, onlyWishlist, viewMode]);
 
   // rainPref 0 = sin preferencia (tolerante) … 100 = lo más seco. Mapea a mm/mes máximos.
   const maxRainMm = rainPref <= 3 ? undefined : Math.round(250 - (rainPref / 100) * 235);

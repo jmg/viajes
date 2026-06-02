@@ -6,6 +6,8 @@ const CURRENCY_KEY = "viajes:currency";
 const DISCOVER_KEY = "viajes:discover-filters:v1";
 
 export type DiscoverFilters = {
+  /** Mes del viaje (1-12). */
+  month: number;
   duration: number;
   selectedCategories: DestinationCategory[];
   minTemp: number;
@@ -15,6 +17,9 @@ export type DiscoverFilters = {
   maxCostTier: "budget" | "mid" | "expensive";
   maxFlightHours: number | "any";
   excludeRegions: string[];
+  search: string;
+  onlyWishlist: boolean;
+  viewMode: "list" | "map";
 };
 
 export function loadDiscoverFilters(): Partial<DiscoverFilters> | null {
