@@ -5,6 +5,7 @@ import { fetchForecast, fetchHistorical, fetchMultiYearAverage, weatherEmoji } f
 import type { DailyWeather } from "../lib/forecast";
 import { daysUntilStart, daysUntilEnd } from "../lib/status";
 import { formatDate } from "../lib/format";
+import { InfoTip } from "./InfoTip";
 
 const PRIOR_YEARS = 5;
 
@@ -102,7 +103,7 @@ export function WeatherSection({ trip, sampleEvery, maxDays }: Props) {
 
   return (
     <div className="weather-section">
-      <h3 title={titleTip}>{title} <span className="info-tip" aria-hidden>ⓘ</span></h3>
+      <h3>{title} <InfoTip tip={titleTip} /></h3>
       {subtitle}
       {loading && (
         <div className="weather-grid" aria-label="Cargando datos de Open-Meteo…">

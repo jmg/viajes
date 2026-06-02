@@ -16,6 +16,7 @@ import { CATEGORY_EMOJI, CATEGORY_LABEL, COST_LABEL, COST_RANGE_USD } from "../d
 import { rateClimate } from "../lib/recommender";
 import { ClimateChart } from "./ClimateChart";
 import { WeatherSection } from "./WeatherSection";
+import { InfoTip as Info } from "./InfoTip";
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, LineController, Tooltip, Filler);
 
@@ -73,10 +74,6 @@ const RATING_INFO: Record<string, { label: string; tip: string }> = {
   avoid: { label: "❌ Evitar", tip: "Mes poco recomendable por temperatura o lluvia." },
 };
 
-/** Pequeño ícono ⓘ con explicación (tooltip nativo, simple y accesible). */
-function Info({ tip }: { tip: string }) {
-  return <span className="info-tip" title={tip} role="img" aria-label={`Ayuda: ${tip}`}>ⓘ</span>;
-}
 
 function TempSparkline({ climate }: { climate: { highC: number; lowC: number }[] }) {
   const avgs = climate.map((c) => Math.round((c.highC + c.lowC) / 2));

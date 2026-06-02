@@ -15,6 +15,7 @@ import { TripPrintView } from "./TripPrintView";
 import { TodayPanel } from "./TodayPanel";
 import { WeatherSection } from "./WeatherSection";
 import { Countdown } from "./Countdown";
+import { InfoTip as Info } from "./InfoTip";
 import { track } from "../lib/analytics";
 import { downloadTripIcs } from "../lib/calendar";
 
@@ -67,7 +68,7 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
   return (
     <>
     <div className="trip-detail screen-only">
-      <button className="back-button" onClick={onBack}>← Volver</button>
+      <button className="back-button" onClick={onBack}>← Volver a Mis viajes</button>
 
       <header className="trip-header">
         <div className="trip-header-top">
@@ -189,10 +190,6 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
     <TripPrintView trip={trip} currency={currency} />
     </>
   );
-}
-
-function Info({ tip }: { tip: string }) {
-  return <span className="info-tip" title={tip} role="img" aria-label={`Ayuda: ${tip}`}>ⓘ</span>;
 }
 
 const usd = (n: number) => `US$ ${Math.round(n).toLocaleString("es-AR")}`;

@@ -154,6 +154,32 @@ export function App() {
     if (window.location.hash !== target) history.pushState(null, "", target);
   }, [view, activeTrip, activeDest, activeDestination, showHelp, sharedTrip]);
 
+  // Título de la ventana + favicon (bandera del país al ver un destino).
+  useEffect(() => {
+    const link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
+    const DEFAULT_ICON = `${import.meta.env.BASE_URL}icon.svg`;
+    const flagIcon = (flag: string) =>
+      "data:image/svg+xml," +
+      encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text x="32" y="50" font-size="52" text-anchor="middle">${flag}</text></svg>`);
+    const setIcon = (href: string) => { if (link) link.href = href; };
+
+    if (sharedTrip) {
+      document.title = `${sharedTrip.title} — Viajes`;
+    } else if (activeDest) {
+      document.title = `${activeDest.name}, ${activeDest.country} — Viajes`;
+      setIcon(flagIcon(activeDest.flag));
+    } else if (activeTrip) {
+      document.title = `${activeTrip.title} — Viajes`;
+      setIcon(DEFAULT_ICON);
+    } else if (showHelp) {
+      document.title = "Ayuda — Viajes";
+      setIcon(DEFAULT_ICON);
+    } else {
+      document.title = "Viajes — destinos por clima";
+      setIcon(DEFAULT_ICON);
+    }
+  }, [activeDest, activeTrip, showHelp, sharedTrip]);
+
   // Botón atrás/adelante del navegador → actualizar la vista.
   useEffect(() => {
     const onPop = () => {
@@ -353,7 +379,7 @@ export function App() {
             onChange={upsert}
             onEdit={() => setEditing(activeTrip)}
             onDelete={() => handleDelete(activeTrip.id)}
-            onBack={() => setActiveTripId(null)}
+            onBack={() => { setActiveTripId(null); setView("trips"); }}
             onShare={() => { setSharingTrip(activeTrip); track("share_open"); }}
           />
         </Suspense>

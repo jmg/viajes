@@ -164,10 +164,11 @@ body {
 
 /* Detail */
 .back-button {
-  background: transparent; border: 1px solid var(--border); color: var(--text);
-  padding: 6px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 16px;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+  padding: 9px 16px; border-radius: 999px; cursor: pointer; margin-bottom: 16px;
+  font-size: 14px; font-weight: 600; transition: all .15s;
 }
-.back-button:hover { border-color: var(--accent); color: var(--accent); }
+.back-button:hover { border-color: var(--accent); color: var(--accent); background: var(--surface-3); }
 
 .trip-header { margin-bottom: 20px; }
 .trip-header-top {
@@ -857,15 +858,33 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
 .help-foot { text-align: center; color: var(--muted); font-size: 13px; }
 .help-foot a { color: var(--accent); }
 
-/* Ícono de ayuda con tooltip nativo */
+/* Ícono de ayuda con tooltip (hover en desktop, tap en mobile) */
 .info-tip {
+  position: relative;
   display: inline-flex; align-items: center; justify-content: center;
-  width: 14px; height: 14px; margin-left: 3px;
+  width: 16px; height: 16px; margin-left: 4px;
   font-size: 10px; line-height: 1; cursor: help;
   color: var(--muted); border: 1px solid var(--border); border-radius: 50%;
-  vertical-align: middle;
+  vertical-align: middle; outline: none;
 }
-.info-tip:hover { color: var(--accent); border-color: var(--accent); }
+.info-tip:hover, .info-tip:focus { color: var(--accent); border-color: var(--accent); }
+.info-bubble {
+  position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  width: max-content; max-width: 240px;
+  background: #0e1726; color: var(--text);
+  border: 1px solid var(--accent); border-radius: 8px;
+  padding: 8px 10px; font-size: 12px; line-height: 1.45; font-weight: 400;
+  text-transform: none; letter-spacing: 0; text-align: left; white-space: normal;
+  box-shadow: 0 8px 28px rgba(0,0,0,.55); z-index: 60;
+  opacity: 0; visibility: hidden; transition: opacity .12s; pointer-events: none;
+}
+.info-bubble::after {
+  content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 6px solid transparent; border-top-color: var(--accent);
+}
+.info-tip:hover .info-bubble, .info-tip:focus .info-bubble, .info-tip:focus-within .info-bubble {
+  opacity: 1; visibility: visible;
+}
 
 /* Monthly grid */
 .months-grid {
