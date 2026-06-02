@@ -5,6 +5,7 @@ import { CONTINENTS } from "./world-map-paths";
 type Props = {
   results: RecommendationResult[];
   onOpen: (id: string) => void;
+  onCreateTrip: (id: string) => void;
 };
 
 const VB_W = 1000;
@@ -39,7 +40,9 @@ type Cluster = { x: number; y: number; pins: Pin[]; dominantRating: ClimateRatin
 
 const RATING_ORDER: ClimateRating[] = ["ideal", "good", "ok", "avoid"];
 
-export function WorldMap({ results, onOpen }: Props) {
+export function WorldMap({ results, onOpen, onCreateTrip }: Props) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [sel, setSel] = useState<{ id: string; label: string; x: number; y: number } | null>(null);
   const pins: Pin[] = [];
   for (const r of results) {
     const { lat, lng } = r.destination;
@@ -126,7 +129,7 @@ export function WorldMap({ results, onOpen }: Props) {
   }
 
   return (
-    <div className="world-map-wrap">
+    <div className="world-map-wrap" ref={wrapRef}>
       <div className="map-controls">
         <button className="icon-button small" onClick={() => zoomBtn(1 / 1.5)} title="Zoom +">＋</button>
         <button className="icon-button small" onClick={() => zoomBtn(1.5)} title="Zoom −">−</button>
@@ -144,7 +147,7 @@ export function WorldMap({ results, onOpen }: Props) {
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
       >
-        <rect x="0" y="0" width={VB_W} height={VB_H} fill="#0a1120" />
+        <rect x="0" y="0" width={VB_W} height={VB_H} fill="#0a1120" onClick={() => setSel(null)} />
 
         {/* Continents */}
         <g className="map-land">
@@ -166,7 +169,16 @@ export function WorldMap({ results, onOpen }: Props) {
           if (c.pins.length === 1) {
             const p = c.pins[0];
             return (
-              <g key={p.id} className="map-pin" onClick={() => onOpen(p.id)}>
+              <g
+                key={p.id}
+                className="map-pin"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const r = wrapRef.current?.getBoundingClientRect();
+                  if (!r) return onOpen(p.id);
+                  setSel({ id: p.id, label: `${p.d.flag} ${p.d.name}`, x: e.clientX - r.left, y: e.clientY - r.top });
+                }}
+              >
                 <circle cx={c.x} cy={c.y} r={pinRadius} fill={COLOR[p.r.climateRating]} stroke="#fff" strokeWidth={strokeW} />
                 <title>{`${p.d.flag} ${p.d.name} — ${p.r.climateRating} (${p.r.score})`}</title>
               </g>
@@ -182,6 +194,15 @@ export function WorldMap({ results, onOpen }: Props) {
           );
         })}
       </svg>
+      {sel && (
+        <div className="map-popover" style={{ left: sel.x, top: sel.y }} onClick={(e) => e.stopPropagation()}>
+          <div className="map-popover-name">{sel.label}</div>
+          <div className="map-popover-actions">
+            <button className="button-secondary" onClick={() => { onOpen(sel.id); setSel(null); }}>Ver</button>
+            <button className="button-primary" onClick={() => { onCreateTrip(sel.id); setSel(null); }}>+ Crear viaje</button>
+          </div>
+        </div>
+      )}
       <div className="map-legend">
         <span><i style={{ background: COLOR.ideal }} /> Ideal</span>
         <span><i style={{ background: COLOR.good }} /> Bueno</span>

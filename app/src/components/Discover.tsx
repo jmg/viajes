@@ -239,7 +239,11 @@ export function Discover({ onCreateTripFromDestination, onOpenDestination, wishl
           <button className="button-secondary" onClick={reset}>Reset filtros</button>
         </div>
       ) : viewMode === "map" ? (
-        <WorldMap results={results} onOpen={(id) => onOpenDestination(id, criteria)} />
+        <WorldMap
+          results={results}
+          onOpen={(id) => onOpenDestination(id, criteria)}
+          onCreateTrip={(id) => onCreateTripFromDestination(id, criteria)}
+        />
       ) : (
         <div className="dest-grid">
           {results.map((r) => (

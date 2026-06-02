@@ -76,9 +76,15 @@ export function WeatherSection({ trip }: Props) {
     <div className="weather-section">
       <h3>{title}</h3>
       {subtitle}
-      {loading && <p className="settings-hint">Cargando datos de Open-Meteo…</p>}
+      {loading && (
+        <div className="weather-grid" aria-label="Cargando datos de Open-Meteo…">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="weather-day weather-skeleton" aria-hidden />
+          ))}
+        </div>
+      )}
       {error && (
-        <p className="form-error">No se pudo cargar ({error}). Las normales climáticas en Descubrir siguen disponibles.</p>
+        <p className="form-error">No se pudo cargar ({error}). Las normales climáticas del gráfico siguen disponibles.</p>
       )}
       {!loading && !error && filtered.length > 0 && (
         <div className="weather-grid">
