@@ -40,14 +40,16 @@ function smoothPath(pts: readonly (readonly [number, number])[]): string {
 }
 
 function TempSparkline({ climate }: { climate: { highC: number; lowC: number }[] }) {
-  const W = 600, H = 56, PAD = 8;
+  const W = 600, H = 72;
+  // Banda donde vive la curva; deja aire arriba/abajo para las etiquetas.
+  const TOP = 22, BOT = 50;
   const avgs = climate.map((c) => (c.highC + c.lowC) / 2);
   const min = Math.min(...avgs);
   const max = Math.max(...avgs);
   const range = max - min || 1;
   const pts = avgs.map((t, i) => {
     const x = (i / 11) * W;
-    const y = (H - PAD) - ((t - min) / range) * (H - PAD * 2);
+    const y = BOT - ((t - min) / range) * (BOT - TOP);
     return [x, y] as const;
   });
   const linePath = smoothPath(pts);
@@ -68,8 +70,8 @@ function TempSparkline({ climate }: { climate: { highC: number; lowC: number }[]
         <g key={idx}>
           <circle cx={pts[idx][0]} cy={pts[idx][1]} r={3.5} className="sparkline-dot" />
           <text
-            x={Math.min(Math.max(pts[idx][0], 14), W - 14)}
-            y={idx === maxI ? pts[idx][1] - 6 : pts[idx][1] + 12}
+            x={Math.min(Math.max(pts[idx][0], 16), W - 16)}
+            y={idx === maxI ? pts[idx][1] - 9 : pts[idx][1] + 17}
             className="sparkline-label"
           >
             {Math.round(avgs[idx])}°
