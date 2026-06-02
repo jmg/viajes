@@ -1,24 +1,11 @@
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  LineElement,
-  PointElement,
-  LineController,
-  Tooltip,
-  Filler,
-} from "chart.js";
-import type { ChartData, ChartOptions } from "chart.js";
-import { Line } from "react-chartjs-2";
 import type { Destination } from "../destinations/types";
 import type { Trip } from "../types";
 import { CATEGORY_EMOJI, CATEGORY_LABEL, COST_LABEL, COST_RANGE_USD } from "../destinations/types";
 import { rateClimate } from "../lib/recommender";
 import { ClimateChart } from "./ClimateChart";
+import { BestMonthsChart } from "./BestMonthsChart";
 import { WeatherSection } from "./WeatherSection";
 import { InfoTip as Info } from "./InfoTip";
-
-ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, LineController, Tooltip, Filler);
 
 const MONTHS_FULL = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -73,64 +60,6 @@ const RATING_INFO: Record<string, { label: string; tip: string }> = {
   ok: { label: "⚠ Aceptable", tip: "Se puede viajar, pero hay calor, frío o lluvia para tener en cuenta." },
   avoid: { label: "❌ Evitar", tip: "Mes poco recomendable por temperatura o lluvia." },
 };
-
-
-function TempSparkline({ climate }: { climate: { highC: number; lowC: number }[] }) {
-  const avgs = climate.map((c) => Math.round((c.highC + c.lowC) / 2));
-  const maxI = avgs.indexOf(Math.max(...avgs));
-  const minI = avgs.indexOf(Math.min(...avgs));
-
-  const data: ChartData<"line", number[], string> = {
-    labels: MONTHS_FULL,
-    datasets: [{
-      data: avgs,
-      borderColor: "#fb923c",
-      borderWidth: 2.5,
-      tension: 0.4,
-      fill: true,
-      backgroundColor: (ctx) => {
-        const { chart } = ctx;
-        const { ctx: c, chartArea } = chart;
-        if (!chartArea) return "rgba(249,115,22,0.15)";
-        const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-        g.addColorStop(0, "rgba(249,115,22,0.30)");
-        g.addColorStop(1, "rgba(249,115,22,0)");
-        return g;
-      },
-      pointRadius: avgs.map((_, i) => (i === maxI || i === minI ? 4 : 0)),
-      pointHoverRadius: 4,
-      pointBackgroundColor: avgs.map((_, i) => (i === minI ? "#60a5fa" : "#fb923c")),
-      pointBorderColor: "#172238",
-      pointBorderWidth: 2,
-    }],
-  };
-
-  const options: ChartOptions<"line"> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: "index", intersect: false },
-    animation: { duration: 600 },
-    scales: { x: { display: false }, y: { display: false, grace: "18%" } },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: "#0e1726",
-        borderColor: "#2c3a58",
-        borderWidth: 1,
-        padding: 9,
-        titleColor: "#e8edf7",
-        bodyColor: "#cbd5e1",
-        callbacks: { label: (item) => ` ${item.parsed.y}° promedio` },
-      },
-    },
-  };
-
-  return (
-    <div className="temp-sparkline-box">
-      <Line data={data} options={options} aria-label="Temperatura promedio mensual" />
-    </div>
-  );
-}
 
 const VISA_LABEL = {
   none: "Sin visa",
@@ -257,8 +186,8 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
       </div>
 
       <div className="dest-section">
-        <h3>Mejores meses</h3>
-        <TempSparkline climate={d.climate} />
+        <h3>¿Cuándo ir? Aptitud por mes</h3>
+        <BestMonthsChart climate={d.climate} bestMonths={d.bestMonths} highlightMonth={highlightMonth} />
         <div className="months-grid">
           {MONTHS_FULL.map((m, i) => {
             const monthNum = i + 1;

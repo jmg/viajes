@@ -31,6 +31,7 @@ const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "
 
 const ORANGE = "#fb923c";
 const BLUE = "#60a5fa";
+const TEAL = "#2dd4bf";
 
 type Props = {
   climate: MonthClimate[];
@@ -40,10 +41,28 @@ type Props = {
 export function ClimateChart({ climate, highlightMonth }: Props) {
   const hi = highlightMonth ? highlightMonth - 1 : -1;
   const maxRain = Math.max(...climate.map((c) => c.rainMm), 50);
+  const hasSea = climate.some((c) => c.seaTempC != null);
 
   const data: ChartData<"bar" | "line", number[], string> = useMemo(() => ({
     labels: MONTHS,
     datasets: [
+      ...(hasSea ? [{
+        type: "line" as const,
+        label: "Mar",
+        yAxisID: "temp",
+        data: climate.map((c) => c.seaTempC ?? null) as number[],
+        borderColor: TEAL,
+        backgroundColor: "transparent",
+        borderWidth: 2,
+        borderDash: [5, 4],
+        tension: 0.4,
+        fill: false,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointBackgroundColor: TEAL,
+        spanGaps: true,
+        order: 0,
+      }] : []),
       {
         type: "bar" as const,
         label: "Lluvia",
@@ -144,6 +163,7 @@ export function ClimateChart({ climate, highlightMonth }: Props) {
               return ` 🌧 ${climate[i].rainMm} mm${sea ? ` · 🌊 ${sea}°` : ""}`;
             }
             if (item.dataset.label === "Máx") return ` ☀️ Máx ${climate[i].highC}°`;
+            if (item.dataset.label === "Mar") return ` 🌊 Mar ${climate[i].seaTempC}°`;
             return ` ❄️ Mín ${climate[i].lowC}°`;
           },
         },

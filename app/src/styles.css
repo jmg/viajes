@@ -896,12 +896,18 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
   border-radius: 8px; padding: 10px 8px;
   text-align: center; font-size: 12px;
 }
-/* Sparkline anual de temperatura promedio (encima de months-grid) — Chart.js */
-.temp-sparkline-box {
-  position: relative; height: 84px;
+/* Gráfico de aptitud por mes (¿cuándo ir?) — Chart.js */
+.best-months-chart {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 8px; padding: 8px; margin-bottom: 8px;
+  border-radius: 10px; padding: 12px 10px 8px; margin-bottom: 10px;
 }
+.best-months-chart .bmc-canvas { position: relative; height: 160px; }
+.best-months-chart .best-months-legend {
+  display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+  margin-top: 8px; font-size: 12px; color: var(--muted);
+}
+.best-months-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.best-months-legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
 
 /* Heat map por temperatura promedio del mes (las clases temp-* las setea DestinationDetail) */
 .month-cell.temp-frigid { background: rgba(30, 58, 138, 0.38); }
