@@ -27,9 +27,9 @@ function previewTrip(d: Destination, month?: number): Trip {
   const m = month ?? now.getMonth() + 1;
   let year = now.getFullYear();
   if (m <= now.getMonth() + 1) year += 1;
-  const dur = Math.min(Math.max(d.suggestedDuration?.min ?? 7, 5), 10);
+  // Mes completo: WeatherSection muestra ~10 días salteados de a 3 (1, 4, 7, …).
   const start = new Date(year, m - 1, 1);
-  const end = new Date(year, m - 1, dur);
+  const end = new Date(year, m - 1, 28);
   const fmt = (x: Date) => x.toISOString().slice(0, 10);
   return {
     id: `preview-${d.id}`,
@@ -256,7 +256,7 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
             </div>
           );
         })()}
-        <WeatherSection trip={previewTrip(d, highlightMonth)} />
+        <WeatherSection trip={previewTrip(d, highlightMonth)} sampleEvery={3} maxDays={10} />
       </div>
 
       <div className="dest-section">

@@ -69,10 +69,11 @@ export function HelpPage({ onBack, onDiscover }: Props) {
           <li><strong>Clima típico (normales):</strong> los gráficos de barras y líneas con el promedio histórico de cada mes. Sirve para comparar destinos.</li>
           <li><strong>Clima real día a día:</strong> el <strong>promedio de los últimos 5 años</strong> en esas fechas exactas, con datos satelitales <strong>ERA5</strong> (Open-Meteo). Da una idea más fiel de qué esperar que un solo año, que puede ser atípico.</li>
         </ul>
-        <p>Dos términos que aparecen ahí:</p>
+        <p>Mostramos ~10 días salteados (uno cada 3) para que veas cómo viene el mes completo. Tres cosas que aparecen ahí:</p>
         <ul>
+          <li><strong>El ícono ☀️🌤⛅🌦🌧:</strong> refleja la <em>probabilidad de lluvia</em> de ese día, no un pronóstico exacto. Si ves ☀️ con 0 mm, es un día que casi siempre salió seco.</li>
+          <li><strong>“% prob. lluvia”:</strong> en cuántos de los últimos años llovió ese día. Ej.: <em>20%</em> = llovió 1 de cada 5 años (o sea, casi siempre estuvo seco). No es cuánta lluvia, es qué tan probable.</li>
           <li><strong>± (desvío):</strong> cuánto suele variar ese día de un año a otro. Ej.: <em>28° ±3</em> = la máxima rondó los 28°, moviéndose unos 3° entre años.</li>
-          <li><strong>💧 % de lluvia:</strong> en cuántos de esos años llovió ese día (probabilidad de día con lluvia).</li>
         </ul>
       </section>
 

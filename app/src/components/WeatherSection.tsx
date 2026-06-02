@@ -1,15 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Trip } from "../types";
 import { DESTINATIONS } from "../destinations/data";
-import { fetchForecast, fetchHistorical, fetchMultiYearAverage, weatherEmoji, weatherLabel } from "../lib/forecast";
+import { fetchForecast, fetchHistorical, fetchMultiYearAverage, weatherEmoji } from "../lib/forecast";
 import type { DailyWeather } from "../lib/forecast";
 import { daysUntilStart, daysUntilEnd } from "../lib/status";
 import { formatDate } from "../lib/format";
 
 const PRIOR_YEARS = 5;
 
-type Props = { trip: Trip };
+type Props = {
+  trip: Trip;
+  /** Si está, muestra ~maxDays días salteados cada N (para previsualizar un mes entero). */
+  sampleEvery?: number;
+  maxDays?: number;
+};
 type Mode = "forecast" | "historical" | "prior_year";
+
+/** Ícono coherente con los datos: en promedios sale de la probabilidad de lluvia, no de un código promediado. */
+function dayIcon(d: DailyWeather): string {
+  if (d.rainyDayProb != null) {
+    const p = d.rainyDayProb;
+    if (p < 0.25) return "☀️";
+    if (p < 0.45) return "🌤";
+    if (p < 0.65) return "⛅";
+    if (p < 0.8) return "🌦";
+    return "🌧";
+  }
+  return weatherEmoji(d.weatherCode);
+}
 
 function matchDestination(name: string) {
   const lower = name.toLowerCase().trim();
@@ -19,7 +37,7 @@ function matchDestination(name: string) {
   });
 }
 
-export function WeatherSection({ trip }: Props) {
+export function WeatherSection({ trip, sampleEvery, maxDays }: Props) {
   const dest = useMemo(
     () => trip.destinations.map(matchDestination).find((d) => d?.lat != null && d?.lng != null) ?? null,
     [trip.destinations],
@@ -59,7 +77,12 @@ export function WeatherSection({ trip }: Props) {
   if (!mode) return null;
   if (!dest) return null;
 
-  const filtered = data?.filter((d) => d.date >= trip.startDate && d.date <= trip.endDate) ?? [];
+  let filtered = data?.filter((d) => d.date >= trip.startDate && d.date <= trip.endDate) ?? [];
+  if (sampleEvery && sampleEvery > 1) {
+    filtered = filtered.filter((_, i) => i % sampleEvery === 0).slice(0, maxDays ?? 10);
+  } else if (maxDays) {
+    filtered = filtered.slice(0, maxDays);
+  }
   const maxPrecip = Math.max(...filtered.map((d) => d.precipMm), 5);
 
   const title =
@@ -93,27 +116,38 @@ export function WeatherSection({ trip }: Props) {
       )}
       {!loading && !error && filtered.length > 0 && (
         <div className="weather-grid">
-          {filtered.map((d) => (
-            <div key={d.date} className="weather-day" title={weatherLabel(d.weatherCode)}>
-              <div className="weather-date">{formatDate(d.date)}</div>
-              <div className="weather-emoji">{weatherEmoji(d.weatherCode)}</div>
-              <div className="weather-temp">
-                {d.tempMin}° / {d.tempMax}°
-                {d.tempMaxStdev != null && d.tempMaxStdev > 0 && (
-                  <span className="weather-stdev" title="Variación típica de la máxima entre años (desvío estándar): cuánto suele cambiar ese día de un año a otro."> ±{d.tempMaxStdev}</span>
+          {filtered.map((d) => {
+            const prob = d.rainyDayProb != null ? Math.round(d.rainyDayProb * 100) : null;
+            const cardTip =
+              `${formatDate(d.date)} — máx ${d.tempMax}°, mín ${d.tempMin}°` +
+              (prob != null ? ` · ${prob}% de probabilidad de lluvia` : "");
+            return (
+              <div key={d.date} className="weather-day" title={cardTip}>
+                <div className="weather-date">{formatDate(d.date)}</div>
+                <div className="weather-emoji">{dayIcon(d)}</div>
+                <div className="weather-temp">
+                  <span title="Mínima / máxima promedio del día">{d.tempMin}° / {d.tempMax}°</span>
+                  {d.tempMaxStdev != null && d.tempMaxStdev > 0 && (
+                    <span className="weather-stdev" title="Variación típica entre años: cuánto suele cambiar la máxima de ese día de un año a otro."> ±{d.tempMaxStdev}</span>
+                  )}
+                </div>
+                <div className="weather-rainbar" aria-hidden>
+                  <span style={{ width: `${Math.round((d.precipMm / maxPrecip) * 100)}%` }} />
+                </div>
+                <div className="weather-rain" title="Lluvia promedio acumulada en el día">{d.precipMm} mm</div>
+                {prob != null && (
+                  <div
+                    className="weather-rainprob"
+                    title={mode === "prior_year"
+                      ? `Probabilidad de lluvia: en el ${prob}% de los últimos ${PRIOR_YEARS} años llovió este día (más de 1 mm).`
+                      : `Probabilidad de lluvia ese día: ${prob}%.`}
+                  >
+                    {prob}% prob. lluvia
+                  </div>
                 )}
               </div>
-              <div className="weather-rainbar" aria-hidden>
-                <span style={{ width: `${Math.round((d.precipMm / maxPrecip) * 100)}%` }} />
-              </div>
-              <div className="weather-rain">{d.precipMm} mm</div>
-              {d.rainyDayProb != null && (
-                <div className="weather-rainprob" title="Probabilidad de día con lluvia (>1mm)">
-                  💧 {Math.round(d.rainyDayProb * 100)}%
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
       <p className="settings-hint">
