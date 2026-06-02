@@ -803,6 +803,32 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
 
 .trip-stats { margin-bottom: 16px; }
 
+/* Página de Ayuda */
+.help-page { max-width: 760px; margin: 0 auto; }
+.help-hero { margin: 8px 0 24px; }
+.help-hero h1 { margin: 0 0 6px; font-size: 32px; }
+.help-hero p { color: var(--muted); margin: 0; }
+.help-section {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 18px 20px; margin-bottom: 16px;
+}
+.help-section h2 { margin: 0 0 10px; font-size: 19px; }
+.help-section h3 { margin: 0 0 4px; font-size: 15px; color: var(--accent); }
+.help-section p { margin: 8px 0; line-height: 1.6; }
+.help-section ul, .help-section ol { margin: 8px 0; padding-left: 22px; line-height: 1.6; }
+.help-section li { margin: 4px 0; }
+.help-steps li { margin: 8px 0; }
+.help-defs { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 12px; }
+.help-def { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.help-def ul { padding-left: 18px; }
+.help-ratings { list-style: none; padding: 0; display: grid; gap: 10px; }
+.help-ratings li { display: flex; align-items: center; gap: 10px; }
+.help-ratings .rating-pill { flex: 0 0 auto; }
+.help-cta { text-align: center; margin: 24px 0 12px; }
+.help-cta .button-primary { font-size: 16px; padding: 14px 28px; }
+.help-foot { text-align: center; color: var(--muted); font-size: 13px; }
+.help-foot a { color: var(--accent); }
+
 /* Ícono de ayuda con tooltip nativo */
 .info-tip {
   display: inline-flex; align-items: center; justify-content: center;

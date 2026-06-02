@@ -170,7 +170,10 @@ export function Discover({ onCreateTripFromDestination, onOpenDestination, wishl
 
         <div className="filter-row">
           <div className="field">
-            <span>Temperatura ideal: {minTemp}° – {maxTemp}°C</span>
+            <span>
+              Temperatura ideal: {minTemp}° – {maxTemp}°C
+              <span className="info-tip" role="img" aria-label="Qué significa" title="Buscamos destinos cuya temperatura promedio del mes elegido caiga dentro de este rango. Movelo según el clima que te guste para viajar.">ⓘ</span>
+            </span>
             <div className="range-pair">
               <span className="range-icon" title="Frío" aria-label="Frío">🥶</span>
               <div className="range-sliders">
@@ -181,7 +184,10 @@ export function Discover({ onCreateTripFromDestination, onOpenDestination, wishl
             </div>
           </div>
           <div className="field">
-            <span>Lluvia: {rainPref <= 3 ? "sin preferencia" : `≤ ${maxRainMm} mm/mes`}</span>
+            <span>
+              Lluvia: {rainPref <= 3 ? "sin preferencia" : `máx. ${maxRainMm} mm en el mes`}
+              <span className="info-tip" role="img" aria-label="Qué significan los mm de lluvia" title="Los mm (milímetros) miden cuánta lluvia cae en todo el mes. Referencia: menos de 30 mm = mes seco; ~100 mm = moderado; más de 200 mm = muy lluvioso. Llevá el slider hacia ☀️ para ver solo destinos con poca lluvia en el mes elegido.">ⓘ</span>
+            </span>
             <div className="range-pair">
               <span className="range-icon" title="Más húmedo" aria-label="Más húmedo">💧</span>
               <div className="range-sliders">

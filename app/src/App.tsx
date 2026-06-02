@@ -8,6 +8,7 @@ import { Filters } from "./components/Filters";
 import type { FilterId } from "./components/Filters";
 import { ShareDialog } from "./components/ShareDialog";
 import { SharedTripView } from "./components/SharedTripView";
+import { HelpPage } from "./components/HelpPage";
 
 // Vistas pesadas (dataset de destinos / muchos editores) cargadas on-demand.
 const TripDetail = lazy(() => import("./components/TripDetail").then((m) => ({ default: m.TripDetail })));
@@ -71,6 +72,7 @@ export function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currency, setCurrency] = useState<Currency>(() => loadCurrency());
   const [sharingTrip, setSharingTrip] = useState<Trip | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   const [sharedTrip, setSharedTrip] = useState<Trip | null>(() => getSharedTripFromHash());
   const [wishlist, setWishlist] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem(WISHLIST_KEY) ?? "[]"); } catch { return []; }
@@ -182,6 +184,14 @@ export function App() {
     );
   }
 
+  if (showHelp) {
+    return (
+      <div className="app">
+        <HelpPage onBack={() => setShowHelp(false)} onDiscover={() => { setShowHelp(false); openDiscover(); }} />
+      </div>
+    );
+  }
+
   const isHome = !activeTrip && !activeDest;
 
   return (
@@ -193,6 +203,9 @@ export function App() {
               <div>
                 <h1>✈️ Viajes</h1>
                 <p>Descubrí destinos según el clima y planeá tu próxima aventura.</p>
+              </div>
+              <div className="home-actions">
+                <button className="button-secondary" onClick={() => setShowHelp(true)}>❓ Ayuda</button>
               </div>
             </div>
             <nav className="main-tabs">
