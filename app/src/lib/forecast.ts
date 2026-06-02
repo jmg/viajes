@@ -147,29 +147,43 @@ function mostCommonCode(codes: number[]): number {
   return best;
 }
 
-// WMO weather codes → emoji + label.
-// https://open-meteo.com/en/docs#weathervariables
+// Códigos WMO 4677 (estándar) → ícono + descripción, como los mapea Open-Meteo y
+// la mayoría de las apps de clima. https://open-meteo.com/en/docs#weathervariables
+const WMO: Record<number, { icon: string; label: string }> = {
+  0: { icon: "☀️", label: "Despejado" },
+  1: { icon: "🌤", label: "Mayormente despejado" },
+  2: { icon: "⛅", label: "Parcialmente nublado" },
+  3: { icon: "☁️", label: "Nublado" },
+  45: { icon: "🌫", label: "Niebla" },
+  48: { icon: "🌫", label: "Niebla con escarcha" },
+  51: { icon: "🌦", label: "Llovizna ligera" },
+  53: { icon: "🌦", label: "Llovizna moderada" },
+  55: { icon: "🌧", label: "Llovizna intensa" },
+  56: { icon: "🌧", label: "Llovizna helada" },
+  57: { icon: "🌧", label: "Llovizna helada intensa" },
+  61: { icon: "🌦", label: "Lluvia ligera" },
+  63: { icon: "🌧", label: "Lluvia moderada" },
+  65: { icon: "🌧", label: "Lluvia fuerte" },
+  66: { icon: "🌧", label: "Lluvia helada" },
+  67: { icon: "🌧", label: "Lluvia helada fuerte" },
+  71: { icon: "🌨", label: "Nevada ligera" },
+  73: { icon: "🌨", label: "Nevada moderada" },
+  75: { icon: "❄️", label: "Nevada fuerte" },
+  77: { icon: "🌨", label: "Granos de nieve" },
+  80: { icon: "🌦", label: "Chubascos ligeros" },
+  81: { icon: "🌧", label: "Chubascos moderados" },
+  82: { icon: "⛈", label: "Chubascos violentos" },
+  85: { icon: "🌨", label: "Chubascos de nieve" },
+  86: { icon: "❄️", label: "Chubascos de nieve fuertes" },
+  95: { icon: "⛈", label: "Tormenta" },
+  96: { icon: "⛈", label: "Tormenta con granizo" },
+  99: { icon: "⛈", label: "Tormenta con granizo fuerte" },
+};
+
 export function weatherEmoji(code: number): string {
-  if (code === 0) return "☀️";
-  if (code <= 3) return "🌤";
-  if (code === 45 || code === 48) return "🌫";
-  if (code >= 51 && code <= 57) return "🌦";
-  if (code >= 61 && code <= 67) return "🌧";
-  if (code >= 71 && code <= 77) return "🌨";
-  if (code >= 80 && code <= 86) return "🌧";
-  if (code >= 95) return "⛈";
-  return "🌤";
+  return WMO[code]?.icon ?? "🌤";
 }
 
 export function weatherLabel(code: number): string {
-  if (code === 0) return "Despejado";
-  if (code <= 3) return "Parcial nublado";
-  if (code === 45 || code === 48) return "Niebla";
-  if (code >= 51 && code <= 57) return "Llovizna";
-  if (code >= 61 && code <= 67) return "Lluvia";
-  if (code >= 71 && code <= 77) return "Nieve";
-  if (code >= 80 && code <= 86) return "Chubascos";
-  if (code === 95) return "Tormenta";
-  if (code >= 96) return "Tormenta con granizo";
-  return "—";
+  return WMO[code]?.label ?? "—";
 }
