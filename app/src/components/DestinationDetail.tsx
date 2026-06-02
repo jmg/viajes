@@ -59,6 +59,25 @@ function rainIcon(mm: number): string {
   return "🌧🌧";
 }
 
+function rainText(mm: number): string {
+  if (mm < 30) return "Seco";
+  if (mm < 100) return "Lluvia moderada";
+  if (mm < 200) return "Lluvioso";
+  return "Muy lluvioso";
+}
+
+const RATING_INFO: Record<string, { label: string; tip: string }> = {
+  ideal: { label: "🌟 Ideal", tip: "Clima muy cómodo en este destino durante este mes." },
+  good: { label: "✅ Bueno", tip: "Buen clima, con algún detalle menor de temperatura o lluvia." },
+  ok: { label: "⚠ Aceptable", tip: "Se puede viajar, pero hay calor, frío o lluvia para tener en cuenta." },
+  avoid: { label: "❌ Evitar", tip: "Mes poco recomendable por temperatura o lluvia." },
+};
+
+/** Pequeño ícono ⓘ con explicación (tooltip nativo, simple y accesible). */
+function Info({ tip }: { tip: string }) {
+  return <span className="info-tip" title={tip} role="img" aria-label={`Ayuda: ${tip}`}>ⓘ</span>;
+}
+
 function TempSparkline({ climate }: { climate: { highC: number; lowC: number }[] }) {
   const avgs = climate.map((c) => Math.round((c.highC + c.lowC) / 2));
   const maxI = avgs.indexOf(Math.max(...avgs));
@@ -191,14 +210,52 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
       <div className="dest-section">
         <h3>Clima durante el año</h3>
         <ClimateChart climate={d.climate} highlightMonth={highlightMonth} />
-        {highlightMonth && (
-          <p className="climate-month-summary">
-            <strong>{MONTHS_FULL[highlightMonth - 1]}:</strong>{" "}
-            {d.climate[highlightMonth - 1].lowC}° – {d.climate[highlightMonth - 1].highC}°C ·{" "}
-            {d.climate[highlightMonth - 1].rainMm} mm de lluvia
-            {d.climate[highlightMonth - 1].seaTempC && ` · mar ${d.climate[highlightMonth - 1].seaTempC}°C`}
-          </p>
-        )}
+        {highlightMonth && (() => {
+          const cm = d.climate[highlightMonth - 1];
+          const rating = rateClimate(cm).rating;
+          const avg = Math.round((cm.highC + cm.lowC) / 2);
+          const info = RATING_INFO[rating];
+          return (
+            <div className="month-panel">
+              <div className="month-panel-head">
+                <strong>{MONTHS_FULL[highlightMonth - 1]}</strong>
+                <span className={`rating-pill rating-${rating}`}>{info.label}<Info tip={info.tip} /></span>
+                {d.bestMonths.includes(highlightMonth) && (
+                  <span className="best-badge">⭐ Uno de los mejores meses para ir</span>
+                )}
+              </div>
+              <div className="month-stats">
+                <div className="ms">
+                  <span className="ms-label">Temperatura</span>
+                  <span className="ms-val">{cm.lowC}° – {cm.highC}°</span>
+                  <span className="ms-sub">promedio {avg}°</span>
+                </div>
+                <div className="ms">
+                  <span className="ms-label">Lluvia <Info tip="Milímetros de lluvia que caen en todo el mes (promedio histórico). Menos de 30 mm es seco; más de 200, muy lluvioso." /></span>
+                  <span className="ms-val">{cm.rainMm} mm</span>
+                  <span className="ms-sub">{rainText(cm.rainMm)}</span>
+                </div>
+                {cm.seaTempC != null && (
+                  <div className="ms">
+                    <span className="ms-label">Mar <Info tip="Temperatura promedio del agua del mar. Desde ~24° se siente cálida para nadar." /></span>
+                    <span className="ms-val">{cm.seaTempC}°</span>
+                    <span className="ms-sub">{cm.seaTempC >= 24 ? "cálido" : "fresco"}</span>
+                  </div>
+                )}
+                {cm.sunHours != null && (
+                  <div className="ms">
+                    <span className="ms-label">Sol <Info tip="Horas de sol promedio por día en el mes." /></span>
+                    <span className="ms-val">{cm.sunHours} h</span>
+                    <span className="ms-sub">por día</span>
+                  </div>
+                )}
+              </div>
+              <p className="month-panel-note">
+                Valores de clima típico (normales). Abajo, el clima real día a día (promedio de años pasados).
+              </p>
+            </div>
+          );
+        })()}
         <WeatherSection trip={previewTrip(d, highlightMonth)} />
       </div>
 

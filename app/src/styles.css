@@ -776,6 +776,41 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
   font-size: 14px;
 }
 
+/* Panel del clima del mes elegido */
+.month-panel {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px; margin-top: 10px;
+}
+.month-panel-head {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.month-panel-head strong { font-size: 16px; }
+.best-badge {
+  font-size: 12px; color: var(--gold);
+  border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 999px; padding: 3px 10px;
+}
+.month-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px;
+}
+.ms {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px; display: grid; gap: 2px;
+}
+.ms-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
+.ms-val { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ms-sub { font-size: 12px; color: var(--muted); }
+.month-panel-note { margin: 12px 0 0; font-size: 12px; color: var(--muted); }
+
+/* Ícono de ayuda con tooltip nativo */
+.info-tip {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; margin-left: 3px;
+  font-size: 10px; line-height: 1; cursor: help;
+  color: var(--muted); border: 1px solid var(--border); border-radius: 50%;
+  vertical-align: middle;
+}
+.info-tip:hover { color: var(--accent); border-color: var(--accent); }
+
 /* Monthly grid */
 .months-grid {
   display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;

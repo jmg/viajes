@@ -8,6 +8,13 @@ const RATING_LABEL = {
   avoid: "❌ Evitar",
 };
 
+const RATING_TIP = {
+  ideal: "Clima muy cómodo en este mes.",
+  good: "Buen clima, con algún detalle menor.",
+  ok: "Se puede, pero hay calor, frío o lluvia a tener en cuenta.",
+  avoid: "Mes poco recomendable por temperatura o lluvia.",
+};
+
 type Props = {
   result: RecommendationResult;
   isInWishlist: boolean;
@@ -27,7 +34,7 @@ export function DestinationCard({ result, isInWishlist, onOpen, onToggleWishlist
             <h3>{d.name}</h3>
             <span className="dest-country">{d.country} · {d.region}</span>
           </div>
-          <span className={`rating-pill rating-${climateRating}`}>{RATING_LABEL[climateRating]}</span>
+          <span className={`rating-pill rating-${climateRating}`} title={RATING_TIP[climateRating]}>{RATING_LABEL[climateRating]}</span>
         </div>
 
         <p className="dest-desc">{d.description}</p>

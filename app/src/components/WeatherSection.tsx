@@ -67,6 +67,11 @@ export function WeatherSection({ trip }: Props) {
     mode === "historical" ? `📜 Tiempo histórico — ${dest.name}` :
     `📅 Promedio últimos ${PRIOR_YEARS} años en estas fechas — ${dest.name}`;
 
+  const titleTip =
+    mode === "forecast" ? "Pronóstico real de Open-Meteo para los próximos días." :
+    mode === "historical" ? "Lo que ocurrió realmente en estas fechas, según el archivo histórico ERA5." :
+    `Promedio día a día de los últimos ${PRIOR_YEARS} años (datos satelitales ERA5). Da una idea realista de qué esperar, mejor que un único año que puede ser atípico.`;
+
   const subtitle =
     mode === "prior_year" ? (
       <p className="settings-hint">Promedio día por día de los últimos {PRIOR_YEARS} años (datos ERA5). Más robusto que un único año atípico.</p>
@@ -74,7 +79,7 @@ export function WeatherSection({ trip }: Props) {
 
   return (
     <div className="weather-section">
-      <h3>{title}</h3>
+      <h3 title={titleTip}>{title} <span className="info-tip" aria-hidden>ⓘ</span></h3>
       {subtitle}
       {loading && (
         <div className="weather-grid" aria-label="Cargando datos de Open-Meteo…">
@@ -95,7 +100,7 @@ export function WeatherSection({ trip }: Props) {
               <div className="weather-temp">
                 {d.tempMin}° / {d.tempMax}°
                 {d.tempMaxStdev != null && d.tempMaxStdev > 0 && (
-                  <span className="weather-stdev"> ±{d.tempMaxStdev}</span>
+                  <span className="weather-stdev" title="Variación típica de la máxima entre años (desvío estándar): cuánto suele cambiar ese día de un año a otro."> ±{d.tempMaxStdev}</span>
                 )}
               </div>
               <div className="weather-rainbar" aria-hidden>
