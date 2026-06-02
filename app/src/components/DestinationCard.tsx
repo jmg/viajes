@@ -13,9 +13,10 @@ type Props = {
   isInWishlist: boolean;
   onOpen: (id: string) => void;
   onToggleWishlist: (id: string) => void;
+  onCreateTrip: (id: string) => void;
 };
 
-export function DestinationCard({ result, isInWishlist, onOpen, onToggleWishlist }: Props) {
+export function DestinationCard({ result, isInWishlist, onOpen, onToggleWishlist, onCreateTrip }: Props) {
   const { destination: d, climateRating, reasons, warnings, score } = result;
   return (
     <div className={`dest-card rating-${climateRating}`}>
@@ -63,6 +64,13 @@ export function DestinationCard({ result, isInWishlist, onOpen, onToggleWishlist
         title={isInWishlist ? "Quitar de la lista" : "Guardar"}
       >
         {isInWishlist ? "❤️" : "🤍"}
+      </button>
+      <button
+        className="dest-create-btn"
+        onClick={() => onCreateTrip(d.id)}
+        title={`Crear viaje a ${d.name}`}
+      >
+        + Crear viaje
       </button>
     </div>
   );

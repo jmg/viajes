@@ -1,20 +1,17 @@
 import type { Trip } from "../types";
-import type { Settings } from "../lib/settings";
 import { googleFlightsUrl, skyscannerUrl, bookingUrl, getYourGuideUrl } from "../lib/booking";
 import { track } from "../lib/analytics";
 
-type Props = { trip: Trip; settings: Settings };
+type Props = { trip: Trip };
 
-export function BookingLinks({ trip, settings }: Props) {
-  const origin = trip.origin || settings.originCity;
-  const noAffiliates = !settings.skyscannerAffiliate && !settings.bookingAffiliate;
+export function BookingLinks({ trip }: Props) {
+  const origin = trip.origin || "Buenos Aires";
   const click = (platform: string) => track("booking_click", { platform });
 
   return (
     <div className="booking-links">
       <p className="settings-hint">
-        Links directos para reservar, con fechas y destinos ya cargados. Si configurás tus IDs de afiliado
-        (Configuración), los links de Booking/Skyscanner los incluyen y podés generar comisiones.
+        Links directos para reservar, con tus fechas y destinos ya cargados.
       </p>
 
       <div className="booking-section">
@@ -23,7 +20,7 @@ export function BookingLinks({ trip, settings }: Props) {
           <a className="booking-link" href={googleFlightsUrl(origin, trip.destinations[0] ?? "", trip.startDate)} target="_blank" rel="noreferrer" onClick={() => click("google_flights")}>
             Google Flights ({origin} → {trip.destinations[0]}) ↗
           </a>
-          <a className="booking-link" href={skyscannerUrl(trip.destinations[0] ?? "", settings.skyscannerAffiliate)} target="_blank" rel="noreferrer" onClick={() => click("skyscanner")}>
+          <a className="booking-link" href={skyscannerUrl(trip.destinations[0] ?? "")} target="_blank" rel="noreferrer" onClick={() => click("skyscanner")}>
             Skyscanner ↗
           </a>
         </div>
@@ -33,7 +30,7 @@ export function BookingLinks({ trip, settings }: Props) {
         <div className="booking-section" key={dest}>
           <h3>🏨 {dest}</h3>
           <div className="booking-row">
-            <a className="booking-link" href={bookingUrl(dest, trip.startDate, trip.endDate, settings.bookingAffiliate)} target="_blank" rel="noreferrer" onClick={() => click("booking")}>
+            <a className="booking-link" href={bookingUrl(dest, trip.startDate, trip.endDate)} target="_blank" rel="noreferrer" onClick={() => click("booking")}>
               Hoteles en Booking.com ↗
             </a>
             <a className="booking-link" href={getYourGuideUrl(dest)} target="_blank" rel="noreferrer" onClick={() => click("getyourguide")}>
@@ -42,12 +39,6 @@ export function BookingLinks({ trip, settings }: Props) {
           </div>
         </div>
       ))}
-
-      {noAffiliates && (
-        <p className="settings-hint">
-          💡 Tip: estos links funcionan sin afiliado. Para monetizar, cargá tus IDs de afiliado en Configuración.
-        </p>
-      )}
     </div>
   );
 }

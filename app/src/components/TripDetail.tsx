@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import type { Currency, Trip } from "../types";
-import type { Settings } from "../lib/settings";
 import { formatDateRange, daysBetween } from "../lib/format";
 import { autoStatus, STATUS_LABEL } from "../lib/status";
 import { computeMoonPhases, computeTideWindows } from "../lib/moon";
@@ -11,7 +10,6 @@ import { LinksEditor } from "./editors/LinksEditor";
 import { BudgetEditor } from "./editors/BudgetEditor";
 import { ItineraryEditor } from "./editors/ItineraryEditor";
 import { ExpensesEditor } from "./editors/ExpensesEditor";
-import { AiItineraryButton } from "./AiItineraryButton";
 import { BookingLinks } from "./BookingLinks";
 import { TripPrintView } from "./TripPrintView";
 import { TodayPanel } from "./TodayPanel";
@@ -23,19 +21,17 @@ import { downloadTripIcs } from "../lib/calendar";
 type Props = {
   trip: Trip;
   currency: Currency;
-  settings: Settings;
   onCurrencyChange: (c: Currency) => void;
   onChange: (trip: Trip) => void;
   onEdit: () => void;
   onDelete: () => void;
   onBack: () => void;
-  onOpenSettings: () => void;
   onShare: () => void;
 };
 
 type TabId = "overview" | "flights" | "itinerary" | "moon" | "budget" | "expenses" | "checklist" | "links" | "booking";
 
-export function TripDetail({ trip, currency, settings, onCurrencyChange, onChange, onEdit, onDelete, onBack, onOpenSettings, onShare }: Props) {
+export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit, onDelete, onBack, onShare }: Props) {
   const status = autoStatus(trip);
 
   const tabs: { id: TabId; label: string }[] = [
@@ -135,19 +131,10 @@ export function TripDetail({ trip, currency, settings, onCurrencyChange, onChang
         )}
 
         {active === "itinerary" && (
-          <>
-            <AiItineraryButton
-              trip={trip}
-              settings={settings}
-              hasExisting={!!trip.itinerary?.length}
-              onApply={(itinerary) => onChange({ ...trip, itinerary })}
-              onOpenSettings={onOpenSettings}
-            />
-            <ItineraryEditor
-              days={trip.itinerary ?? []}
-              onChange={(itinerary) => onChange({ ...trip, itinerary })}
-            />
-          </>
+          <ItineraryEditor
+            days={trip.itinerary ?? []}
+            onChange={(itinerary) => onChange({ ...trip, itinerary })}
+          />
         )}
 
         {active === "moon" && (
@@ -196,7 +183,7 @@ export function TripDetail({ trip, currency, settings, onCurrencyChange, onChang
           />
         )}
 
-        {active === "booking" && <BookingLinks trip={trip} settings={settings} />}
+        {active === "booking" && <BookingLinks trip={trip} />}
       </section>
     </div>
     <TripPrintView trip={trip} currency={currency} />

@@ -646,6 +646,16 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
   width: 100%; display: grid; gap: 10px;
 }
 
+.dest-create-btn {
+  display: block; width: calc(100% - 24px);
+  margin: 0 12px 12px; padding: 10px;
+  background: var(--accent-strong); color: #fff;
+  border: 0; border-radius: 10px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: background .15s;
+}
+.dest-create-btn:hover { background: var(--accent); }
+
 .dest-card-header {
   display: flex; align-items: center; gap: 10px;
 }

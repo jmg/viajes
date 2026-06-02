@@ -6,70 +6,79 @@ import { TripForm } from "./components/TripForm";
 import { Modal } from "./components/Modal";
 import { Filters } from "./components/Filters";
 import type { FilterId } from "./components/Filters";
-import { ImportExport } from "./components/ImportExport";
-import { Settings } from "./components/Settings";
 import { ShareDialog } from "./components/ShareDialog";
 import { SharedTripView } from "./components/SharedTripView";
-import { ReservationImport } from "./components/ReservationImport";
-import { Onboarding } from "./components/Onboarding";
 
 // Vistas pesadas (dataset de destinos / muchos editores) cargadas on-demand.
 const TripDetail = lazy(() => import("./components/TripDetail").then((m) => ({ default: m.TripDetail })));
 const Discover = lazy(() => import("./components/Discover").then((m) => ({ default: m.Discover })));
 const DestinationDetail = lazy(() => import("./components/DestinationDetail").then((m) => ({ default: m.DestinationDetail })));
 import { DESTINATIONS } from "./destinations/data";
-import type { RecommendationCriteria } from "./destinations/types";
+import type { Destination, RecommendationCriteria } from "./destinations/types";
 import { autoStatus } from "./lib/status";
 import { loadCurrency, saveCurrency } from "./lib/storage";
-import { loadSettings, saveSettings } from "./lib/settings";
-import type { Settings as SettingsType } from "./lib/settings";
 import { getSharedTripFromHash, clearShareHash } from "./lib/share";
-import { setAnalyticsEndpoint, track } from "./lib/analytics";
+import { track } from "./lib/analytics";
 
 type View = "trips" | "discover";
-type TripFormPrefill = { destinationName?: string; month?: number; duration?: number };
-type EditingState = Trip | { mode: "new"; prefill?: TripFormPrefill } | null;
 
 const WISHLIST_KEY = "viajes:wishlist:v1";
-const ONBOARDED_KEY = "viajes:onboarded:v1";
+const COASTAL_CATS = new Set(["beach", "island", "tropical", "lake"]);
+
+const newId = (): string => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return `trip-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+};
+
+/** Fechas de la próxima ocurrencia del mes elegido, con la duración sugerida. */
+function computeDates(month?: number, duration?: number): { start: string; end: string } {
+  const now = new Date();
+  const m = month ?? now.getMonth() + 1;
+  let year = now.getFullYear();
+  if (m <= now.getMonth() + 1) year += 1; // próxima vez que llega ese mes
+  const start = new Date(year, m - 1, 1);
+  const end = new Date(year, m - 1, Math.min(28, Math.max(2, duration ?? 7)));
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  return { start: fmt(start), end: fmt(end) };
+}
+
+/** Arma un viaje listo para usar a partir de un destino — sin formularios. */
+function tripFromDestination(d: Destination, month?: number): Trip {
+  const { start, end } = computeDates(month, d.suggestedDuration?.min);
+  const coastal = d.categories.some((c) => COASTAL_CATS.has(c));
+  return {
+    id: newId(),
+    title: `Viaje a ${d.name}`,
+    subtitle: `${d.country} · ${d.region}`,
+    startDate: start,
+    endDate: end,
+    origin: "Buenos Aires",
+    destinations: [d.name],
+    travelers: 1,
+    status: "planning",
+    coastal: coastal || undefined,
+    summary: d.description,
+  };
+}
 
 export function App() {
-  const { trips, upsert, remove, restoreSeeds, replaceAll } = useTrips();
+  const { trips, upsert, remove, restoreSeeds } = useTrips();
   const [view, setView] = useState<View>("discover");
   const [activeTripId, setActiveTripId] = useState<string | null>(null);
   const [activeDestination, setActiveDestination] = useState<{ id: string; month?: number } | null>(null);
-  const [editing, setEditing] = useState<EditingState>(null);
+  const [editing, setEditing] = useState<Trip | null>(null);
   const [filter, setFilter] = useState<FilterId>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showImportExport, setShowImportExport] = useState(false);
   const [currency, setCurrency] = useState<Currency>(() => loadCurrency());
-  const [settings, setSettings] = useState<SettingsType>(() => loadSettings());
-  const [showSettings, setShowSettings] = useState(false);
-  const [showReservation, setShowReservation] = useState(false);
   const [sharingTrip, setSharingTrip] = useState<Trip | null>(null);
   const [sharedTrip, setSharedTrip] = useState<Trip | null>(() => getSharedTripFromHash());
-  const [onboarded, setOnboarded] = useState<boolean>(() => localStorage.getItem(ONBOARDED_KEY) === "1");
   const [wishlist, setWishlist] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem(WISHLIST_KEY) ?? "[]"); } catch { return []; }
   });
 
-  const dismissOnboarding = () => {
-    localStorage.setItem(ONBOARDED_KEY, "1");
-    setOnboarded(true);
-  };
-
   useEffect(() => {
     localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
   }, [wishlist]);
-
-  useEffect(() => {
-    setAnalyticsEndpoint(settings.analyticsEndpoint);
-  }, [settings.analyticsEndpoint]);
-
-  const handleSettings = (s: SettingsType) => {
-    setSettings(s);
-    saveSettings(s);
-  };
 
   const saveSharedCopy = () => {
     if (!sharedTrip) return;
@@ -144,26 +153,15 @@ export function App() {
     if (activeTripId === id) setActiveTripId(null);
   };
 
-  const handleImport = (imported: Trip[], mode: "merge" | "replace") => {
-    const next = mode === "replace"
-      ? imported
-      : [...trips, ...imported.filter((t) => !new Set(trips.map((x) => x.id)).has(t.id))];
-    replaceAll(next);
-    setShowImportExport(false);
-  };
-
+  // Crear viaje desde un destino: se arma solo y se abre. Sin formularios.
   const handleCreateTripFromDestination = (destId: string, criteria?: RecommendationCriteria) => {
     const d = DESTINATIONS.find((x) => x.id === destId);
     if (!d) return;
+    const trip = tripFromDestination(d, criteria?.month ?? activeDestination?.month);
+    upsert(trip);
+    track("trip_create");
     setActiveDestination(null);
-    setEditing({
-      mode: "new",
-      prefill: {
-        destinationName: d.name,
-        month: criteria?.month,
-        duration: criteria?.duration ?? d.suggestedDuration?.min,
-      },
-    });
+    setActiveTripId(trip.id);
   };
 
   const toggleWishlist = (id: string) =>
@@ -184,7 +182,6 @@ export function App() {
     );
   }
 
-  // Renderiza la home con tabs
   const isHome = !activeTrip && !activeDest;
 
   return (
@@ -196,20 +193,6 @@ export function App() {
               <div>
                 <h1>✈️ Viajes</h1>
                 <p>Descubrí destinos según el clima y planeá tu próxima aventura.</p>
-              </div>
-              <div className="home-actions">
-                <button className="button-secondary" onClick={() => setShowReservation(true)}>
-                  📥 Importar reserva
-                </button>
-                <button className="button-secondary" onClick={() => setShowSettings(true)}>
-                  ⚙ Configuración
-                </button>
-                <button className="button-secondary" onClick={() => setShowImportExport(true)}>
-                  ⇅ Import/Export
-                </button>
-                <button className="button-primary" onClick={() => setEditing({ mode: "new" })}>
-                  + Nuevo viaje
-                </button>
               </div>
             </div>
             <nav className="main-tabs">
@@ -225,16 +208,6 @@ export function App() {
 
           {view === "trips" && (
             <>
-              {!onboarded && (
-                <Onboarding
-                  settings={settings}
-                  onNewTrip={() => { dismissOnboarding(); setEditing({ mode: "new" }); }}
-                  onDiscover={() => { dismissOnboarding(); openDiscover(); }}
-                  onImportReservation={() => { dismissOnboarding(); setShowReservation(true); }}
-                  onOpenSettings={() => setShowSettings(true)}
-                  onDismiss={dismissOnboarding}
-                />
-              )}
               <div className="search-row">
                 <input
                   className="search-input"
@@ -253,11 +226,10 @@ export function App() {
                 <div className="empty-state">
                   {trips.length === 0 ? (
                     <>
-                      <p>Todavía no tenés viajes cargados.</p>
+                      <p>Todavía no tenés viajes.</p>
+                      <p>Elegí un destino en <strong>Descubrir</strong> y se crea solo.</p>
                       <p>
-                        <button className="button-primary" onClick={() => setEditing({ mode: "new" })}>+ Crear mi primer viaje</button>
-                        {" "}o{" "}
-                        <button className="button-secondary" onClick={openDiscover}>🌎 Descubrir destinos</button>
+                        <button className="button-primary" onClick={openDiscover}>🌎 Descubrir destinos</button>
                       </p>
                       <p className="hint">
                         <button className="link-button" onClick={restoreSeeds}>O cargar el ejemplo "Brasil noviembre 2026"</button>
@@ -304,13 +276,11 @@ export function App() {
           <TripDetail
             trip={activeTrip}
             currency={currency}
-            settings={settings}
             onCurrencyChange={handleCurrency}
             onChange={upsert}
             onEdit={() => setEditing(activeTrip)}
             onDelete={() => handleDelete(activeTrip.id)}
             onBack={() => setActiveTripId(null)}
-            onOpenSettings={() => setShowSettings(true)}
             onShare={() => { setSharingTrip(activeTrip); track("share_open"); }}
           />
         </Suspense>
@@ -327,7 +297,6 @@ export function App() {
               onToggleWishlist={() => toggleWishlist(activeDest.id)}
               onCreateTrip={() => handleCreateTripFromDestination(activeDest.id, {
                 month: activeDestination?.month ?? new Date().getMonth() + 1,
-                duration: activeDest.suggestedDuration?.min,
               })}
             />
           </Suspense>
@@ -335,54 +304,22 @@ export function App() {
       )}
 
       {editing && (
-        <Modal
-          title={"mode" in editing ? "Nuevo viaje" : "Editar viaje"}
-          onClose={() => setEditing(null)}
-          wide
-        >
+        <Modal title="Editar viaje" onClose={() => setEditing(null)} wide>
           <TripForm
-            trip={"mode" in editing ? undefined : editing}
-            prefill={"mode" in editing ? editing.prefill : undefined}
+            trip={editing}
             onSave={(trip) => {
               upsert(trip);
-              track("mode" in editing ? "trip_create" : "trip_edit");
+              track("trip_edit");
               setEditing(null);
-              if ("mode" in editing) setActiveTripId(trip.id);
             }}
             onCancel={() => setEditing(null)}
           />
         </Modal>
       )}
 
-      {showImportExport && (
-        <Modal title="Import / Export" onClose={() => setShowImportExport(false)}>
-          <ImportExport trips={trips} onImport={handleImport} />
-        </Modal>
-      )}
-
-      {showSettings && (
-        <Modal title="Configuración" onClose={() => setShowSettings(false)}>
-          <Settings settings={settings} onSave={handleSettings} onClose={() => setShowSettings(false)} />
-        </Modal>
-      )}
-
       {sharingTrip && (
         <Modal title="Compartir viaje" onClose={() => setSharingTrip(null)}>
           <ShareDialog trip={sharingTrip} />
-        </Modal>
-      )}
-
-      {showReservation && (
-        <Modal title="Importar reserva" onClose={() => setShowReservation(false)} wide>
-          <ReservationImport
-            settings={settings}
-            onCreateTrip={(trip) => {
-              upsert(trip);
-              setShowReservation(false);
-              setActiveTripId(trip.id);
-            }}
-            onOpenSettings={() => { setShowReservation(false); setShowSettings(true); }}
-          />
         </Modal>
       )}
     </div>

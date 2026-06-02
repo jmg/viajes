@@ -26,7 +26,7 @@ type Props = {
   initialMonth?: number;
 };
 
-export function Discover({ onCreateTripFromDestination: _, onOpenDestination, wishlist, onToggleWishlist, initialMonth }: Props) {
+export function Discover({ onCreateTripFromDestination, onOpenDestination, wishlist, onToggleWishlist, initialMonth }: Props) {
   const now = new Date();
   const [month, setMonth] = useState<number>(initialMonth ?? now.getMonth() + 1);
   const [duration, setDuration] = useState<number>(SAVED?.duration ?? 10);
@@ -248,6 +248,7 @@ export function Discover({ onCreateTripFromDestination: _, onOpenDestination, wi
               isInWishlist={wishlist.includes(r.destination.id)}
               onOpen={(id) => onOpenDestination(id, criteria)}
               onToggleWishlist={onToggleWishlist}
+              onCreateTrip={(id) => onCreateTripFromDestination(id, criteria)}
             />
           ))}
         </div>
