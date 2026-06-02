@@ -1,9 +1,47 @@
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  LineElement,
+  PointElement,
+  LineController,
+  Tooltip,
+  Filler,
+} from "chart.js";
+import type { ChartData, ChartOptions } from "chart.js";
+import { Line } from "react-chartjs-2";
 import type { Destination } from "../destinations/types";
+import type { Trip } from "../types";
 import { CATEGORY_EMOJI, CATEGORY_LABEL, COST_LABEL, COST_RANGE_USD } from "../destinations/types";
 import { rateClimate } from "../lib/recommender";
 import { ClimateChart } from "./ClimateChart";
+import { WeatherSection } from "./WeatherSection";
+
+ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, LineController, Tooltip, Filler);
 
 const MONTHS_FULL = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+/** Viaje sintético para previsualizar el clima real (Open-Meteo) de un destino en el mes elegido. */
+function previewTrip(d: Destination, month?: number): Trip {
+  const now = new Date();
+  const m = month ?? now.getMonth() + 1;
+  let year = now.getFullYear();
+  if (m <= now.getMonth() + 1) year += 1;
+  const dur = Math.min(Math.max(d.suggestedDuration?.min ?? 7, 5), 10);
+  const start = new Date(year, m - 1, 1);
+  const end = new Date(year, m - 1, dur);
+  const fmt = (x: Date) => x.toISOString().slice(0, 10);
+  return {
+    id: `preview-${d.id}`,
+    title: d.name,
+    startDate: fmt(start),
+    endDate: fmt(end),
+    origin: "",
+    destinations: [d.name],
+    travelers: 1,
+    status: "planning",
+  };
+}
 
 function tempBucket(t: number): string {
   if (t < 0) return "temp-frigid";
@@ -21,64 +59,60 @@ function rainIcon(mm: number): string {
   return "🌧🌧";
 }
 
-/** Catmull-Rom → cubic Bézier para una curva suave. */
-function smoothPath(pts: readonly (readonly [number, number])[]): string {
-  if (pts.length < 2) return "";
-  let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i - 1] ?? pts[i];
-    const p1 = pts[i];
-    const p2 = pts[i + 1];
-    const p3 = pts[i + 2] ?? p2;
-    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
-    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
-    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
-    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
-    d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
-  }
-  return d;
-}
-
 function TempSparkline({ climate }: { climate: { highC: number; lowC: number }[] }) {
-  const W = 600, H = 72;
-  // Banda donde vive la curva; deja aire arriba/abajo para las etiquetas.
-  const TOP = 22, BOT = 50;
-  const avgs = climate.map((c) => (c.highC + c.lowC) / 2);
-  const min = Math.min(...avgs);
-  const max = Math.max(...avgs);
-  const range = max - min || 1;
-  const pts = avgs.map((t, i) => {
-    const x = (i / 11) * W;
-    const y = BOT - ((t - min) / range) * (BOT - TOP);
-    return [x, y] as const;
-  });
-  const linePath = smoothPath(pts);
-  const areaPath = `${linePath} L ${W} ${H} L 0 ${H} Z`;
-  const maxI = avgs.indexOf(max);
-  const minI = avgs.indexOf(min);
+  const avgs = climate.map((c) => Math.round((c.highC + c.lowC) / 2));
+  const maxI = avgs.indexOf(Math.max(...avgs));
+  const minI = avgs.indexOf(Math.min(...avgs));
+
+  const data: ChartData<"line", number[], string> = {
+    labels: MONTHS_FULL,
+    datasets: [{
+      data: avgs,
+      borderColor: "#fb923c",
+      borderWidth: 2.5,
+      tension: 0.4,
+      fill: true,
+      backgroundColor: (ctx) => {
+        const { chart } = ctx;
+        const { ctx: c, chartArea } = chart;
+        if (!chartArea) return "rgba(249,115,22,0.15)";
+        const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+        g.addColorStop(0, "rgba(249,115,22,0.30)");
+        g.addColorStop(1, "rgba(249,115,22,0)");
+        return g;
+      },
+      pointRadius: avgs.map((_, i) => (i === maxI || i === minI ? 4 : 0)),
+      pointHoverRadius: 4,
+      pointBackgroundColor: avgs.map((_, i) => (i === minI ? "#60a5fa" : "#fb923c")),
+      pointBorderColor: "#172238",
+      pointBorderWidth: 2,
+    }],
+  };
+
+  const options: ChartOptions<"line"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: "index", intersect: false },
+    animation: { duration: 600 },
+    scales: { x: { display: false }, y: { display: false, grace: "18%" } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "#0e1726",
+        borderColor: "#2c3a58",
+        borderWidth: 1,
+        padding: 9,
+        titleColor: "#e8edf7",
+        bodyColor: "#cbd5e1",
+        callbacks: { label: (item) => ` ${item.parsed.y}° promedio` },
+      },
+    },
+  };
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="temp-sparkline" preserveAspectRatio="xMidYMid meet" aria-hidden>
-      <defs>
-        <linearGradient id="spark-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#f97316" stopOpacity="0.30" />
-          <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={areaPath} className="sparkline-fill" fill="url(#spark-fill)" />
-      <path d={linePath} className="sparkline-line" />
-      {[maxI, minI].map((idx) => (
-        <g key={idx}>
-          <circle cx={pts[idx][0]} cy={pts[idx][1]} r={3.5} className="sparkline-dot" />
-          <text
-            x={Math.min(Math.max(pts[idx][0], 16), W - 16)}
-            y={idx === maxI ? pts[idx][1] - 9 : pts[idx][1] + 17}
-            className="sparkline-label"
-          >
-            {Math.round(avgs[idx])}°
-          </text>
-        </g>
-      ))}
-    </svg>
+    <div className="temp-sparkline-box">
+      <Line data={data} options={options} aria-label="Temperatura promedio mensual" />
+    </div>
   );
 }
 
@@ -165,6 +199,7 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
             {d.climate[highlightMonth - 1].seaTempC && ` · mar ${d.climate[highlightMonth - 1].seaTempC}°C`}
           </p>
         )}
+        <WeatherSection trip={previewTrip(d, highlightMonth)} />
       </div>
 
       <div className="dest-section">
