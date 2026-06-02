@@ -83,11 +83,21 @@ export async function fetchMultiYearAverage(
     d.setUTCFullYear(d.getUTCFullYear() + years);
     return d.toISOString().slice(0, 10);
   };
-  const fetches: Promise<DailyWeather[]>[] = [];
-  for (let i = 1; i <= yearsBack; i++) {
-    fetches.push(fetchHistorical(lat, lng, shift(start, -i), shift(end, -i)));
+  // El archivo ERA5 va con unos días de retraso: nunca pedimos rangos cuyo fin
+  // caiga en el futuro (o muy reciente), porque devuelve HTTP 400. Si el viaje
+  // está en el futuro, retrocedemos más años para igual juntar `yearsBack` completos.
+  const cutoffMs = Date.now() - 6 * 86_400_000;
+  const ranges: { s: string; e: string }[] = [];
+  for (let i = 1; ranges.length < yearsBack && i <= yearsBack + 6; i++) {
+    const s = shift(start, -i);
+    const e = shift(end, -i);
+    if (new Date(e + "T00:00:00Z").getTime() <= cutoffMs) ranges.push({ s, e });
   }
-  const yearsData = await Promise.all(fetches);
+  const settled = await Promise.allSettled(ranges.map((r) => fetchHistorical(lat, lng, r.s, r.e)));
+  const yearsData = settled
+    .filter((r): r is PromiseFulfilledResult<DailyWeather[]> => r.status === "fulfilled")
+    .map((r) => r.value);
+  if (yearsData.length === 0) throw new Error("sin datos históricos disponibles");
 
   // Agrupar por MM-DD para promediar entre años
   const byMonthDay = new Map<string, DailyWeather[]>();
