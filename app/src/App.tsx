@@ -23,6 +23,35 @@ import { track } from "./lib/analytics";
 
 type View = "trips" | "discover";
 
+type Route =
+  | { kind: "discover" }
+  | { kind: "trips" }
+  | { kind: "help" }
+  | { kind: "destino"; id: string; month?: number }
+  | { kind: "viaje"; id: string };
+
+function parseHash(): Route {
+  const h = window.location.hash;
+  let m: RegExpMatchArray | null;
+  if ((m = h.match(/^#\/destino\/([^/]+)(?:\/(\d+))?$/))) {
+    return { kind: "destino", id: decodeURIComponent(m[1]), month: m[2] ? parseInt(m[2], 10) : undefined };
+  }
+  if ((m = h.match(/^#\/viaje\/([^/]+)$/))) return { kind: "viaje", id: decodeURIComponent(m[1]) };
+  if (h === "#/viajes") return { kind: "trips" };
+  if (h === "#/ayuda") return { kind: "help" };
+  return { kind: "discover" };
+}
+
+function routeToHash(r: Route): string {
+  switch (r.kind) {
+    case "destino": return `#/destino/${encodeURIComponent(r.id)}${r.month ? `/${r.month}` : ""}`;
+    case "viaje": return `#/viaje/${encodeURIComponent(r.id)}`;
+    case "trips": return "#/viajes";
+    case "help": return "#/ayuda";
+    default: return "#/descubrir";
+  }
+}
+
 const WISHLIST_KEY = "viajes:wishlist:v1";
 const COASTAL_CATS = new Set(["beach", "island", "tropical", "lake"]);
 
@@ -64,15 +93,19 @@ function tripFromDestination(d: Destination, month?: number): Trip {
 
 export function App() {
   const { trips, upsert, remove, restoreSeeds } = useTrips();
-  const [view, setView] = useState<View>("discover");
-  const [activeTripId, setActiveTripId] = useState<string | null>(null);
-  const [activeDestination, setActiveDestination] = useState<{ id: string; month?: number } | null>(null);
+  // Estado inicial desde la URL (hash), salvo que sea un link de "compartir".
+  const initialRoute = getSharedTripFromHash() ? null : parseHash();
+  const [view, setView] = useState<View>(initialRoute?.kind === "trips" ? "trips" : "discover");
+  const [activeTripId, setActiveTripId] = useState<string | null>(initialRoute?.kind === "viaje" ? initialRoute.id : null);
+  const [activeDestination, setActiveDestination] = useState<{ id: string; month?: number } | null>(
+    initialRoute?.kind === "destino" ? { id: initialRoute.id, month: initialRoute.month } : null,
+  );
   const [editing, setEditing] = useState<Trip | null>(null);
   const [filter, setFilter] = useState<FilterId>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currency, setCurrency] = useState<Currency>(() => loadCurrency());
   const [sharingTrip, setSharingTrip] = useState<Trip | null>(null);
-  const [showHelp, setShowHelp] = useState(false);
+  const [showHelp, setShowHelp] = useState(initialRoute?.kind === "help");
   const [sharedTrip, setSharedTrip] = useState<Trip | null>(() => getSharedTripFromHash());
   const [wishlist, setWishlist] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem(WISHLIST_KEY) ?? "[]"); } catch { return []; }
@@ -108,6 +141,33 @@ export function App() {
 
   const activeTrip = activeTripId ? trips.find((t) => t.id === activeTripId) ?? null : null;
   const activeDest = activeDestination ? DESTINATIONS.find((d) => d.id === activeDestination.id) ?? null : null;
+
+  // Sincronizar el estado actual con la URL (hash) para que recargar mantenga la vista.
+  useEffect(() => {
+    if (sharedTrip) return; // los links de compartir manejan su propio hash
+    let r: Route;
+    if (showHelp) r = { kind: "help" };
+    else if (activeTrip) r = { kind: "viaje", id: activeTrip.id };
+    else if (activeDest) r = { kind: "destino", id: activeDest.id, month: activeDestination?.month };
+    else r = { kind: view };
+    const target = routeToHash(r);
+    if (window.location.hash !== target) history.pushState(null, "", target);
+  }, [view, activeTrip, activeDest, activeDestination, showHelp, sharedTrip]);
+
+  // Botón atrás/adelante del navegador → actualizar la vista.
+  useEffect(() => {
+    const onPop = () => {
+      if (getSharedTripFromHash()) return;
+      const r = parseHash();
+      setShowHelp(r.kind === "help");
+      setActiveTripId(r.kind === "viaje" ? r.id : null);
+      setActiveDestination(r.kind === "destino" ? { id: r.id, month: r.month } : null);
+      if (r.kind === "trips") setView("trips");
+      else if (r.kind === "discover") setView("discover");
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
