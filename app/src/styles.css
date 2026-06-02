@@ -756,7 +756,13 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
 }
 .maps-link:hover { color: var(--accent-strong); text-decoration: underline; }
 
-/* Climate chart */
+/* Climate chart (Chart.js) */
+.climate-chart-box {
+  position: relative;
+  height: 250px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 8px 4px;
+}
 .climate-chart {
   width: 100%; height: auto;
   background: var(--surface); border: 1px solid var(--border);

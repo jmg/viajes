@@ -1,165 +1,164 @@
+import { useMemo } from "react";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  BarController,
+  LineController,
+  Tooltip,
+  Filler,
+} from "chart.js";
+import type { ChartData, ChartDataset, ChartOptions } from "chart.js";
+import { Chart } from "react-chartjs-2";
 import type { MonthClimate } from "../destinations/types";
 
-const MONTHS = ["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  BarController,
+  LineController,
+  Tooltip,
+  Filler,
+);
+
+const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+const ORANGE = "#fb923c";
+const BLUE = "#60a5fa";
 
 type Props = {
   climate: MonthClimate[];
   highlightMonth?: number; // 1-12
 };
 
-type Pt = readonly [number, number];
-
-/** Catmull-Rom → cubic Bézier: curva suave que pasa por todos los puntos. */
-function smooth(pts: Pt[], close = false): string {
-  if (pts.length < 2) return pts.length ? `M ${pts[0][0]} ${pts[0][1]}` : "";
-  let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i - 1] ?? pts[i];
-    const p1 = pts[i];
-    const p2 = pts[i + 1];
-    const p3 = pts[i + 2] ?? p2;
-    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
-    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
-    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
-    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
-    d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
-  }
-  return close ? d + " Z" : d;
-}
-
-/** Barra con la punta superior redondeada (las bases quedan rectas sobre el eje). */
-function bar(x: number, y: number, w: number, h: number, r: number): string {
-  if (h <= 0.5) return "";
-  const rr = Math.min(r, w / 2, h);
-  return `M ${x} ${y + h} L ${x} ${y + rr} Q ${x} ${y} ${x + rr} ${y} L ${x + w - rr} ${y} Q ${x + w} ${y} ${x + w} ${y + rr} L ${x + w} ${y + h} Z`;
-}
-
 export function ClimateChart({ climate, highlightMonth }: Props) {
-  const width = 560;
-  const height = 240;
-  const padTop = 24;
-  const padBottom = 38;
-  const padLeft = 34;
-  const padRight = 34;
-
-  const innerW = width - padLeft - padRight;
-  const innerH = height - padTop - padBottom;
-
-  const allTemps = climate.flatMap((c) => [c.highC, c.lowC]);
-  const minT = Math.floor(Math.min(...allTemps) / 5) * 5 - 2;
-  const maxT = Math.ceil(Math.max(...allTemps) / 5) * 5 + 2;
+  const hi = highlightMonth ? highlightMonth - 1 : -1;
   const maxRain = Math.max(...climate.map((c) => c.rainMm), 50);
 
-  const rainZoneH = innerH * 0.42; // las barras de lluvia viven en el tercio inferior
-  const baseY = padTop + innerH;
+  const data: ChartData<"bar" | "line", number[], string> = useMemo(() => ({
+    labels: MONTHS,
+    datasets: [
+      {
+        type: "bar" as const,
+        label: "Lluvia",
+        yAxisID: "rain",
+        data: climate.map((c) => c.rainMm),
+        backgroundColor: climate.map((_, i) =>
+          i === hi ? "rgba(125,211,252,0.95)" : "rgba(56,189,252,0.45)"),
+        borderRadius: 4,
+        borderSkipped: false,
+        barPercentage: 0.72,
+        categoryPercentage: 0.8,
+        order: 3,
+      },
+      {
+        type: "line" as const,
+        label: "Máx",
+        yAxisID: "temp",
+        data: climate.map((c) => c.highC),
+        borderColor: ORANGE,
+        backgroundColor: "rgba(249,115,22,0.18)",
+        borderWidth: 2.5,
+        tension: 0.4,
+        fill: "+1",
+        pointRadius: climate.map((_, i) => (i === hi ? 5 : 0)),
+        pointHoverRadius: 5,
+        pointBackgroundColor: ORANGE,
+        pointBorderColor: "#172238",
+        pointBorderWidth: 2,
+        order: 1,
+      },
+      {
+        type: "line" as const,
+        label: "Mín",
+        yAxisID: "temp",
+        data: climate.map((c) => c.lowC),
+        borderColor: BLUE,
+        backgroundColor: "transparent",
+        borderWidth: 2.5,
+        tension: 0.4,
+        fill: false,
+        pointRadius: climate.map((_, i) => (i === hi ? 5 : 0)),
+        pointHoverRadius: 5,
+        pointBackgroundColor: BLUE,
+        pointBorderColor: "#172238",
+        pointBorderWidth: 2,
+        order: 2,
+      },
+    ],
+  }), [climate, hi]);
 
-  const x = (i: number) => padLeft + (i + 0.5) * (innerW / 12);
-  const yT = (t: number) => padTop + innerH - ((t - minT) / (maxT - minT)) * innerH;
-  const rainH = (r: number) => (r / maxRain) * rainZoneH;
-
-  const highPts: Pt[] = climate.map((c, i) => [x(i), yT(c.highC)]);
-  const lowPts: Pt[] = climate.map((c, i) => [x(i), yT(c.lowC)]);
-
-  const highPath = smooth(highPts);
-  const lowPath = smooth(lowPts);
-  // Área entre máx y mín: máx hacia adelante + mín en reversa (sin la "M" inicial).
-  const lowRevPath = smooth([...lowPts].reverse()).replace(/^M/, "L");
-  const areaPath = `${highPath} ${lowRevPath} Z`;
-
-  // Ticks de temperatura, redondeados a múltiplos de 10°.
-  const tempTicks: number[] = [];
-  for (let t = Math.ceil(minT / 10) * 10; t <= maxT; t += 10) tempTicks.push(t);
-
-  const hi = highlightMonth ? highlightMonth - 1 : -1;
-  const barW = innerW / 12 - 8;
+  const options: ChartOptions<"bar"> = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: "index", intersect: false },
+    animation: { duration: 650 },
+    layout: { padding: { top: 8 } },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color: "#94a3b8", font: { size: 11 } },
+        border: { color: "#2c3a58" },
+      },
+      temp: {
+        position: "left",
+        suggestedMin: Math.min(...climate.map((c) => c.lowC)) - 3,
+        suggestedMax: Math.max(...climate.map((c) => c.highC)) + 3,
+        grid: { color: "rgba(44,58,88,0.5)" },
+        ticks: { color: "#94a3b8", font: { size: 10 }, callback: (v) => `${v}°` },
+        border: { display: false },
+      },
+      rain: {
+        position: "right",
+        beginAtZero: true,
+        max: maxRain * 2.4, // mantiene las barras en el tercio inferior
+        grid: { drawOnChartArea: false },
+        ticks: {
+          color: "#7591b8",
+          font: { size: 10 },
+          callback: (v) => (Number(v) <= maxRain * 1.1 ? `${v}mm` : ""),
+        },
+        border: { display: false },
+      },
+    },
+    plugins: {
+      tooltip: {
+        backgroundColor: "#0e1726",
+        borderColor: "#2c3a58",
+        borderWidth: 1,
+        padding: 10,
+        titleColor: "#e8edf7",
+        bodyColor: "#cbd5e1",
+        callbacks: {
+          title: (items) => MONTHS[items[0].dataIndex],
+          label: (item) => {
+            const i = item.dataIndex;
+            if (item.dataset.label === "Lluvia") {
+              const sea = climate[i].seaTempC;
+              return ` 🌧 ${climate[i].rainMm} mm${sea ? ` · 🌊 ${sea}°` : ""}`;
+            }
+            if (item.dataset.label === "Máx") return ` ☀️ Máx ${climate[i].highC}°`;
+            return ` ❄️ Mín ${climate[i].lowC}°`;
+          },
+        },
+      },
+    },
+  }), [climate, maxRain]);
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="climate-chart" role="img" aria-label="Clima mensual">
-      <defs>
-        <linearGradient id="cc-rain" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.28" />
-        </linearGradient>
-        <linearGradient id="cc-rain-hi" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#7dd3fc" stopOpacity="1" />
-          <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.5" />
-        </linearGradient>
-        <linearGradient id="cc-area" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#f97316" stopOpacity="0.28" />
-          <stop offset="100%" stopColor="#60a5fa" stopOpacity="0.16" />
-        </linearGradient>
-      </defs>
-
-      {/* Gridlines + ticks de temperatura */}
-      {tempTicks.map((t) => (
-        <g key={`t-${t}`}>
-          <line x1={padLeft} x2={width - padRight} y1={yT(t)} y2={yT(t)} className="climate-grid" />
-          <text x={padLeft - 6} y={yT(t) + 3} className="climate-axis-y">{t}°</text>
-        </g>
-      ))}
-
-      {/* Banda del mes resaltado (detrás de todo el contenido) */}
-      {hi >= 0 && (
-        <rect
-          x={x(hi) - innerW / 24}
-          y={padTop}
-          width={innerW / 12}
-          height={innerH}
-          className="climate-highlight-band"
-        />
-      )}
-
-      {/* Barras de lluvia */}
-      {climate.map((c, i) => {
-        const h = rainH(c.rainMm);
-        return (
-          <path
-            key={`r-${i}`}
-            d={bar(x(i) - barW / 2, baseY - h, barW, h, 3)}
-            fill={i === hi ? "url(#cc-rain-hi)" : "url(#cc-rain)"}
-          />
-        );
-      })}
-
-      {/* Eje base */}
-      <line x1={padLeft} x2={width - padRight} y1={baseY} y2={baseY} className="climate-axis-base" />
-
-      {/* Área + líneas de temperatura */}
-      <path d={areaPath} fill="url(#cc-area)" stroke="none" />
-      <path d={highPath} className="climate-temp-high" fill="none" />
-      <path d={lowPath} className="climate-temp-low" fill="none" />
-
-      {/* Puntos del mes resaltado */}
-      {hi >= 0 && (
-        <g>
-          <circle cx={x(hi)} cy={yT(climate[hi].highC)} r={4.5} className="climate-temp-high-dot" />
-          <circle cx={x(hi)} cy={yT(climate[hi].lowC)} r={4.5} className="climate-temp-low-dot" />
-          <text x={x(hi)} y={yT(climate[hi].highC) - 9} className="climate-point-label hi">{climate[hi].highC}°</text>
-          <text x={x(hi)} y={yT(climate[hi].lowC) + 16} className="climate-point-label lo">{climate[hi].lowC}°</text>
-        </g>
-      )}
-
-      {/* Etiquetas de mes */}
-      {MONTHS.map((m, i) => (
-        <text
-          key={i}
-          x={x(i)}
-          y={height - 14}
-          className={`climate-month-label ${i === hi ? "highlighted" : ""}`}
-        >
-          {m}
-        </text>
-      ))}
-
-      {/* Leyenda */}
-      <g transform={`translate(${padLeft}, 10)`} className="climate-legend-g">
-        <line x1={0} x2={16} y1={0} y2={0} className="climate-temp-high" />
-        <text x={20} y={4} className="climate-legend">máx</text>
-        <line x1={56} x2={72} y1={0} y2={0} className="climate-temp-low" />
-        <text x={76} y={4} className="climate-legend">mín</text>
-        <rect x={112} y={-5} width={11} height={10} rx={2} fill="url(#cc-rain)" />
-        <text x={128} y={4} className="climate-legend">lluvia</text>
-      </g>
-    </svg>
+    <div className="climate-chart-box">
+      <Chart
+        type="bar"
+        data={data as ChartData<"bar", number[], string> & { datasets: ChartDataset<"bar" | "line", number[]>[] }}
+        options={options}
+        aria-label="Clima mensual"
+      />
+    </div>
   );
 }
