@@ -191,10 +191,78 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
   );
 }
 
+function Info({ tip }: { tip: string }) {
+  return <span className="info-tip" title={tip} role="img" aria-label={`Ayuda: ${tip}`}>ⓘ</span>;
+}
+
+const usd = (n: number) => `US$ ${Math.round(n).toLocaleString("es-AR")}`;
+
 function Overview({ trip }: { trip: Trip }) {
   const top = trip.flightOptions?.find((o) => o.id === trip.recommendedFlightId);
+
+  const days = daysBetween(trip.startDate, trip.endDate);
+  const nights = Math.max(0, days - 1);
+  const travelers = Math.max(1, trip.travelers);
+
+  const budget = trip.budget?.length
+    ? trip.budget.reduce((a, b) => ({ min: a.min + b.minUsd, max: a.max + b.maxUsd }), { min: 0, max: 0 })
+    : null;
+  const spent = trip.expenses?.length
+    ? trip.expenses.reduce((a, e) => a + e.amountUsd, 0)
+    : null;
+  const itinDays = trip.itinerary?.length ?? 0;
+  const checklistN = trip.checklist?.length ?? 0;
+
   return (
     <div className="overview">
+      <div className="month-stats trip-stats">
+        <div className="ms">
+          <span className="ms-label">Duración</span>
+          <span className="ms-val">{days} días</span>
+          <span className="ms-sub">{nights} {nights === 1 ? "noche" : "noches"}</span>
+        </div>
+        <div className="ms">
+          <span className="ms-label">Viajeros</span>
+          <span className="ms-val">👥 {travelers}</span>
+          {trip.travelerNames?.length ? <span className="ms-sub">{trip.travelerNames.join(", ")}</span> : null}
+        </div>
+        {budget && (
+          <div className="ms">
+            <span className="ms-label">Presupuesto <Info tip="Suma estimada de los ítems cargados en la pestaña Presupuesto (en dólares)." /></span>
+            <span className="ms-val">{usd(budget.min)}–{usd(budget.max)}</span>
+            <span className="ms-sub">{usd(budget.min / travelers)}–{usd(budget.max / travelers)} por persona</span>
+          </div>
+        )}
+        {spent != null && (
+          <div className="ms">
+            <span className="ms-label">Gastos cargados <Info tip="Total de gastos reales anotados en la pestaña Gastos (en dólares)." /></span>
+            <span className="ms-val">{usd(spent)}</span>
+            <span className="ms-sub">{usd(spent / travelers)} por persona</span>
+          </div>
+        )}
+        {itinDays > 0 && (
+          <div className="ms">
+            <span className="ms-label">Itinerario</span>
+            <span className="ms-val">{itinDays} {itinDays === 1 ? "día" : "días"}</span>
+            <span className="ms-sub">de {days} planificados</span>
+          </div>
+        )}
+        {trip.destinations.length > 0 && (
+          <div className="ms">
+            <span className="ms-label">Destinos</span>
+            <span className="ms-val">{trip.destinations.length}</span>
+            <span className="ms-sub">{trip.destinations.join(" → ")}</span>
+          </div>
+        )}
+        {checklistN > 0 && (
+          <div className="ms">
+            <span className="ms-label">Checklist</span>
+            <span className="ms-val">{checklistN}</span>
+            <span className="ms-sub">ítems para empacar</span>
+          </div>
+        )}
+      </div>
+
       {trip.summary ? (
         <p className="summary">{trip.summary}</p>
       ) : (
