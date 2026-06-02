@@ -692,6 +692,7 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
 
 .dest-card-header {
   display: flex; align-items: center; gap: 10px;
+  padding-right: 40px; /* deja lugar al corazón (wishlist) que va en absoluto arriba-derecha */
 }
 .dest-flag { font-size: 28px; }
 .dest-flag-big { font-size: 48px; }
