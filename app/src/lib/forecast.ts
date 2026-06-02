@@ -3,7 +3,8 @@
 // - Archive ERA5 (1940-presente): https://archive-api.open-meteo.com/v1/era5
 
 const CACHE_PREFIX = "viajes:wx:";
-const CACHE_TTL_MS = 6 * 3600_000; // 6 horas
+const FORECAST_TTL_MS = 6 * 3600_000;            // pronóstico: cambia, 6h
+const ARCHIVE_TTL_MS = 180 * 24 * 3600_000;      // histórico ERA5: el pasado no cambia → 180 días
 
 export type DailyWeather = {
   date: string;
@@ -26,12 +27,12 @@ function cacheKey(kind: "fc" | "hist", lat: number, lng: number, start: string, 
   return `${CACHE_PREFIX}${kind}:${lat.toFixed(2)},${lng.toFixed(2)}:${start}:${end}`;
 }
 
-function readCache(key: string): DailyWeather[] | null {
+function readCache(key: string, maxAgeMs: number): DailyWeather[] | null {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
     const obj = JSON.parse(raw) as Cached;
-    if (Date.now() - obj.ts < CACHE_TTL_MS) return obj.data;
+    if (Date.now() - obj.ts < maxAgeMs) return obj.data;
   } catch { /* ignore */ }
   return null;
 }
@@ -56,7 +57,7 @@ async function fetchWeather(url: string): Promise<DailyWeather[]> {
 
 export async function fetchForecast(lat: number, lng: number): Promise<DailyWeather[]> {
   const key = cacheKey("fc", lat, lng, "", "16d");
-  const cached = readCache(key);
+  const cached = readCache(key, FORECAST_TTL_MS);
   if (cached) return cached;
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code&forecast_days=16&timezone=auto`;
   const data = await fetchWeather(url);
@@ -66,7 +67,7 @@ export async function fetchForecast(lat: number, lng: number): Promise<DailyWeat
 
 export async function fetchHistorical(lat: number, lng: number, start: string, end: string): Promise<DailyWeather[]> {
   const key = cacheKey("hist", lat, lng, start, end);
-  const cached = readCache(key);
+  const cached = readCache(key, ARCHIVE_TTL_MS);
   if (cached) return cached;
   const url = `https://archive-api.open-meteo.com/v1/era5?latitude=${lat}&longitude=${lng}&start_date=${start}&end_date=${end}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code&timezone=auto`;
   const data = await fetchWeather(url);

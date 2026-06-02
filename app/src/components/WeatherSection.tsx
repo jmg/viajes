@@ -157,7 +157,7 @@ export function WeatherSection({ trip, sampleEvery, maxDays }: Props) {
         </div>
       )}
       <p className="settings-hint">
-        Fuente: Open-Meteo ({mode === "forecast" ? "Forecast API" : "ERA5 Archive"}) · cacheado 6h local · gratis y sin keys.
+        Fuente: Open-Meteo ({mode === "forecast" ? "Forecast API · cacheado 6h" : "ERA5 Archive · histórico cacheado (no cambia)"}) · gratis y sin keys.
       </p>
     </div>
   );
