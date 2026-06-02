@@ -53,6 +53,11 @@ export function Discover({ onCreateTripFromDestination, onOpenDestination, wishl
   // rainPref 0 = sin preferencia (tolerante) … 100 = lo más seco. Mapea a mm/mes máximos.
   const maxRainMm = rainPref <= 3 ? undefined : Math.round(250 - (rainPref / 100) * 235);
 
+  // Slider de temperatura de dos perillas (rango -10° a 40°).
+  const T_MIN = -10, T_MAX = 40;
+  const minPct = ((minTemp - T_MIN) / (T_MAX - T_MIN)) * 100;
+  const maxPct = ((maxTemp - T_MIN) / (T_MAX - T_MIN)) * 100;
+
   const criteria: RecommendationCriteria = useMemo(() => ({
     month,
     duration,
@@ -176,9 +181,11 @@ export function Discover({ onCreateTripFromDestination, onOpenDestination, wishl
             </span>
             <div className="range-pair">
               <span className="range-icon" title="Frío" aria-label="Frío">🥶</span>
-              <div className="range-sliders">
-                <input type="range" min={-10} max={35} value={minTemp} aria-label="Temperatura mínima" onChange={(e) => setMinTemp(Math.min(parseInt(e.target.value, 10), maxTemp - 1))} />
-                <input type="range" min={-10} max={40} value={maxTemp} aria-label="Temperatura máxima" onChange={(e) => setMaxTemp(Math.max(parseInt(e.target.value, 10), minTemp + 1))} />
+              <div className="dual-range">
+                <div className="dual-track" />
+                <div className="dual-fill" style={{ left: `${minPct}%`, width: `${maxPct - minPct}%` }} />
+                <input type="range" min={T_MIN} max={T_MAX} value={minTemp} aria-label="Temperatura mínima" onChange={(e) => setMinTemp(Math.min(parseInt(e.target.value, 10), maxTemp - 1))} />
+                <input type="range" min={T_MIN} max={T_MAX} value={maxTemp} aria-label="Temperatura máxima" onChange={(e) => setMaxTemp(Math.max(parseInt(e.target.value, 10), minTemp + 1))} />
               </div>
               <span className="range-icon" title="Calor" aria-label="Calor">🥵</span>
             </div>
