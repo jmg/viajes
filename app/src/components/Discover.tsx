@@ -143,7 +143,8 @@ export function Discover({ onCreateTripFromDestination, onOpenDestination, wishl
             <select value={String(maxFlightHours)} onChange={(e) => setMaxFlightHours(e.target.value === "any" ? "any" : parseInt(e.target.value, 10))}>
               <option value="any">Cualquiera</option>
               <option value="4">≤ 4h (regional)</option>
-              <option value="8">≤ 8h (americas)</option>
+              <option value="8">≤ 8h (Sudamérica)</option>
+              <option value="11">≤ 11h (Caribe y México)</option>
               <option value="14">≤ 14h (transatlántico)</option>
               <option value="20">≤ 20h (intercont.)</option>
             </select>
