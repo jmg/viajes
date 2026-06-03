@@ -16,7 +16,7 @@ export type DiscoverFilters = {
   rainPref: number;
   maxCostTier: "budget" | "mid" | "expensive";
   maxFlightHours: number | "any";
-  excludeRegions: string[];
+  includeRegions: string[];
   search: string;
   onlyWishlist: boolean;
   viewMode: "list" | "map";

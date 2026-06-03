@@ -38,7 +38,7 @@ export function Discover({ onCreateTripFromDestination, onOpenDestination, wishl
   const [maxCostTier, setMaxCostTier] = useState<"budget" | "mid" | "expensive">(saved.maxCostTier ?? "expensive");
   const [maxFlightHours, setMaxFlightHours] = useState<number | "any">(saved.maxFlightHours ?? "any");
   const [search, setSearch] = useState(saved.search ?? "");
-  const [excludeRegions, setExcludeRegions] = useState<string[]>(saved.excludeRegions ?? []);
+  const [includeRegions, setIncludeRegions] = useState<string[]>(saved.includeRegions ?? []);
   const [onlyWishlist, setOnlyWishlist] = useState(saved.onlyWishlist ?? false);
   const [viewMode, setViewMode] = useState<"list" | "map">(saved.viewMode ?? "list");
 
@@ -46,10 +46,10 @@ export function Discover({ onCreateTripFromDestination, onOpenDestination, wishl
   useEffect(() => {
     saveDiscoverFilters({
       month, duration, selectedCategories, minTemp, maxTemp,
-      rainPref, maxCostTier, maxFlightHours, excludeRegions,
+      rainPref, maxCostTier, maxFlightHours, includeRegions,
       search, onlyWishlist, viewMode,
     });
-  }, [month, duration, selectedCategories, minTemp, maxTemp, rainPref, maxCostTier, maxFlightHours, excludeRegions, search, onlyWishlist, viewMode]);
+  }, [month, duration, selectedCategories, minTemp, maxTemp, rainPref, maxCostTier, maxFlightHours, includeRegions, search, onlyWishlist, viewMode]);
 
   // rainPref 0 = sin preferencia (tolerante) … 100 = lo más seco. Mapea a mm/mes máximos.
   const maxRainMm = rainPref <= 3 ? undefined : Math.round(250 - (rainPref / 100) * 235);
@@ -68,8 +68,8 @@ export function Discover({ onCreateTripFromDestination, onOpenDestination, wishl
     maxCostTier,
     maxFlightHours: maxFlightHours === "any" ? undefined : maxFlightHours,
     search: search.trim() || undefined,
-    excludeRegions: excludeRegions.length ? excludeRegions : undefined,
-  }), [month, duration, selectedCategories, minTemp, maxTemp, maxRainMm, maxCostTier, maxFlightHours, search, excludeRegions]);
+    includeRegions: includeRegions.length ? includeRegions : undefined,
+  }), [month, duration, selectedCategories, minTemp, maxTemp, maxRainMm, maxCostTier, maxFlightHours, search, includeRegions]);
 
   const allResults = useMemo(() => recommendDestinations(DESTINATIONS, criteria), [criteria]);
   const results = useMemo(
@@ -81,7 +81,7 @@ export function Discover({ onCreateTripFromDestination, onOpenDestination, wishl
     setSelectedCategories((curr) => curr.includes(c) ? curr.filter((x) => x !== c) : [...curr, c]);
 
   const toggleRegion = (r: string) =>
-    setExcludeRegions((curr) => curr.includes(r) ? curr.filter((x) => x !== r) : [...curr, r]);
+    setIncludeRegions((curr) => curr.includes(r) ? curr.filter((x) => x !== r) : [...curr, r]);
 
   const reset = () => {
     setSelectedCategories([]);
@@ -91,7 +91,7 @@ export function Discover({ onCreateTripFromDestination, onOpenDestination, wishl
     setMaxCostTier("expensive");
     setMaxFlightHours("any");
     setSearch("");
-    setExcludeRegions([]);
+    setIncludeRegions([]);
     setOnlyWishlist(false);
   };
 
@@ -207,16 +207,23 @@ export function Discover({ onCreateTripFromDestination, onOpenDestination, wishl
         </div>
 
         <div className="filter-block">
-          <span className="filter-label">Excluir regiones</span>
+          <span className="filter-label">Regiones</span>
           <div className="region-chips">
+            <button
+              type="button"
+              className={`region-chip ${includeRegions.length === 0 ? "included" : ""}`}
+              onClick={() => setIncludeRegions([])}
+            >
+              {includeRegions.length === 0 ? "✓ " : ""}🌍 Todas
+            </button>
             {REGIONS.map((r) => (
               <button
                 key={r}
                 type="button"
-                className={`region-chip ${excludeRegions.includes(r) ? "excluded" : ""}`}
+                className={`region-chip ${includeRegions.includes(r) ? "included" : ""}`}
                 onClick={() => toggleRegion(r)}
               >
-                {excludeRegions.includes(r) ? "🚫 " : ""}{r}
+                {includeRegions.includes(r) ? "✓ " : ""}{r}
               </button>
             ))}
           </div>

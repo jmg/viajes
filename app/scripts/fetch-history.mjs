@@ -43,13 +43,14 @@ async function fetchDest(d) {
     `&start_date=${FROM}&end_date=${TO}` +
     `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`;
   let res;
-  for (let attempt = 0; attempt < 6; attempt++) {
+  // Paciente con el límite horario (429): espera a que se reabra la ventana.
+  for (let attempt = 0; attempt < 15; attempt++) {
     res = await fetch(url);
     if (res.ok) break;
     if (res.status === 429) {
       const ra = parseInt(res.headers.get("retry-after") || "", 10);
-      const wait = Number.isFinite(ra) ? ra * 1000 : Math.min(60_000, 8_000 * (attempt + 1));
-      console.log(`  …429, espero ${Math.round(wait / 1000)}s`);
+      const wait = Number.isFinite(ra) ? ra * 1000 : Math.min(300_000, 45_000 * (attempt + 1));
+      console.log(`  …429, espero ${Math.round(wait / 1000)}s (intento ${attempt + 1})`);
       await sleep(wait);
       continue;
     }

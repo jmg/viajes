@@ -60,7 +60,8 @@ export type RecommendationCriteria = {
   maxRainMm?: number;
   maxCostTier?: CostTier;
   maxFlightHours?: number;
-  excludeRegions?: string[];
+  /** Regiones a incluir. Vacío/undefined = todas. */
+  includeRegions?: string[];
   search?: string;
 };
 

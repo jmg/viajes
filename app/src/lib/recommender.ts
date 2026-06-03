@@ -70,7 +70,7 @@ export function recommendDestinations(
   const results: RecommendationResult[] = [];
 
   for (const d of destinations) {
-    if (criteria.excludeRegions?.includes(d.region)) continue;
+    if (criteria.includeRegions?.length && !criteria.includeRegions.includes(d.region)) continue;
     if (criteria.maxCostTier) {
       const tierOrder = { budget: 0, mid: 1, expensive: 2 };
       if (tierOrder[d.costTier] > tierOrder[criteria.maxCostTier]) continue;
