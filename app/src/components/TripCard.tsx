@@ -1,6 +1,7 @@
 import type { Trip } from "../types";
 import { formatDateRange, daysBetween } from "../lib/format";
 import { autoStatus } from "../lib/status";
+import { findDestination } from "../destinations/match";
 import { Countdown } from "./Countdown";
 import { useT } from "../i18n";
 
@@ -17,23 +18,38 @@ export function TripCard({ trip, onOpen, onEdit, onDelete }: Props) {
   const status = autoStatus(trip);
 
   return (
-    <div className="trip-card-wrap">
+    <div className={`trip-card-wrap status-edge-${status}`}>
       <button className="trip-card" onClick={() => onOpen(trip.id)}>
         <div className="trip-card-header">
           <span className={`status-pill status-${status}`}>
             {t("tripDetail.status." + status)}
           </span>
-          <span className="trip-days">{t("tripCard.days", { n: days })}</span>
         </div>
+
         <h2 className="trip-card-title">{trip.title}</h2>
         {trip.subtitle && <p className="trip-card-subtitle">{trip.subtitle}</p>}
-        <div className="trip-card-meta">
-          <div>📅 {formatDateRange(trip.startDate, trip.endDate)}</div>
-          <div>📍 {trip.destinations.join(" + ")}</div>
-          <div>👥 {trip.travelers === 1 ? t("tripCard.person", { n: trip.travelers }) : t("tripCard.persons", { n: trip.travelers })}</div>
+
+        <div className="trip-card-chips">
+          {trip.destinations.map((name, i) => {
+            const match = findDestination(name);
+            return (
+              <span key={`${name}-${i}`} className="trip-dest-chip">
+                <span>{match?.flag ?? "📍"}</span>{name}
+              </span>
+            );
+          })}
         </div>
+
+        <div className="trip-card-meta">
+          <span>📅 {formatDateRange(trip.startDate, trip.endDate)}</span>
+          <span className="dot">·</span>
+          <span>{t("tripCard.days", { n: days })}</span>
+          <span className="dot">·</span>
+          <span>👥 {trip.travelers === 1 ? t("tripCard.person", { n: trip.travelers }) : t("tripCard.persons", { n: trip.travelers })}</span>
+        </div>
+
         <div className="trip-card-footer">
-          <Countdown trip={trip} />
+          <span className="trip-card-countdown">🗓 <Countdown trip={trip} /></span>
         </div>
       </button>
       <div className="card-actions">

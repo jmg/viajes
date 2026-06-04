@@ -282,6 +282,7 @@ export function App() {
     trip.startDate = result.startDate;
     trip.endDate = result.endDate;
     trip.travelers = result.travelers;
+    if (result.destinations.length) trip.destinations = result.destinations;
     trip.origin = result.origin || origin?.city || trip.origin;
     if (result.title) trip.title = result.title;
     if (result.templateId !== "blank") {

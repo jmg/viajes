@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { Currency, Trip } from "../types";
 import type { Destination } from "../destinations/types";
 import { findDestination } from "../destinations/match";
+import { DestinationPicker } from "./DestinationPicker";
 import { useTripWeather } from "../hooks/useTripWeather";
 import { formatDateRange, daysBetween } from "../lib/format";
 import { autoStatus } from "../lib/status";
@@ -57,6 +58,12 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
   }
 
   const [active, setActive] = useState<TabId>("overview");
+  const [quickEdit, setQuickEdit] = useState(false);
+
+  const setDestinations = (next: string[]) => {
+    if (next.length === 0) return; // un viaje siempre tiene al menos un destino
+    onChange({ ...trip, destinations: next });
+  };
 
   const computedPhases = useMemo(() => {
     if (trip.moonPhases?.length) return trip.moonPhases;
@@ -114,7 +121,44 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
           <span>{t("tripDetail.days", { n: daysBetween(trip.startDate, trip.endDate) })}</span>
           <span>👥 {trip.travelers}</span>
           <span><Countdown trip={trip} /></span>
+          <button className="link-button trip-meta-edit" onClick={() => setQuickEdit((v) => !v)}>
+            ✎ {t("tripDetail.quickEdit")}
+          </button>
         </div>
+
+        {quickEdit && (
+          <div className="trip-quick-edit">
+            <label className="field">
+              <span>{t("tripDetail.quickEditWhere")} <small>{t("tripForm.whereHint")}</small></span>
+              <DestinationPicker
+                value={trip.destinations}
+                onChange={setDestinations}
+                placeholder={t("tripForm.wherePlaceholder")}
+              />
+            </label>
+            <div className="field-row">
+              <label className="field">
+                <span>{t("tripForm.departLabel")}</span>
+                <input type="date" value={trip.startDate}
+                  onChange={(e) => onChange({ ...trip, startDate: e.target.value })} />
+              </label>
+              <label className="field">
+                <span>{t("tripForm.returnLabel")}</span>
+                <input type="date" value={trip.endDate}
+                  onChange={(e) => onChange({ ...trip, endDate: e.target.value })} />
+              </label>
+              <label className="field field-narrow">
+                <span>{t("tripForm.travelersLabel")}</span>
+                <input type="number" min={1} max={20} value={trip.travelers}
+                  onChange={(e) => onChange({ ...trip, travelers: Math.max(1, parseInt(e.target.value, 10) || 1) })} />
+              </label>
+            </div>
+            <div className="trip-quick-edit-foot">
+              <span className="form-hint">{t("tripDetail.quickEditHint")}</span>
+              <button className="button-secondary" onClick={() => setQuickEdit(false)}>{t("common.close")}</button>
+            </div>
+          </div>
+        )}
       </header>
 
       <TodayPanel trip={trip} onGoToItinerary={() => setActive("itinerary")} />

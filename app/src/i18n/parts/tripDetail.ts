@@ -5,6 +5,9 @@ export const tripDetail: Part = {
     tripDetail: {
       back: "← Volver a Mis viajes",
       days: "{n} días",
+      quickEdit: "Editar fechas y destinos",
+      quickEditWhere: "Destinos",
+      quickEditHint: "Los cambios se guardan al instante.",
       status: {
         planning: "Planeando",
         booked: "Reservado",
@@ -84,6 +87,9 @@ export const tripDetail: Part = {
     tripDetail: {
       back: "← Voltar para Minhas viagens",
       days: "{n} dias",
+      quickEdit: "Editar datas e destinos",
+      quickEditWhere: "Destinos",
+      quickEditHint: "As alterações são salvas na hora.",
       status: {
         planning: "Planejando",
         booked: "Reservado",
@@ -163,6 +169,9 @@ export const tripDetail: Part = {
     tripDetail: {
       back: "← Back to My trips",
       days: "{n} days",
+      quickEdit: "Edit dates & destinations",
+      quickEditWhere: "Destinations",
+      quickEditHint: "Changes are saved instantly.",
       status: {
         planning: "Planning",
         booked: "Booked",

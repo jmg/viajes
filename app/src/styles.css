@@ -102,7 +102,7 @@ body {
 /* Trip grid */
 .trip-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
 .trip-card-wrap { position: relative; }
@@ -110,28 +110,50 @@ body {
   text-align: left;
   background: var(--surface);
   border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
   border-radius: 14px;
   padding: 18px;
   color: var(--text);
   cursor: pointer;
-  transition: transform .15s, border-color .15s, background .15s;
+  transition: transform .15s, border-color .15s, background .15s, box-shadow .15s;
   width: 100%;
+  display: flex; flex-direction: column; gap: 8px;
 }
 .trip-card:hover {
   transform: translateY(-2px);
   border-color: var(--accent);
   background: var(--surface-2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
 }
+/* Franja izquierda de color según el estado del viaje */
+.status-edge-planning .trip-card { border-left-color: var(--accent); }
+.status-edge-booked .trip-card { border-left-color: var(--good); }
+.status-edge-in-progress .trip-card { border-left-color: var(--gold); }
+.status-edge-past .trip-card { border-left-color: var(--border); }
+.status-edge-past .trip-card { opacity: .82; }
+
 .card-actions {
   position: absolute; top: 12px; right: 12px;
-  display: flex; gap: 4px; opacity: 0; transition: opacity .15s;
+  display: flex; gap: 4px; opacity: .35; transition: opacity .15s;
 }
 .trip-card-wrap:hover .card-actions { opacity: 1; }
 .card-actions .icon-button { background: var(--surface-2); }
+@media (hover: none) { .card-actions { opacity: 1; } }
 
 .trip-card-header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 8px;
+  display: flex; align-items: center;
+  gap: 8px; min-height: 24px; padding-right: 56px;
+}
+.trip-card-footer {
+  margin-top: 6px; padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.trip-card-countdown { font-size: 13px; display: inline-flex; gap: 6px; align-items: center; }
+.trip-card-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0; }
+.trip-dest-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 999px; padding: 3px 10px; font-size: 12.5px; color: var(--text);
 }
 
 .status-pill {
@@ -150,10 +172,13 @@ body {
 .status-past { color: var(--muted); }
 
 .trip-days { font-size: 13px; color: var(--muted); }
-.trip-card-title { margin: 4px 0 4px; font-size: 18px; }
-.trip-card-subtitle { color: var(--muted); margin: 0 0 12px; font-size: 14px; }
-.trip-card-meta { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
-.trip-card-footer { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.trip-card-title { margin: 2px 0 0; font-size: 18px; line-height: 1.25; }
+.trip-card-subtitle { color: var(--muted); margin: 0; font-size: 14px; }
+.trip-card-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--muted); margin-top: 2px;
+}
+.trip-card-meta .dot { opacity: .5; }
 
 /* Countdown */
 .countdown { font-size: 13px; font-weight: 500; }
@@ -179,9 +204,28 @@ body {
 .trip-header .subtitle { color: var(--muted); margin: 0; }
 .header-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .trip-meta-row {
-  display: flex; flex-wrap: wrap; gap: 16px;
+  display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
   color: var(--muted); font-size: 14px;
 }
+.trip-meta-edit {
+  font-size: 13px; color: var(--accent);
+  background: var(--surface-2); border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 999px;
+}
+.trip-meta-edit:hover { border-color: var(--accent); }
+
+/* Panel de edición rápida en el detalle del viaje */
+.trip-quick-edit {
+  margin-top: 14px; padding: 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.trip-quick-edit .field-narrow { max-width: 110px; }
+.trip-quick-edit-foot {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+}
+.trip-quick-edit-foot .form-hint { margin: 0; }
 
 /* Tabs */
 .tabs {

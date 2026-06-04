@@ -3,12 +3,14 @@ import type { Destination } from "../destinations/types";
 import { TEMPLATES } from "../lib/templates";
 import type { TemplateId } from "../lib/templates";
 import { formatDateRange, daysBetween } from "../lib/format";
+import { DestinationPicker } from "./DestinationPicker";
 import { useT } from "../i18n";
 
 export type WizardResult = {
   startDate: string;
   endDate: string;
   travelers: number;
+  destinations: string[];
   origin: string;
   title: string;
   templateId: TemplateId;
@@ -31,6 +33,7 @@ export function CreateTripWizard({ destination, initialStart, initialEnd, defaul
   const [startDate, setStartDate] = useState(initialStart);
   const [endDate, setEndDate] = useState(initialEnd);
   const [travelers, setTravelers] = useState(1);
+  const [destinations, setDestinations] = useState<string[]>([destination.name]);
   const [origin, setOrigin] = useState(defaultOrigin ?? "");
   const [title, setTitle] = useState("");
   const [templateId, setTemplateId] = useState<TemplateId>("blank");
@@ -51,7 +54,8 @@ export function CreateTripWizard({ destination, initialStart, initialEnd, defaul
 
   const confirm = () => {
     if (!startDate || !endDate || endDate < startDate) { setStep(1); return setError(t("tripWizard.errDates")); }
-    onCreate({ startDate, endDate, travelers, origin: origin.trim(), title: title.trim(), templateId });
+    const dests = destinations.length ? destinations : [destination.name];
+    onCreate({ startDate, endDate, travelers, destinations: dests, origin: origin.trim(), title: title.trim(), templateId });
   };
 
   const stepTitle = step === 1 ? t("tripWizard.step1Title") : step === 2 ? t("tripWizard.step2Title") : t("tripWizard.step3Title");
@@ -97,6 +101,10 @@ export function CreateTripWizard({ destination, initialStart, initialEnd, defaul
       {step === 2 && (
         <>
           <label className="field">
+            <span>{t("tripForm.whereLabel")} <small>{t("tripForm.whereHint")}</small></span>
+            <DestinationPicker value={destinations} onChange={setDestinations} placeholder={t("tripForm.wherePlaceholder")} />
+          </label>
+          <label className="field">
             <span>{t("tripForm.originLabel")}</span>
             <input
               type="text" value={origin} placeholder={t("tripForm.originPlaceholder")}
@@ -131,7 +139,7 @@ export function CreateTripWizard({ destination, initialStart, initialEnd, defaul
 
       {step === 3 && (
         <dl className="wizard-review">
-          <div><dt>{t("tripWizard.reviewDestination")}</dt><dd>{destination.name} · {destination.country}</dd></div>
+          <div><dt>{t("tripWizard.reviewDestination")}</dt><dd>{(destinations.length ? destinations : [destination.name]).join(" → ")}</dd></div>
           <div><dt>{t("tripWizard.reviewDates")}</dt><dd>{formatDateRange(startDate, endDate)}</dd></div>
           <div><dt>{t("tripWizard.reviewDuration")}</dt><dd>{dayCount} {dayCount === 1 ? t("common.day") : t("common.days")}</dd></div>
           <div><dt>{t("tripWizard.reviewTravelers")}</dt><dd>{travelers}</dd></div>
