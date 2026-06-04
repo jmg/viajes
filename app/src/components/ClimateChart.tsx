@@ -40,6 +40,12 @@ type Props = {
 };
 
 export function ClimateChart({ climate, highlightMonth }: Props) {
+  const t = useT();
+  const MONTHS = MONTHS_SHORT[getLang()];
+  const L_SEA = t("charts.sea");
+  const L_RAIN = t("charts.rain");
+  const L_MAX = t("charts.max");
+  const L_MIN = t("charts.min");
   const hi = highlightMonth ? highlightMonth - 1 : -1;
   const maxRain = Math.max(...climate.map((c) => c.rainMm), 50);
   const hasSea = climate.some((c) => c.seaTempC != null);
@@ -49,7 +55,7 @@ export function ClimateChart({ climate, highlightMonth }: Props) {
     datasets: [
       ...(hasSea ? [{
         type: "line" as const,
-        label: "Mar",
+        label: L_SEA,
         yAxisID: "temp",
         data: climate.map((c) => c.seaTempC ?? null) as number[],
         borderColor: TEAL,
@@ -66,7 +72,7 @@ export function ClimateChart({ climate, highlightMonth }: Props) {
       }] : []),
       {
         type: "bar" as const,
-        label: "Lluvia",
+        label: L_RAIN,
         yAxisID: "rain",
         data: climate.map((c) => c.rainMm),
         backgroundColor: climate.map((_, i) =>
@@ -79,7 +85,7 @@ export function ClimateChart({ climate, highlightMonth }: Props) {
       },
       {
         type: "line" as const,
-        label: "Máx",
+        label: L_MAX,
         yAxisID: "temp",
         data: climate.map((c) => c.highC),
         borderColor: ORANGE,
@@ -96,7 +102,7 @@ export function ClimateChart({ climate, highlightMonth }: Props) {
       },
       {
         type: "line" as const,
-        label: "Mín",
+        label: L_MIN,
         yAxisID: "temp",
         data: climate.map((c) => c.lowC),
         borderColor: BLUE,
@@ -112,7 +118,7 @@ export function ClimateChart({ climate, highlightMonth }: Props) {
         order: 2,
       },
     ],
-  }), [climate, hi]);
+  }), [climate, hi, hasSea, MONTHS, L_SEA, L_RAIN, L_MAX, L_MIN]);
 
   const options: ChartOptions<"bar"> = useMemo(() => ({
     responsive: true,
@@ -159,18 +165,18 @@ export function ClimateChart({ climate, highlightMonth }: Props) {
           title: (items) => MONTHS[items[0].dataIndex],
           label: (item) => {
             const i = item.dataIndex;
-            if (item.dataset.label === "Lluvia") {
+            if (item.dataset.label === L_RAIN) {
               const sea = climate[i].seaTempC;
               return ` 🌧 ${climate[i].rainMm} mm${sea ? ` · 🌊 ${sea}°` : ""}`;
             }
-            if (item.dataset.label === "Máx") return ` ☀️ Máx ${climate[i].highC}°`;
-            if (item.dataset.label === "Mar") return ` 🌊 Mar ${climate[i].seaTempC}°`;
-            return ` ❄️ Mín ${climate[i].lowC}°`;
+            if (item.dataset.label === L_MAX) return ` ☀️ ${L_MAX} ${climate[i].highC}°`;
+            if (item.dataset.label === L_SEA) return ` 🌊 ${L_SEA} ${climate[i].seaTempC}°`;
+            return ` ❄️ ${L_MIN} ${climate[i].lowC}°`;
           },
         },
       },
     },
-  }), [climate, maxRain]);
+  }), [climate, maxRain, MONTHS, L_SEA, L_RAIN, L_MAX, L_MIN]);
 
   return (
     <div className="climate-chart-box">
@@ -178,7 +184,7 @@ export function ClimateChart({ climate, highlightMonth }: Props) {
         type="bar"
         data={data as ChartData<"bar", number[], string> & { datasets: ChartDataset<"bar" | "line", number[]>[] }}
         options={options}
-        aria-label="Clima mensual"
+        aria-label={t("charts.climateAria")}
       />
     </div>
   );

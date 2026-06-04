@@ -11,15 +11,16 @@ import type { ChartData, ChartOptions } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import type { MonthClimate } from "../destinations/types";
 import { rateClimate } from "../lib/recommender";
+import { useT } from "../i18n";
+import { MONTHS_SHORT } from "../i18n/dates";
+import { getLang } from "../i18n/core";
+import { monthName } from "../lib/format";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, BarController, Tooltip);
 
-const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-const MONTHS_FULL = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-
 const SCORE: Record<string, number> = { ideal: 100, good: 75, ok: 48, avoid: 20 };
 const COLOR: Record<string, string> = { ideal: "#34d399", good: "#38bdf8", ok: "#fbbf24", avoid: "#f87171" };
-const RATING_TXT: Record<string, string> = { ideal: "Ideal", good: "Bueno", ok: "Aceptable", avoid: "Evitar" };
+const RATING_KEY: Record<string, string> = { ideal: "charts.ideal", good: "charts.good", ok: "charts.ok", avoid: "charts.avoid" };
 
 type Props = {
   climate: MonthClimate[];

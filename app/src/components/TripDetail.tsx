@@ -244,48 +244,48 @@ function Overview({ trip }: { trip: Trip }) {
     <div className="overview">
       <div className="month-stats trip-stats">
         <div className="ms">
-          <span className="ms-label">Duración</span>
-          <span className="ms-val">{days} días</span>
-          <span className="ms-sub">{nights} {nights === 1 ? "noche" : "noches"}</span>
+          <span className="ms-label">{t("overview.duration")}</span>
+          <span className="ms-val">{t("tripDetail.days", { n: days })}</span>
+          <span className="ms-sub">{nights} {nights === 1 ? t("common.night") : t("common.nights")}</span>
         </div>
         <div className="ms">
-          <span className="ms-label">Viajeros</span>
+          <span className="ms-label">{t("overview.travelers")}</span>
           <span className="ms-val">👥 {travelers}</span>
           {trip.travelerNames?.length ? <span className="ms-sub">{trip.travelerNames.join(", ")}</span> : null}
         </div>
         {budget && (
           <div className="ms">
-            <span className="ms-label">Presupuesto <Info tip="Suma estimada de los ítems cargados en la pestaña Presupuesto (en dólares)." /></span>
+            <span className="ms-label">{t("overview.budget")} <Info tip={t("overview.budgetTip")} /></span>
             <span className="ms-val">{usd(budget.min)}–{usd(budget.max)}</span>
-            <span className="ms-sub">{usd(budget.min / travelers)}–{usd(budget.max / travelers)} por persona</span>
+            <span className="ms-sub">{usd(budget.min / travelers)}–{usd(budget.max / travelers)} {t("common.perPerson")}</span>
           </div>
         )}
         {spent != null && (
           <div className="ms">
-            <span className="ms-label">Gastos cargados <Info tip="Total de gastos reales anotados en la pestaña Gastos (en dólares)." /></span>
+            <span className="ms-label">{t("overview.spent")} <Info tip={t("overview.spentTip")} /></span>
             <span className="ms-val">{usd(spent)}</span>
-            <span className="ms-sub">{usd(spent / travelers)} por persona</span>
+            <span className="ms-sub">{usd(spent / travelers)} {t("common.perPerson")}</span>
           </div>
         )}
         {itinDays > 0 && (
           <div className="ms">
-            <span className="ms-label">Itinerario</span>
-            <span className="ms-val">{itinDays} {itinDays === 1 ? "día" : "días"}</span>
-            <span className="ms-sub">de {days} planificados</span>
+            <span className="ms-label">{t("overview.itinerary")}</span>
+            <span className="ms-val">{itinDays === 1 ? t("overview.itineraryDay", { n: itinDays }) : t("overview.itineraryDays", { n: itinDays })}</span>
+            <span className="ms-sub">{t("overview.itinerarySub", { n: days })}</span>
           </div>
         )}
         {trip.destinations.length > 0 && (
           <div className="ms">
-            <span className="ms-label">Destinos</span>
+            <span className="ms-label">{t("overview.destinations")}</span>
             <span className="ms-val">{trip.destinations.length}</span>
             <span className="ms-sub">{trip.destinations.join(" → ")}</span>
           </div>
         )}
         {checklistN > 0 && (
           <div className="ms">
-            <span className="ms-label">Checklist</span>
+            <span className="ms-label">{t("overview.checklist")}</span>
             <span className="ms-val">{checklistN}</span>
-            <span className="ms-sub">ítems para empacar</span>
+            <span className="ms-sub">{t("overview.checklistSub")}</span>
           </div>
         )}
       </div>
@@ -293,22 +293,22 @@ function Overview({ trip }: { trip: Trip }) {
       {trip.summary ? (
         <p className="summary">{trip.summary}</p>
       ) : (
-        <p className="summary muted">Sin descripción. Tocá <strong>Editar</strong> para agregar una.</p>
+        <p className="summary muted">{t("overview.noDescription")}</p>
       )}
       {top && (
         <div className="callout">
-          <h3>🏆 Vuelo recomendado</h3>
+          <h3>{t("overview.recommendedFlight")}</h3>
           <p>
-            <strong>Ida:</strong> {top.outbound.date} · {top.outbound.from} →{" "}
+            <strong>{t("overview.outbound")}</strong> {top.outbound.date} · {top.outbound.from} →{" "}
             {top.outbound.to} · {top.outbound.airline} ·{" "}
             {top.outbound.depart} → {top.outbound.arrive}
-            {top.outbound.direct ? " (directo)" : " (con escala)"}
+            {top.outbound.direct ? t("overview.direct") : t("overview.withStop")}
           </p>
           <p>
-            <strong>Vuelta:</strong> {top.inbound.date} · {top.inbound.from} →{" "}
+            <strong>{t("overview.inbound")}</strong> {top.inbound.date} · {top.inbound.from} →{" "}
             {top.inbound.to} · {top.inbound.airline} ·{" "}
             {top.inbound.depart} → {top.inbound.arrive}
-            {top.inbound.direct ? " (directo)" : " (con escala)"}
+            {top.inbound.direct ? t("overview.direct") : t("overview.withStop")}
           </p>
           {top.comment && <p className="callout-comment">{top.comment}</p>}
         </div>

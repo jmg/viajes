@@ -228,7 +228,7 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
 
       <div className="dest-actions">
         <button className="button-primary large" onClick={onCreateTrip}>
-          ✈️ Planear viaje a {d.name}
+          {t("destDetail.planTrip", { name: d.name })}
         </button>
       </div>
     </div>

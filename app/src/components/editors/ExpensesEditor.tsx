@@ -163,7 +163,7 @@ export function ExpensesEditor({ expenses, travelerNames, travelers, currency, o
           )}
         </>
       ) : (
-        <p className="settings-hint">Agregá gastos para ver el balance y cómo saldar cuentas entre el grupo.</p>
+        <p className="settings-hint">{t("expenses.emptyHint")}</p>
       )}
     </div>
   );
