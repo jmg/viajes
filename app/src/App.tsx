@@ -20,6 +20,7 @@ import { DESTINATIONS } from "./destinations/data";
 import type { Destination, RecommendationCriteria } from "./destinations/types";
 import { autoStatus } from "./lib/status";
 import { loadCurrency, saveCurrency, loadOrigin, saveOrigin } from "./lib/storage";
+import { defaultCurrencyForCountry } from "./lib/currency";
 import type { Airport } from "./lib/airports";
 import { getSharedTripFromHash, clearShareHash } from "./lib/share";
 import { track } from "./lib/analytics";
@@ -109,7 +110,7 @@ export function App() {
   const [creating, setCreating] = useState(false);
   const [filter, setFilter] = useState<FilterId>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [currency, setCurrency] = useState<Currency>(() => loadCurrency());
+  const [currency, setCurrency] = useState<Currency>(() => loadCurrency() ?? defaultCurrencyForCountry(loadOrigin()?.countryCode));
   const [sharingTrip, setSharingTrip] = useState<Trip | null>(null);
   const [showHelp, setShowHelp] = useState(initialRoute?.kind === "help");
   const [showSettings, setShowSettings] = useState(false);
@@ -252,6 +253,8 @@ export function App() {
   const handleOrigin = (o: Airport | null) => {
     setOrigin(o);
     saveOrigin(o);
+    // Si el usuario nunca eligió moneda a mano, ajustamos el default al país del origen.
+    if (o && loadCurrency() === null) setCurrency(defaultCurrencyForCountry(o.countryCode));
   };
 
   // Crear viaje desde un destino: se arma solo y se abre. Sin formularios.

@@ -62,6 +62,8 @@ export type RecommendationCriteria = {
   maxFlightHours?: number;
   /** Coordenadas del aeropuerto de origen: si están, las horas de vuelo se calculan desde ahí. */
   originLatLng?: { lat: number; lng: number };
+  /** País del origen (ISO). La info de visa solo aplica a argentinos: se omite si el origen es otro. */
+  originCountryCode?: string;
   /** Regiones a incluir. Vacío/undefined = todas. */
   includeRegions?: string[];
   search?: string;

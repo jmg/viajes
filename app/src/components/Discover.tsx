@@ -11,6 +11,7 @@ import { DestinationCard } from "./DestinationCard";
 import { WorldMap } from "./WorldMap";
 import { InfoTip } from "./InfoTip";
 import type { Airport } from "../lib/airports";
+import { flagEmoji } from "../lib/airports";
 import { useT } from "../i18n";
 import { catLabel, regionLabel } from "../i18n/labels";
 import { monthName } from "../lib/format";
@@ -72,6 +73,7 @@ export function Discover({ origin, onCreateTripFromDestination, onOpenDestinatio
     maxCostTier,
     maxFlightHours: maxFlightHours === "any" ? undefined : maxFlightHours,
     originLatLng: origin ? { lat: origin.lat, lng: origin.lng } : undefined,
+    originCountryCode: origin?.countryCode,
     search: search.trim() || undefined,
     includeRegions: includeRegions.length ? includeRegions : undefined,
   }), [month, duration, selectedCategories, minTemp, maxTemp, maxRainMm, maxCostTier, maxFlightHours, origin, search, includeRegions]);
@@ -124,7 +126,7 @@ export function Discover({ origin, onCreateTripFromDestination, onOpenDestinatio
           {t("discover.presetNature")}
         </button>
         <button className="preset-chip" onClick={() => { setMaxFlightHours(4); setSelectedCategories([]); }}>
-          {t("discover.presetRegional")}
+          {origin ? flagEmoji(origin.countryCode) : "🌎"} {t("discover.presetRegional")}
         </button>
         <button className="preset-chip" onClick={() => { setMaxCostTier("budget"); setSelectedCategories([]); }}>
           {t("discover.presetBudget")}

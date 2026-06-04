@@ -115,7 +115,7 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
             <span className="stat-value">{flightHours}h</span>
           </div>
         )}
-        {d.visaForArgentines && (
+        {d.visaForArgentines && (!origin || origin.countryCode === "AR") && (
           <div className="stat">
             <span className="stat-label">{t("destDetail.forArgentines")}</span>
             <span className="stat-value">{visaLabel(d.visaForArgentines)}</span>

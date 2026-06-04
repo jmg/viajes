@@ -55,12 +55,13 @@ export function saveTrips(trips: Trip[]): void {
   localStorage.setItem(TRIPS_KEY, JSON.stringify(trips));
 }
 
-export function loadCurrency(): Currency {
+/** Moneda guardada, o null si el usuario nunca eligió una (para derivar un default). */
+export function loadCurrency(): Currency | null {
   const saved = localStorage.getItem(CURRENCY_KEY);
   if (saved === "USD" || saved === "EUR" || saved === "ARS" || saved === "BRL" || saved === "GBP" || saved === "MXN" || saved === "CLP") {
     return saved;
   }
-  return "USD";
+  return null;
 }
 
 export function saveCurrency(c: Currency): void {

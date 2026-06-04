@@ -133,11 +133,13 @@ export function recommendDestinations(
       }
     }
 
-    // Penalización de visa (informativa)
-    if (d.visaForArgentines === "required") {
+    // Penalización de visa (informativa). Los datos de visa son para pasaporte
+    // argentino: solo se muestran si el origen es Argentina o no está configurado.
+    const visaApplies = !criteria.originCountryCode || criteria.originCountryCode === "AR";
+    if (visaApplies && d.visaForArgentines === "required") {
       warnings.push(t("rec.visaRequired"));
       score -= 5;
-    } else if (d.visaForArgentines === "evisa") {
+    } else if (visaApplies && d.visaForArgentines === "evisa") {
       warnings.push(t("rec.evisa"));
     }
 
