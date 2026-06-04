@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { RecommendationResult } from "../destinations/types";
 import { CATEGORY_EMOJI } from "../destinations/types";
 import { countryProfile } from "../destinations/countries";
+import { COUNTRY_FACTS } from "../destinations/countryFacts";
 import { rateClimate } from "../lib/recommender";
 import type { Airport } from "../lib/airports";
 import { DestinationCard } from "./DestinationCard";
@@ -56,6 +57,7 @@ export function CountryDetail({ country, origin, wishlist, onOpenDestination, on
 
   if (!profile) return <p className="empty">{t("country.notFound")}</p>;
 
+  const facts = COUNTRY_FACTS[profile.country];
   const short = (m: number) => MONTHS_SHORT[lang][m - 1];
   const full = (m: number) => MONTHS_FULL[lang][m - 1];
   const bestMonths = profile.bestMonths.length ? profile.bestMonths.map(short).join(" · ") : "—";
@@ -80,8 +82,11 @@ export function CountryDetail({ country, origin, wishlist, onOpenDestination, on
 
       <div className="dest-stats country-stats">
         <div className="stat">
-          <span className="stat-label">{t("country.bestMonths")}</span>
+          <span className="stat-label">{t("country.highSeason")}</span>
           <span className="stat-value">{bestMonths}</span>
+          {profile.shoulderMonths.length > 0 && (
+            <span className="stat-sub">{t("country.shoulder")}: {profile.shoulderMonths.map(short).join(" · ")}</span>
+          )}
         </div>
         <div className="stat">
           <span className="stat-label">{t("country.climate")}</span>
@@ -126,6 +131,19 @@ export function CountryDetail({ country, origin, wishlist, onOpenDestination, on
         <h3 className="country-section-title">{t("country.climateChart")}</h3>
         <ClimateChart climate={profile.monthly} highlightMonth={profile.bestMonths[0]} />
       </div>
+
+      {facts && (
+        <div className="country-practical">
+          <h3 className="country-section-title">{t("country.practical")}</h3>
+          <div className="dest-stats">
+            <div className="stat"><span className="stat-label">{t("country.currency")}</span><span className="stat-value sm">{facts.currency}</span></div>
+            <div className="stat"><span className="stat-label">{t("country.language")}</span><span className="stat-value sm">{facts.languages}</span></div>
+            <div className="stat"><span className="stat-label">{t("country.plug")}</span><span className="stat-value">🔌 {facts.plugTypes}</span></div>
+            <div className="stat"><span className="stat-label">{t("country.drive")}</span><span className="stat-value sm">{facts.driveSide === "izq" ? t("country.driveLeft") : t("country.driveRight")}</span></div>
+            <div className="stat"><span className="stat-label">{t("country.callingCode")}</span><span className="stat-value">{facts.callingCode}</span></div>
+          </div>
+        </div>
+      )}
 
       <h3 className="country-dests-title">{t("country.destinationsIn", { country: profile.country })}</h3>
       <div className="dest-grid">

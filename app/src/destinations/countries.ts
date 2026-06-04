@@ -31,6 +31,8 @@ export type CountryProfile = {
   /** 12 promedios mensuales (ene…dic) del país. */
   monthly: MonthAvg[];
   bestMonths: number[];
+  /** Temporada media / mejor relación precio-clima (buen clima fuera del pico). */
+  shoulderMonths: number[];
   warmestMonth: number;
   coolestMonth: number;
   wettestMonth: number;
@@ -42,6 +44,25 @@ export type CountryProfile = {
   visa?: VisaStatus;
   categories: DestinationCategory[];
 };
+
+type Rating = "ideal" | "good" | "ok" | "avoid";
+const RATING_ORDER: Rating[] = ["ideal", "good", "ok", "avoid"];
+
+// Rating climático mensual (mismos umbrales que rateClimate, sin i18n) para
+// derivar temporadas sin acoplar la capa de datos al recomendador.
+function monthRating(c: MonthAvg): Rating {
+  const avg = (c.highC + c.lowC) / 2;
+  let temp: Rating = "ideal";
+  if (avg < 10 || avg > 36) temp = "avoid";
+  else if (avg < 14 || avg > 32) temp = "ok";
+  else if (avg < 18 || avg > 28) temp = "good";
+  const rr = c.rainMm / 250;
+  let rain: Rating = "ideal";
+  if (rr > 1.75) rain = "avoid";
+  else if (rr > 1.0) rain = "ok";
+  else if (rr > 0.55) rain = "good";
+  return RATING_ORDER[Math.max(RATING_ORDER.indexOf(temp), RATING_ORDER.indexOf(rain))];
+}
 
 const mode = <T extends string>(arr: T[]): T | undefined => {
   const c: Record<string, number> = {};
@@ -102,6 +123,14 @@ export function countryProfile(name: string): CountryProfile | null {
     .map((x) => x.m)
     .sort((a, b) => a - b);
 
+  // Temporada media: meses con buen clima (ideal/good) fuera de los pico —
+  // suelen tener mejor precio y menos gente.
+  const bestSet = new Set(bestMonths);
+  const shoulderMonths = monthly
+    .map((c, i) => ({ r: monthRating(c), m: i + 1 }))
+    .filter((x) => (x.r === "ideal" || x.r === "good") && !bestSet.has(x.m))
+    .map((x) => x.m);
+
   // Extremos climáticos.
   let warmestMonth = 1, coolestMonth = 1, wettestMonth = 1, driestMonth = 1;
   monthly.forEach((c, i) => {
@@ -146,6 +175,7 @@ export function countryProfile(name: string): CountryProfile | null {
     count: dests.length,
     monthly,
     bestMonths,
+    shoulderMonths,
     warmestMonth,
     coolestMonth,
     wettestMonth,
