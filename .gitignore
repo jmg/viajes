@@ -1,0 +1,13 @@
+# Carpetas de investigación / scratch (notas de viaje, scrapes de vuelos,
+# screenshots). Se mantienen en disco pero fuera del control de versiones.
+/aruba/
+/nordeste-brasil/
+
+# Dependencias y builds (app/ ya tiene su propio .gitignore)
+node_modules/
+dist/
+
+# Sistema operativo / editor
+.DS_Store
+Thumbs.db
+*.log
