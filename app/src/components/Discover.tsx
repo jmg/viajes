@@ -199,7 +199,7 @@ export function Discover({ origin, onCreateTripFromDestination, onOpenDestinatio
           </div>
           <div className="field">
             <span>
-              {t("discover.rainLabel", { value: rainPref <= 3 ? t("discover.rainNoPref") : t("discover.rainMax", { mm: maxRainMm }) })}
+              {t("discover.rainLabel", { value: rainPref <= 3 ? t("discover.rainNoPref") : t("discover.rainMax", { mm: maxRainMm ?? 0 }) })}
               <InfoTip tip={t("discover.rainTip")} />
             </span>
             <div className="range-pair">
