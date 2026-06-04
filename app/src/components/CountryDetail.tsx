@@ -5,6 +5,7 @@ import { countryProfile } from "../destinations/countries";
 import { rateClimate } from "../lib/recommender";
 import type { Airport } from "../lib/airports";
 import { DestinationCard } from "./DestinationCard";
+import { ClimateChart } from "./ClimateChart";
 import { useT } from "../i18n";
 import { catLabel, costLabel, regionLabel, visaLabel } from "../i18n/labels";
 import { getLang } from "../i18n/core";
@@ -36,6 +37,21 @@ export function CountryDetail({ country, origin, wishlist, onOpenDestination, on
         const order = { ideal: 0, good: 1, ok: 2, avoid: 3 } as const;
         return order[a.climateRating] - order[b.climateRating] || a.destination.name.localeCompare(b.destination.name);
       });
+  }, [profile]);
+
+  // "Qué hacer": highlights únicos sampleados de los destinos del país.
+  const highlights = useMemo(() => {
+    if (!profile) return [];
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const d of profile.destinations) {
+      for (const h of d.highlights ?? []) {
+        const key = h.toLowerCase();
+        if (!seen.has(key)) { seen.add(key); out.push(h); }
+        if (out.length >= 10) return out;
+      }
+    }
+    return out;
   }, [profile]);
 
   if (!profile) return <p className="empty">{t("country.notFound")}</p>;
@@ -95,6 +111,20 @@ export function CountryDetail({ country, origin, wishlist, onOpenDestination, on
             <span className="stat-value">{visaLabel(profile.visa)}</span>
           </div>
         )}
+      </div>
+
+      {highlights.length > 0 && (
+        <div className="country-highlights">
+          <h3 className="country-section-title">{t("country.highlights")}</h3>
+          <div className="country-cats">
+            {highlights.map((h) => <span key={h} className="cat-chip">✦ {h}</span>)}
+          </div>
+        </div>
+      )}
+
+      <div className="country-climate">
+        <h3 className="country-section-title">{t("country.climateChart")}</h3>
+        <ClimateChart climate={profile.monthly} highlightMonth={profile.bestMonths[0]} />
       </div>
 
       <h3 className="country-dests-title">{t("country.destinationsIn", { country: profile.country })}</h3>

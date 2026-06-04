@@ -20,6 +20,7 @@ const TripDetail = lazy(() => import("./components/TripDetail").then((m) => ({ d
 const Discover = lazy(() => import("./components/Discover").then((m) => ({ default: m.Discover })));
 const DestinationDetail = lazy(() => import("./components/DestinationDetail").then((m) => ({ default: m.DestinationDetail })));
 const CountryDetail = lazy(() => import("./components/CountryDetail").then((m) => ({ default: m.CountryDetail })));
+const CountriesIndex = lazy(() => import("./components/CountriesIndex").then((m) => ({ default: m.CountriesIndex })));
 import { DESTINATIONS } from "./destinations/data";
 import type { Destination, RecommendationCriteria } from "./destinations/types";
 import { autoStatus } from "./lib/status";
@@ -29,11 +30,12 @@ import type { Airport } from "./lib/airports";
 import { getSharedTripFromHash, clearShareHash } from "./lib/share";
 import { track } from "./lib/analytics";
 
-type View = "trips" | "discover";
+type View = "trips" | "discover" | "countries";
 
 type Route =
   | { kind: "discover" }
   | { kind: "trips" }
+  | { kind: "countries" }
   | { kind: "help" }
   | { kind: "destino"; id: string; month?: number }
   | { kind: "pais"; country: string }
@@ -48,6 +50,7 @@ function parseHash(): Route {
   if ((m = h.match(/^#\/pais\/([^/]+)$/))) return { kind: "pais", country: decodeURIComponent(m[1]) };
   if ((m = h.match(/^#\/viaje\/([^/]+)$/))) return { kind: "viaje", id: decodeURIComponent(m[1]) };
   if (h === "#/viajes") return { kind: "trips" };
+  if (h === "#/paises") return { kind: "countries" };
   if (h === "#/ayuda") return { kind: "help" };
   return { kind: "discover" };
 }
@@ -58,6 +61,7 @@ function routeToHash(r: Route): string {
     case "pais": return `#/pais/${encodeURIComponent(r.country)}`;
     case "viaje": return `#/viaje/${encodeURIComponent(r.id)}`;
     case "trips": return "#/viajes";
+    case "countries": return "#/paises";
     case "help": return "#/ayuda";
     default: return "#/descubrir";
   }
@@ -110,7 +114,9 @@ export function App() {
   const { trips, upsert, remove, restoreSeeds } = useTrips();
   // Estado inicial desde la URL (hash), salvo que sea un link de "compartir".
   const initialRoute = getSharedTripFromHash() ? null : parseHash();
-  const [view, setView] = useState<View>(initialRoute?.kind === "trips" ? "trips" : "discover");
+  const [view, setView] = useState<View>(
+    initialRoute?.kind === "trips" ? "trips" : initialRoute?.kind === "countries" ? "countries" : "discover",
+  );
   const [activeTripId, setActiveTripId] = useState<string | null>(initialRoute?.kind === "viaje" ? initialRoute.id : null);
   const [activeDestination, setActiveDestination] = useState<{ id: string; month?: number } | null>(
     initialRoute?.kind === "destino" ? { id: initialRoute.id, month: initialRoute.month } : null,
@@ -213,6 +219,7 @@ export function App() {
       setActiveDestination(r.kind === "destino" ? { id: r.id, month: r.month } : null);
       setActiveCountry(r.kind === "pais" ? r.country : null);
       if (r.kind === "trips") setView("trips");
+      else if (r.kind === "countries") setView("countries");
       else if (r.kind === "discover") setView("discover");
     };
     window.addEventListener("popstate", onPop);
@@ -360,6 +367,9 @@ export function App() {
                 {t("home.discoverTab")}
                 {wishlist.length > 0 && <span className="wishlist-count">❤️ {wishlist.length}</span>}
               </button>
+              <button className={`main-tab ${view === "countries" ? "active" : ""}`} onClick={() => setView("countries")}>
+                {t("home.countriesTab")}
+              </button>
               <button className={`main-tab ${view === "trips" ? "active" : ""}`} onClick={() => setView("trips")}>
                 {t("home.tripsTab", { count: trips.length })}
               </button>
@@ -429,6 +439,12 @@ export function App() {
                 wishlist={wishlist}
                 onToggleWishlist={toggleWishlist}
               />
+            </Suspense>
+          )}
+
+          {view === "countries" && (
+            <Suspense fallback={<div className="loading">{t("common.loading")}</div>}>
+              <CountriesIndex onOpenCountry={openCountry} />
             </Suspense>
           )}
         </>

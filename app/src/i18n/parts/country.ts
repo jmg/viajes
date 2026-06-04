@@ -15,6 +15,13 @@ export const country: Part = {
       fromEze: "desde Buenos Aires",
       visa: "Visa (argentinos)",
       destinationsIn: "Destinos en {country}",
+      climateChart: "Clima promedio del país",
+      highlights: "Qué hacer",
+      seaTemp: "Mar: {c}°C en {month}",
+    },
+    countries: {
+      searchPlaceholder: "Buscá un país…",
+      count: "{n} países",
     },
   },
   pt: {
@@ -31,6 +38,13 @@ export const country: Part = {
       fromEze: "de Buenos Aires",
       visa: "Visto (argentinos)",
       destinationsIn: "Destinos em {country}",
+      climateChart: "Clima médio do país",
+      highlights: "O que fazer",
+      seaTemp: "Mar: {c}°C em {month}",
+    },
+    countries: {
+      searchPlaceholder: "Busque um país…",
+      count: "{n} países",
     },
   },
   en: {
@@ -47,6 +61,13 @@ export const country: Part = {
       fromEze: "from Buenos Aires",
       visa: "Visa (Argentines)",
       destinationsIn: "Destinations in {country}",
+      climateChart: "Country average climate",
+      highlights: "Things to do",
+      seaTemp: "Sea: {c}°C in {month}",
+    },
+    countries: {
+      searchPlaceholder: "Search a country…",
+      count: "{n} countries",
     },
   },
 };

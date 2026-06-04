@@ -1432,6 +1432,27 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
   text-underline-offset: 2px;
 }
 .country-link:hover { color: var(--text); }
+.country-section-title { margin: 24px 0 12px; font-size: 18px; }
+.country-highlights { margin-top: 8px; }
+.country-climate { margin-top: 8px; }
+
+/* Índice de países */
+.countries-count { color: var(--muted); font-size: 13px; margin: 4px 0 16px; }
+.countries-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;
+}
+.country-card {
+  text-align: left; cursor: pointer; color: var(--text);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  display: flex; flex-direction: column; gap: 4px;
+  transition: transform .15s, border-color .15s, box-shadow .15s, background .15s;
+}
+.country-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: var(--shadow-md); background: var(--surface-2); }
+.country-card-flag { font-size: 30px; line-height: 1; }
+.country-card-name { font-size: 16px; font-weight: 700; }
+.country-card-meta { color: var(--muted); font-size: 12px; }
+.country-card-count { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 2px; }
 
 /* Responsive */
 @media (max-width: 600px) {
