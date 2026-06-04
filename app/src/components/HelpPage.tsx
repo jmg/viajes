@@ -24,6 +24,28 @@ export function HelpPage({ onBack, onDiscover }: Props) {
       </section>
 
       <section className="help-section">
+        <h2>{t("help.s7Title")}</h2>
+        <p>{t("help.s7Intro")}</p>
+        <ul>
+          <li><strong>{t("help.s7Li1Strong")}</strong>{t("help.s7Li1Body")}</li>
+          <li><strong>{t("help.s7Li2Strong")}</strong>{t("help.s7Li2Body")}</li>
+          <li><strong>{t("help.s7Li3Strong")}</strong>{t("help.s7Li3Body")}</li>
+          <li><strong>{t("help.s7Li4Strong")}</strong>{t("help.s7Li4Body")}</li>
+        </ul>
+        <p>{t("help.s7Foot")}</p>
+      </section>
+
+      <section className="help-section">
+        <h2>{t("help.s8Title")}</h2>
+        <p>{t("help.s8Intro")}</p>
+        <ul>
+          <li><strong>{t("help.s8Li1Strong")}</strong>{t("help.s8Li1Body")}</li>
+          <li><strong>{t("help.s8Li2Strong")}</strong>{t("help.s8Li2Body")}</li>
+          <li><strong>{t("help.s8Li3Strong")}</strong>{t("help.s8Li3Body")}</li>
+        </ul>
+      </section>
+
+      <section className="help-section">
         <h2>{t("help.s2Title")}</h2>
         <p>{t("help.s2Intro1")}<strong>{t("help.s2IntroStrong")}</strong>{t("help.s2Intro2")}</p>
         <div className="help-defs">
