@@ -12,7 +12,7 @@ import { WorldMap } from "./WorldMap";
 import { InfoTip } from "./InfoTip";
 import type { Airport } from "../lib/airports";
 import { useT } from "../i18n";
-import { catLabel } from "../i18n/labels";
+import { catLabel, regionLabel } from "../i18n/labels";
 import { monthName } from "../lib/format";
 
 const CATEGORIES_ORDER: DestinationCategory[] = ["beach", "mountain", "city", "cultural", "nature", "snow", "desert", "tropical", "island", "lake", "wine", "wildlife"];
@@ -144,7 +144,7 @@ export function Discover({ origin, onCreateTripFromDestination, onOpenDestinatio
             <input type="number" min={1} max={60} value={duration} onChange={(e) => setDuration(parseInt(e.target.value, 10) || 1)} />
           </label>
           <label className="field">
-            <span>{t("discover.flightField")}</span>
+            <span>{t("discover.flightField", { code: origin?.code ?? "EZE" })}</span>
             <select value={String(maxFlightHours)} onChange={(e) => setMaxFlightHours(e.target.value === "any" ? "any" : parseInt(e.target.value, 10))}>
               <option value="any">{t("discover.flightAny")}</option>
               <option value="4">{t("discover.flight4")}</option>
@@ -229,7 +229,7 @@ export function Discover({ origin, onCreateTripFromDestination, onOpenDestinatio
                 className={`region-chip ${includeRegions.includes(r) ? "included" : ""}`}
                 onClick={() => toggleRegion(r)}
               >
-                {includeRegions.includes(r) ? "✓ " : ""}{r}
+                {includeRegions.includes(r) ? "✓ " : ""}{regionLabel(r)}
               </button>
             ))}
           </div>

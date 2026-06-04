@@ -3,7 +3,7 @@ import { CATEGORY_EMOJI, COST_RANGE_USD } from "../destinations/types";
 import type { Airport } from "../lib/airports";
 import { flightHoursFromOrigin } from "../lib/originFlight";
 import { useT } from "../i18n";
-import { catLabel, costLabel, ratingLabel, ratingTip } from "../i18n/labels";
+import { catLabel, costLabel, ratingLabel, ratingTip, regionLabel } from "../i18n/labels";
 
 type Props = {
   result: RecommendationResult;
@@ -26,7 +26,7 @@ export function DestinationCard({ result, isInWishlist, origin, onOpen, onToggle
           <span className="dest-flag">{d.flag}</span>
           <div className="dest-name-block">
             <h3>{d.name}</h3>
-            <span className="dest-country">{d.country} · {d.region}</span>
+            <span className="dest-country">{d.country} · {regionLabel(d.region)}</span>
           </div>
           <span className={`rating-pill rating-${climateRating}`} title={ratingTip(climateRating)}>{ratingLabel(climateRating)}</span>
         </div>

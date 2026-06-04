@@ -9,7 +9,7 @@ import { BestMonthsChart } from "./BestMonthsChart";
 import { WeatherSection } from "./WeatherSection";
 import { InfoTip as Info } from "./InfoTip";
 import { useT } from "../i18n";
-import { catLabel, costLabel, ratingLabel, ratingTip, visaLabel } from "../i18n/labels";
+import { catLabel, costLabel, ratingLabel, ratingTip, visaLabel, regionLabel } from "../i18n/labels";
 import { monthName } from "../lib/format";
 import { MONTHS_SHORT } from "../i18n/dates";
 import { getLang } from "../i18n/core";
@@ -78,7 +78,7 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
         <span className="dest-flag-big">{d.flag}</span>
         <div>
           <h2>{d.name}</h2>
-          <p className="dest-country">{d.country} · {d.region}</p>
+          <p className="dest-country">{d.country} · {regionLabel(d.region)}</p>
           <a
             className="maps-link"
             href={
