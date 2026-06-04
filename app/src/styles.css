@@ -518,6 +518,10 @@ input:focus, select:focus, textarea:focus {
 .dest-suggestion-meta { color: var(--muted); font-size: 12px; margin-left: auto; }
 .dest-suggestion-custom { color: var(--accent); font-size: 13px; }
 
+.more-details-btn {
+  justify-self: start; padding: 2px 0; font-size: 13px; font-weight: 500;
+}
+.form-hint { color: var(--muted); font-size: 12px; margin: -8px 0 0; }
 .new-trip-btn { white-space: nowrap; }
 .empty-cta-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 
