@@ -1,6 +1,9 @@
 import { useState } from "react";
 import type { ItineraryDay } from "../../types";
 import { formatDate } from "../../lib/format";
+import { weatherDayIcon } from "../../lib/forecast";
+import type { DailyWeather } from "../../lib/forecast";
+import type { WeatherLookup } from "../../hooks/useTripWeather";
 
 type Props = {
   days: ItineraryDay[];
@@ -9,6 +12,8 @@ type Props = {
   tripEnd?: string;
   /** Destinos del viaje — se reparten en bloques contiguos al generar los días. */
   destinations?: string[];
+  /** Clima por día (fecha + lugar) para mostrarlo embebido en cada día. */
+  weatherFor?: WeatherLookup;
   onChange: (days: ItineraryDay[]) => void;
 };
 
@@ -37,7 +42,7 @@ function buildDays(start: string, end: string, destinations: string[]): Itinerar
   });
 }
 
-export function ItineraryEditor({ days, tripStart, tripEnd, destinations, onChange }: Props) {
+export function ItineraryEditor({ days, tripStart, tripEnd, destinations, weatherFor, onChange }: Props) {
   const todayIso = today();
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -92,7 +97,10 @@ export function ItineraryEditor({ days, tripStart, tripEnd, destinations, onChan
                   <span className="day-number">Día {d.dayNumber}</span>
                 </div>
                 <div className="day-body">
-                  <div className="day-date">{formatDate(d.date)} · {d.location}</div>
+                  <div className="day-date">
+                    {formatDate(d.date)}{d.location ? ` · ${d.location}` : ""}
+                    <DayWeather weather={weatherFor?.(d.date, d.location)} />
+                  </div>
                   <h3 className="day-title">{d.title}</h3>
                   <ul className="day-highlights">
                     {d.highlights.map((h, i) => <li key={i}>{h}</li>)}
@@ -134,6 +142,19 @@ export function ItineraryEditor({ days, tripStart, tripEnd, destinations, onChan
         </div>
       )}
     </div>
+  );
+}
+
+function DayWeather({ weather }: { weather?: DailyWeather }) {
+  if (!weather) return null;
+  const prob = weather.rainyDayProb != null ? Math.round(weather.rainyDayProb * 100) : null;
+  const tip = `Máx ${weather.tempMax}° / mín ${weather.tempMin}°` + (prob != null ? ` · ${prob}% prob. lluvia` : "");
+  return (
+    <span className="day-weather" title={tip}>
+      <span className="day-weather-icon">{weatherDayIcon(weather)}</span>
+      <span className="day-weather-temp">{weather.tempMin}°/{weather.tempMax}°</span>
+      {prob != null && prob >= 40 && <span className="day-weather-rain">💧{prob}%</span>}
+    </span>
   );
 }
 

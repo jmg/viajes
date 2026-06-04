@@ -529,6 +529,17 @@ input:focus, select:focus, textarea:focus {
 .itinerary-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .itinerary-empty-hint { color: var(--muted); font-size: 13px; margin: 4px 0 12px; }
 
+/* Clima embebido en cada día del itinerario */
+.day-weather {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-left: 8px; padding: 1px 8px; border-radius: 999px;
+  background: var(--surface-3); font-size: 12px; white-space: nowrap;
+  vertical-align: middle;
+}
+.day-weather-icon { font-size: 13px; }
+.day-weather-temp { color: var(--text); font-weight: 500; }
+.day-weather-rain { color: var(--accent); }
+
 .form-actions {
   display: flex; gap: 8px; justify-content: flex-end;
   margin-top: 8px;

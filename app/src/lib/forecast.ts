@@ -236,3 +236,40 @@ export function weatherEmoji(code: number): string {
 export function weatherLabel(code: number): string {
   return WMO[code]?.label ?? "—";
 }
+
+/** Ícono coherente con los datos: en promedios sale de la probabilidad de lluvia, no de un código promediado. */
+export function weatherDayIcon(d: DailyWeather): string {
+  if (d.rainyDayProb != null) {
+    const p = d.rainyDayProb;
+    if (p < 0.25) return "☀️";
+    if (p < 0.45) return "🌤";
+    if (p < 0.65) return "⛅";
+    if (p < 0.8) return "🌦";
+    return "🌧";
+  }
+  return weatherEmoji(d.weatherCode);
+}
+
+// Cuántos años se promedian para viajes lejos del rango de pronóstico.
+export const PRIOR_YEARS = 5;
+
+export type WeatherMode = "forecast" | "historical" | "prior_year";
+
+/** Qué fuente de datos corresponde según cuán lejos/cerca está el viaje. */
+export function weatherModeForTrip(daysUntilStart: number, daysUntilEnd: number): WeatherMode | null {
+  if (daysUntilStart <= 16 && daysUntilEnd >= 0) return "forecast";
+  if (daysUntilEnd < 0 && daysUntilEnd >= -90) return "historical";
+  if (daysUntilStart > 16) return "prior_year";
+  return null;
+}
+
+/** Carga el clima de un destino para el rango del viaje, según el modo elegido. */
+export async function loadTripWeather(
+  mode: WeatherMode, id: string, lat: number, lng: number, start: string, end: string,
+): Promise<DailyWeather[]> {
+  if (mode === "forecast") return fetchForecast(lat, lng);
+  if (mode === "historical") return fetchHistorical(lat, lng, start, end);
+  // prior_year: primero el archivo precalculado (sin API); si no está, la API.
+  const pre = await fetchPrecomputedAverage(id, start, end);
+  return pre ?? fetchMultiYearAverage(lat, lng, start, end, PRIOR_YEARS);
+}

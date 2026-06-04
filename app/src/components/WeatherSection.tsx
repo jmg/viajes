@@ -2,13 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import type { Trip } from "../types";
 import type { Destination } from "../destinations/types";
 import { findDestination } from "../destinations/match";
-import { fetchForecast, fetchHistorical, fetchMultiYearAverage, fetchPrecomputedAverage, weatherEmoji } from "../lib/forecast";
+import { loadTripWeather, weatherDayIcon, weatherModeForTrip, PRIOR_YEARS } from "../lib/forecast";
 import type { DailyWeather } from "../lib/forecast";
 import { daysUntilStart, daysUntilEnd } from "../lib/status";
 import { formatDate } from "../lib/format";
 import { InfoTip } from "./InfoTip";
-
-const PRIOR_YEARS = 5;
 
 type Props = {
   trip: Trip;
@@ -18,20 +16,6 @@ type Props = {
   sampleEvery?: number;
   maxDays?: number;
 };
-type Mode = "forecast" | "historical" | "prior_year";
-
-/** Ícono coherente con los datos: en promedios sale de la probabilidad de lluvia, no de un código promediado. */
-function dayIcon(d: DailyWeather): string {
-  if (d.rainyDayProb != null) {
-    const p = d.rainyDayProb;
-    if (p < 0.25) return "☀️";
-    if (p < 0.45) return "🌤";
-    if (p < 0.65) return "⛅";
-    if (p < 0.8) return "🌦";
-    return "🌧";
-  }
-  return weatherEmoji(d.weatherCode);
-}
 
 export function WeatherSection({ trip, destination, sampleEvery, maxDays }: Props) {
   const dest = useMemo(
@@ -39,18 +23,7 @@ export function WeatherSection({ trip, destination, sampleEvery, maxDays }: Prop
     [destination, trip.destinations],
   );
 
-  const dStart = daysUntilStart(trip);
-  const dEnd = daysUntilEnd(trip);
-
-  let mode: Mode | null = null;
-  if (dStart <= 16 && dEnd >= 0) {
-    mode = "forecast";
-  } else if (dEnd < 0 && dEnd >= -90) {
-    mode = "historical";
-  } else if (dStart > 16) {
-    // Viaje muy lejos para forecast → promediamos las últimas 5 vueltas a estas fechas.
-    mode = "prior_year";
-  }
+  const mode = weatherModeForTrip(daysUntilStart(trip), daysUntilEnd(trip));
 
   const [data, setData] = useState<DailyWeather[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -61,16 +34,8 @@ export function WeatherSection({ trip, destination, sampleEvery, maxDays }: Prop
     setError(null);
     if (!mode || !dest?.lat || !dest?.lng) return;
     setLoading(true);
-    let p: Promise<DailyWeather[]>;
-    if (mode === "forecast") p = fetchForecast(dest.lat, dest.lng);
-    else if (mode === "historical") p = fetchHistorical(dest.lat, dest.lng, trip.startDate, trip.endDate);
-    else {
-      // Promedio 5 años: primero el archivo precalculado (sin API); si no está, la API.
-      const { lat, lng } = dest;
-      p = fetchPrecomputedAverage(dest.id, trip.startDate, trip.endDate)
-        .then((pre) => pre ?? fetchMultiYearAverage(lat, lng, trip.startDate, trip.endDate, PRIOR_YEARS));
-    }
-    p.then(setData)
+    loadTripWeather(mode, dest.id, dest.lat, dest.lng, trip.startDate, trip.endDate)
+      .then(setData)
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
   }, [mode, dest, trip.startDate, trip.endDate]);
@@ -125,7 +90,7 @@ export function WeatherSection({ trip, destination, sampleEvery, maxDays }: Prop
             return (
               <div key={d.date} className="weather-day" title={cardTip}>
                 <div className="weather-date">{formatDate(d.date)}</div>
-                <div className="weather-emoji">{dayIcon(d)}</div>
+                <div className="weather-emoji">{weatherDayIcon(d)}</div>
                 <div className="weather-temp">
                   <span title="Mínima / máxima promedio del día">{d.tempMin}° / {d.tempMax}°</span>
                   {d.tempMaxStdev != null && d.tempMaxStdev > 0 && (

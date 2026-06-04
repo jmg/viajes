@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { Currency, Trip } from "../types";
 import type { Destination } from "../destinations/types";
 import { findDestination } from "../destinations/match";
+import { useTripWeather } from "../hooks/useTripWeather";
 import { formatDateRange, daysBetween } from "../lib/format";
 import { autoStatus, STATUS_LABEL } from "../lib/status";
 import { computeMoonPhases, computeTideWindows } from "../lib/moon";
@@ -82,6 +83,9 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
     return out;
   }, [trip.destinations]);
 
+  // Clima por día para mostrarlo embebido en cada día del itinerario.
+  const weatherFor = useTripWeather(trip);
+
   return (
     <>
     <div className="trip-detail screen-only">
@@ -156,6 +160,7 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
             tripStart={trip.startDate}
             tripEnd={trip.endDate}
             destinations={trip.destinations}
+            weatherFor={weatherFor}
             onChange={(itinerary) => onChange({ ...trip, itinerary })}
           />
         )}
