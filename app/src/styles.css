@@ -1361,6 +1361,35 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
 }
 .booking-link:hover { border-color: var(--accent); }
 
+/* Esenciales del viaje (seguro, eSIM) — tarjetas más ricas */
+.booking-essentials { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+.booking-essential {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px; text-decoration: none; color: var(--text);
+  transition: border-color .15s, transform .15s, background .15s;
+}
+.booking-essential:hover { border-color: var(--accent); transform: translateY(-2px); background: var(--surface-2); }
+.booking-essential-icon { font-size: 26px; line-height: 1; }
+.booking-essential-text { display: flex; flex-direction: column; gap: 2px; }
+.booking-essential-text strong { font-size: 15px; }
+.booking-essential-text small { color: var(--muted); font-size: 13px; }
+.booking-disclosure { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 4px 0 0; }
+
+/* Banner CTA de reserva en el overview */
+.book-cta {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  flex-wrap: wrap; margin-top: 20px; padding: 16px 18px;
+  border-radius: 14px; border: 1px solid var(--accent);
+  background: linear-gradient(120deg, rgba(56,189,248,0.12), rgba(56,189,248,0.04));
+}
+.book-cta-text { display: flex; flex-direction: column; gap: 2px; }
+.book-cta-text strong { font-size: 16px; }
+.book-cta-text span { color: var(--muted); font-size: 13px; }
+.book-cta-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.book-cta-actions a { text-decoration: none; }
+.book-cta-more { color: var(--accent); white-space: nowrap; }
+
 /* Responsive */
 @media (max-width: 600px) {
   .field-row { grid-template-columns: 1fr; }

@@ -23,6 +23,7 @@ import { Countdown } from "./Countdown";
 import { InfoTip as Info } from "./InfoTip";
 import { track } from "../lib/analytics";
 import { downloadTripIcs } from "../lib/calendar";
+import { googleFlightsUrl, bookingUrl } from "../lib/booking";
 
 type Props = {
   trip: Trip;
@@ -178,7 +179,7 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
       <section className="tab-content">
         {active === "overview" && (
           <>
-            <Overview trip={trip} />
+            <Overview trip={trip} onBook={() => setActive("booking")} />
             {weatherDests.length > 0
               ? weatherDests.map((d) => <WeatherSection key={d.id} trip={trip} destination={d} />)
               : <WeatherSection trip={trip} />}
@@ -267,7 +268,7 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
 
 const usd = (n: number) => `US$ ${Math.round(n).toLocaleString("es-AR")}`;
 
-function Overview({ trip }: { trip: Trip }) {
+function Overview({ trip, onBook }: { trip: Trip; onBook: () => void }) {
   const t = useT();
   const top = trip.flightOptions?.find((o) => o.id === trip.recommendedFlightId);
 
@@ -357,6 +358,28 @@ function Overview({ trip }: { trip: Trip }) {
           {top.comment && <p className="callout-comment">{top.comment}</p>}
         </div>
       )}
+
+      <div className="book-cta">
+        <div className="book-cta-text">
+          <strong>{t("overview.bookTitle")}</strong>
+          <span>{t("overview.bookSub")}</span>
+        </div>
+        <div className="book-cta-actions">
+          <a
+            className="button-primary"
+            href={googleFlightsUrl(trip.origin || "Buenos Aires", trip.destinations[0] ?? "", trip.startDate)}
+            target="_blank" rel="noreferrer sponsored"
+            onClick={() => track("booking_click", { platform: "google_flights", from: "overview_cta" })}
+          >✈️ {t("overview.bookFlight")}</a>
+          <a
+            className="button-secondary"
+            href={bookingUrl(trip.destinations[0] ?? "", trip.startDate, trip.endDate)}
+            target="_blank" rel="noreferrer sponsored"
+            onClick={() => track("booking_click", { platform: "booking", from: "overview_cta" })}
+          >🏨 {t("overview.bookHotel")}</a>
+          <button className="link-button book-cta-more" onClick={onBook}>{t("overview.bookMore")}</button>
+        </div>
+      </div>
     </div>
   );
 }
