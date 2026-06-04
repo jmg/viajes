@@ -5,6 +5,7 @@ import type { TemplateId } from "../lib/templates";
 import { DestinationPicker } from "./DestinationPicker";
 import { anyCoastal, findDestination } from "../destinations/match";
 import { useT } from "../i18n";
+import { templateLabel } from "../i18n/labels";
 import type { t as tFn } from "../i18n/core";
 
 type Prefill = {
@@ -145,7 +146,7 @@ export function TripForm({ trip, prefill, defaultOrigin, onSave, onCancel }: Pro
                 }}
               >
                 <span className="template-emoji">{t.emoji}</span>
-                <span>{t.label}</span>
+                <span>{templateLabel(t.id)}</span>
               </button>
             ))}
           </div>

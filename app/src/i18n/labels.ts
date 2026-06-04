@@ -3,7 +3,9 @@
 import { t, getLang } from "./core";
 import type { Lang } from "./core";
 import type { DestinationCategory, CostTier, ClimateRating, VisaStatus } from "../destinations/types";
+import type { TemplateId } from "../lib/templates";
 
+export const templateLabel = (id: TemplateId): string => t(`tpl.${id}`);
 export const catLabel = (c: DestinationCategory): string => t(`dest.cat.${c}`);
 export const costLabel = (c: CostTier): string => t(`dest.cost.${c}`);
 export const ratingLabel = (r: ClimateRating): string => t(`dest.rating.${r}`);

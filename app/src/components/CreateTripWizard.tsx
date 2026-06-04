@@ -2,9 +2,15 @@ import { useState } from "react";
 import type { Destination } from "../destinations/types";
 import { TEMPLATES } from "../lib/templates";
 import type { TemplateId } from "../lib/templates";
-import { formatDateRange, daysBetween } from "../lib/format";
+import { formatDateRange, daysBetween, monthName } from "../lib/format";
+import { rateClimate } from "../lib/recommender";
+import { ratingLabel, templateLabel } from "../i18n/labels";
 import { DestinationPicker } from "./DestinationPicker";
 import { useT } from "../i18n";
+
+const DAY_MS = 86_400_000;
+const addDays = (iso: string, n: number): string =>
+  new Date(Date.parse(iso) + n * DAY_MS).toISOString().slice(0, 10);
 
 export type WizardResult = {
   startDate: string;
@@ -42,6 +48,20 @@ export function CreateTripWizard({ destination, initialStart, initialEnd, defaul
   const dayCount = startDate && endDate && endDate >= startDate
     ? daysBetween(startDate, endDate)
     : 0;
+
+  // Clima esperado del destino para el mes de la fecha de ida — el corazón de
+  // la app: validar si la época elegida es buena antes de crear el viaje.
+  const monthIdx = startDate ? parseInt(startDate.slice(5, 7), 10) - 1 : null;
+  const climate = monthIdx != null && monthIdx >= 0 && monthIdx < 12 ? destination.climate[monthIdx] : null;
+  const climateRating = climate ? rateClimate(climate).rating : null;
+
+  // Ajusta la vuelta a N días desde la ida (atajos de duración).
+  const setDuration = (n: number) => {
+    const base = startDate || new Date().toISOString().slice(0, 10);
+    if (!startDate) setStartDate(base);
+    setEndDate(addDays(base, n));
+  };
+  const DURATIONS = [3, 7, 14];
 
   const next = () => {
     setError(null);
@@ -85,15 +105,45 @@ export function CreateTripWizard({ destination, initialStart, initialEnd, defaul
               <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
             </label>
           </div>
-          {dayCount > 0 && (
-            <p className="form-hint">{t("tripForm.dayCount", { n: dayCount, unit: dayCount === 1 ? t("common.day") : t("common.days") })}</p>
+          <div className="wizard-duration">
+            {dayCount > 0 && (
+              <span className="form-hint">{t("tripForm.dayCount", { n: dayCount, unit: dayCount === 1 ? t("common.day") : t("common.days") })}</span>
+            )}
+            <div className="wizard-duration-chips">
+              {DURATIONS.map((n) => (
+                <button
+                  key={n} type="button"
+                  className={`chip ${dayCount === n ? "active" : ""}`}
+                  onClick={() => setDuration(n)}
+                >{t("tripWizard.durationChip", { n })}</button>
+              ))}
+            </div>
+          </div>
+
+          {climate && climateRating && (
+            <div className={`wizard-climate rating-${climateRating}`}>
+              <span className={`rating-pill rating-${climateRating}`}>{ratingLabel(climateRating)}</span>
+              <span className="wizard-climate-info">
+                {t("tripWizard.climateFor", { month: monthName((monthIdx ?? 0) + 1), name: destination.name })}
+                {" · "}🌡 {Math.round(climate.lowC)}–{Math.round(climate.highC)}°C
+                {" · "}🌧 {Math.round(climate.rainMm)} mm
+                {climate.seaTempC ? ` · 🌊 ${Math.round(climate.seaTempC)}°C` : ""}
+              </span>
+            </div>
           )}
+
           <label className="field">
             <span>{t("tripForm.travelersLabel")}</span>
-            <input
-              type="number" min={1} max={20} value={travelers}
-              onChange={(e) => setTravelers(Math.max(1, parseInt(e.target.value, 10) || 1))}
-            />
+            <div className="stepper">
+              <button type="button" className="stepper-btn" aria-label="-"
+                onClick={() => setTravelers((v) => Math.max(1, v - 1))} disabled={travelers <= 1}>−</button>
+              <input
+                type="number" min={1} max={20} value={travelers}
+                onChange={(e) => setTravelers(Math.min(20, Math.max(1, parseInt(e.target.value, 10) || 1)))}
+              />
+              <button type="button" className="stepper-btn" aria-label="+"
+                onClick={() => setTravelers((v) => Math.min(20, v + 1))} disabled={travelers >= 20}>+</button>
+            </div>
           </label>
         </>
       )}
@@ -121,7 +171,7 @@ export function CreateTripWizard({ destination, initialStart, initialEnd, defaul
                   onClick={() => setTemplateId(x.id)}
                 >
                   <span className="template-emoji">{x.emoji}</span>
-                  <span>{x.label}</span>
+                  <span>{templateLabel(x.id)}</span>
                 </button>
               ))}
             </div>
@@ -144,7 +194,7 @@ export function CreateTripWizard({ destination, initialStart, initialEnd, defaul
           <div><dt>{t("tripWizard.reviewDuration")}</dt><dd>{dayCount} {dayCount === 1 ? t("common.day") : t("common.days")}</dd></div>
           <div><dt>{t("tripWizard.reviewTravelers")}</dt><dd>{travelers}</dd></div>
           {origin.trim() && <div><dt>{t("tripWizard.reviewOrigin")}</dt><dd>{origin.trim()}</dd></div>}
-          {tmpl && tmpl.id !== "blank" && <div><dt>{t("tripWizard.reviewStyle")}</dt><dd>{tmpl.emoji} {tmpl.label}</dd></div>}
+          {tmpl && tmpl.id !== "blank" && <div><dt>{t("tripWizard.reviewStyle")}</dt><dd>{tmpl.emoji} {templateLabel(tmpl.id)}</dd></div>}
         </dl>
       )}
 

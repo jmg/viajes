@@ -9,6 +9,7 @@ import { discover } from "./parts/discover";
 import { destination } from "./parts/destination";
 import { tripForm } from "./parts/tripForm";
 import { tripWizard } from "./parts/tripWizard";
+import { templates } from "./parts/templates";
 import { tripDetail } from "./parts/tripDetail";
 import { itinerary } from "./parts/itinerary";
 import { editors } from "./parts/editors";
@@ -33,7 +34,7 @@ type Dict = Record<string, unknown>;
 export type Part = { es: Dict; pt: Dict; en: Dict };
 
 const PARTS: Part[] = [
-  common, home, settings, discover, destination, tripForm, tripWizard, tripDetail,
+  common, home, settings, discover, destination, tripForm, tripWizard, templates, tripDetail,
   itinerary, editors, weather, moon, booking, flights, share, help, currency, recommender,
 ];
 
