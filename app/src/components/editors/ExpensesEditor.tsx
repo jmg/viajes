@@ -85,24 +85,24 @@ export function ExpensesEditor({ expenses, travelerNames, travelers, currency, o
       {editingNames && (
         <div className="names-editor">
           <label className="field">
-            <span>Nombres de los viajeros <small>(separados por coma)</small></span>
-            <input type="text" value={namesDraft} onChange={(e) => setNamesDraft(e.target.value)} placeholder="Ana, Beto, Caro" />
+            <span>{t("expenses.travelerNames")} <small>{t("expenses.travelerNamesHint")}</small></span>
+            <input type="text" value={namesDraft} onChange={(e) => setNamesDraft(e.target.value)} placeholder={t("expenses.namesPlaceholder")} />
           </label>
-          <button className="button-primary" onClick={saveNames}>Guardar nombres</button>
+          <button className="button-primary" onClick={saveNames}>{t("expenses.saveNames")}</button>
         </div>
       )}
 
       <div className="expense-add">
-        <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Gasto (ej: cena)" />
-        <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Monto USD" />
+        <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder={t("expenses.expensePlaceholder")} />
+        <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={t("expenses.amountPlaceholder")} />
         <select value={paidBy} onChange={(e) => setPaidBy(e.target.value)}>
-          {people.map((p) => <option key={p} value={p}>Pagó: {p}</option>)}
+          {people.map((p) => <option key={p} value={p}>{t("expenses.paidByOption", { name: p })}</option>)}
         </select>
-        <button className="button-primary" onClick={add}>Agregar</button>
+        <button className="button-primary" onClick={add}>{t("common.add")}</button>
       </div>
 
       <div className="split-picker">
-        <span className="filter-label">Dividir entre:</span>
+        <span className="filter-label">{t("expenses.splitBetween")}</span>
         {people.map((p) => (
           <button
             key={p}
@@ -119,32 +119,32 @@ export function ExpensesEditor({ expenses, travelerNames, travelers, currency, o
         <>
           <table className="budget-table">
             <thead>
-              <tr><th>Gasto</th><th>Pagó</th><th>Entre</th><th className="num">Monto</th><th /></tr>
+              <tr><th>{t("expenses.colExpense")}</th><th>{t("expenses.colPaidBy")}</th><th>{t("expenses.colBetween")}</th><th className="num">{t("expenses.colAmount")}</th><th /></tr>
             </thead>
             <tbody>
               {expenses.map((e) => (
                 <tr key={e.id}>
                   <td>{e.label}</td>
                   <td>{e.paidBy}</td>
-                  <td className="split-cell">{e.splitBetween.length === people.length ? "Todos" : e.splitBetween.join(", ")}</td>
+                  <td className="split-cell">{e.splitBetween.length === people.length ? t("expenses.all") : e.splitBetween.join(", ")}</td>
                   <td className="num">{formatAmount(e.amountUsd, currency)}</td>
-                  <td><button className="icon-button small" onClick={() => remove(e.id)} aria-label="Eliminar">✕</button></td>
+                  <td><button className="icon-button small" onClick={() => remove(e.id)} aria-label={t("common.delete")}>✕</button></td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr><td colSpan={3}><strong>Total</strong></td><td className="num"><strong>{formatAmount(total, currency)}</strong></td><td /></tr>
+              <tr><td colSpan={3}><strong>{t("expenses.total")}</strong></td><td className="num"><strong>{formatAmount(total, currency)}</strong></td><td /></tr>
             </tfoot>
           </table>
 
           <div className="balances">
-            <h4>Balances</h4>
+            <h4>{t("expenses.balances")}</h4>
             <ul>
               {people.map((p) => {
                 const b = balances[p] ?? 0;
                 return (
                   <li key={p} className={b >= 0 ? "positive" : "negative"}>
-                    {p}: {b >= 0 ? "le deben " : "debe "} {formatAmount(Math.abs(b), currency)}
+                    {p}: {b >= 0 ? t("expenses.owedToThem") : t("expenses.owes")} {formatAmount(Math.abs(b), currency)}
                   </li>
                 );
               })}
@@ -153,7 +153,7 @@ export function ExpensesEditor({ expenses, travelerNames, travelers, currency, o
 
           {settlements.length > 0 && (
             <div className="settlements">
-              <h4>Cómo saldar</h4>
+              <h4>{t("expenses.howToSettle")}</h4>
               <ul>
                 {settlements.map((s, i) => (
                   <li key={i}>{s.from} → {s.to}: <strong>{formatAmount(s.amount, currency)}</strong></li>

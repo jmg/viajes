@@ -11,6 +11,8 @@ import { InfoTip as Info } from "./InfoTip";
 import { useT } from "../i18n";
 import { catLabel, costLabel, ratingLabel, ratingTip, visaLabel } from "../i18n/labels";
 import { monthName } from "../lib/format";
+import { MONTHS_SHORT } from "../i18n/dates";
+import { getLang } from "../i18n/core";
 
 /** Viaje sintético para previsualizar el clima real (Open-Meteo) de un destino en el mes elegido. */
 function previewTrip(d: Destination, month?: number): Trip {
@@ -134,44 +136,43 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
           const cm = d.climate[highlightMonth - 1];
           const rating = rateClimate(cm).rating;
           const avg = Math.round((cm.highC + cm.lowC) / 2);
-          const info = RATING_INFO[rating];
           return (
             <div className="month-panel">
               <div className="month-panel-head">
-                <strong>{MONTHS_FULL[highlightMonth - 1]}</strong>
-                <span className={`rating-pill rating-${rating}`}>{info.label}<Info tip={info.tip} /></span>
+                <strong>{monthName(highlightMonth)}</strong>
+                <span className={`rating-pill rating-${rating}`}>{ratingLabel(rating)}<Info tip={ratingTip(rating)} /></span>
                 {d.bestMonths.includes(highlightMonth) && (
-                  <span className="best-badge">⭐ Uno de los mejores meses para ir</span>
+                  <span className="best-badge">{t("destDetail.bestMonth")}</span>
                 )}
               </div>
               <div className="month-stats">
                 <div className="ms">
-                  <span className="ms-label">Temperatura</span>
+                  <span className="ms-label">{t("destDetail.temperature")}</span>
                   <span className="ms-val">{cm.lowC}° – {cm.highC}°</span>
-                  <span className="ms-sub">promedio {avg}°</span>
+                  <span className="ms-sub">{t("destDetail.average", { avg })}</span>
                 </div>
                 <div className="ms">
-                  <span className="ms-label">Lluvia <Info tip="Milímetros de lluvia que caen en todo el mes (promedio histórico). Menos de 30 mm es seco; más de 200, muy lluvioso." /></span>
+                  <span className="ms-label">{t("destDetail.rain")} <Info tip={t("destDetail.rainTip")} /></span>
                   <span className="ms-val">{cm.rainMm} mm</span>
-                  <span className="ms-sub">{rainText(cm.rainMm)}</span>
+                  <span className="ms-sub">{t(rainTextKey(cm.rainMm))}</span>
                 </div>
                 {cm.seaTempC != null && (
                   <div className="ms">
-                    <span className="ms-label">Mar <Info tip="Temperatura promedio del agua del mar. Desde ~24° se siente cálida para nadar." /></span>
+                    <span className="ms-label">{t("destDetail.sea")} <Info tip={t("destDetail.seaTip")} /></span>
                     <span className="ms-val">{cm.seaTempC}°</span>
-                    <span className="ms-sub">{cm.seaTempC >= 24 ? "cálido" : "fresco"}</span>
+                    <span className="ms-sub">{cm.seaTempC >= 24 ? t("destDetail.seaWarm") : t("destDetail.seaCool")}</span>
                   </div>
                 )}
                 {cm.sunHours != null && (
                   <div className="ms">
-                    <span className="ms-label">Sol <Info tip="Horas de sol promedio por día en el mes." /></span>
+                    <span className="ms-label">{t("destDetail.sun")} <Info tip={t("destDetail.sunTip")} /></span>
                     <span className="ms-val">{cm.sunHours} h</span>
-                    <span className="ms-sub">por día</span>
+                    <span className="ms-sub">{t("destDetail.perDay")}</span>
                   </div>
                 )}
               </div>
               <p className="month-panel-note">
-                Valores de clima típico (normales). Abajo, el clima real día a día (promedio de años pasados).
+                {t("destDetail.normalsNote")}
               </p>
             </div>
           );
@@ -180,10 +181,10 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
       </div>
 
       <div className="dest-section">
-        <h3>¿Cuándo ir? Aptitud por mes</h3>
+        <h3>{t("destDetail.whenToGo")}</h3>
         <BestMonthsChart climate={d.climate} bestMonths={d.bestMonths} highlightMonth={highlightMonth} />
         <div className="months-grid">
-          {MONTHS_FULL.map((m, i) => {
+          {d.climate.map((_, i) => {
             const monthNum = i + 1;
             const isBest = d.bestMonths.includes(monthNum);
             const climate = d.climate[i];
@@ -193,9 +194,9 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
               <div
                 key={i}
                 className={`month-cell rating-${rating.rating} ${isBest ? "best" : ""} ${tempBucket(avgTemp)}`}
-                title={`${m} · ${climate.lowC}°/${climate.highC}° · ${climate.rainMm} mm`}
+                title={`${monthName(monthNum)} · ${climate.lowC}°/${climate.highC}° · ${climate.rainMm} mm`}
               >
-                <div className="month-name">{m.slice(0, 3)}</div>
+                <div className="month-name">{MONTHS_SHORT[getLang()][i]}</div>
                 <div className="month-temp">{climate.lowC}°/{climate.highC}°</div>
                 <div className="month-rain">{rainIcon(climate.rainMm)} {climate.rainMm}mm</div>
                 {isBest && <div className="month-star">⭐</div>}
@@ -206,18 +207,18 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
       </div>
 
       <div className="dest-section">
-        <h3>Categorías</h3>
+        <h3>{t("destDetail.categories")}</h3>
         <div className="dest-categories">
           {d.categories.map((c) => (
             <span key={c} className="cat-chip">
-              {CATEGORY_EMOJI[c]} {CATEGORY_LABEL[c]}
+              {CATEGORY_EMOJI[c]} {catLabel(c)}
             </span>
           ))}
         </div>
       </div>
 
       <div className="dest-section">
-        <h3>Lo imperdible</h3>
+        <h3>{t("destDetail.mustSee")}</h3>
         <ul className="highlights-list">
           {d.highlights.map((h, i) => (
             <li key={i}>{h}</li>

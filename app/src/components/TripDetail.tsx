@@ -37,18 +37,19 @@ type Props = {
 type TabId = "overview" | "flights" | "itinerary" | "moon" | "budget" | "expenses" | "checklist" | "links" | "booking";
 
 export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit, onDelete, onBack, onShare }: Props) {
+  const t = useT();
   const status = autoStatus(trip);
 
   const tabs: { id: TabId; label: string }[] = [
-    { id: "overview", label: "Resumen" },
-    { id: "flights", label: "Vuelos" },
-    { id: "itinerary", label: "Itinerario" },
-    { id: "moon", label: "Luna y mareas" },
-    { id: "budget", label: "Presupuesto" },
-    { id: "expenses", label: "Gastos" },
-    { id: "checklist", label: "Checklist" },
-    { id: "links", label: "Links" },
-    { id: "booking", label: "Reservar" },
+    { id: "overview", label: t("tripDetail.tabs.overview") },
+    { id: "flights", label: t("tripDetail.tabs.flights") },
+    { id: "itinerary", label: t("tripDetail.tabs.itinerary") },
+    { id: "moon", label: t("tripDetail.tabs.moon") },
+    { id: "budget", label: t("tripDetail.tabs.budget") },
+    { id: "expenses", label: t("tripDetail.tabs.expenses") },
+    { id: "checklist", label: t("tripDetail.tabs.checklist") },
+    { id: "links", label: t("tripDetail.tabs.links") },
+    { id: "booking", label: t("tripDetail.tabs.booking") },
   ];
 
   if (!trip.coastal && !trip.moonPhases?.length) {
@@ -90,27 +91,27 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
   return (
     <>
     <div className="trip-detail screen-only">
-      <button className="back-button" onClick={onBack}>← Volver a Mis viajes</button>
+      <button className="back-button" onClick={onBack}>{t("tripDetail.back")}</button>
 
       <header className="trip-header">
         <div className="trip-header-top">
           <div>
-            <span className={`status-pill status-${status}`}>{STATUS_LABEL[status]}</span>
+            <span className={`status-pill status-${status}`}>{t("tripDetail.status." + status)}</span>
             <h1>{trip.title}</h1>
             {trip.subtitle && <p className="subtitle">{trip.subtitle}</p>}
           </div>
           <div className="header-actions">
-            <button className="button-secondary" onClick={() => { track("trip_calendar"); downloadTripIcs(trip); }}>📅 Calendario</button>
-            <button className="button-secondary" onClick={() => { track("trip_print"); window.print(); }}>🖨 Imprimir / PDF</button>
-            <button className="button-secondary" onClick={onShare}>🔗 Compartir</button>
-            <button className="button-secondary" onClick={onEdit}>✎ Editar</button>
-            <button className="button-danger" onClick={onDelete}>🗑 Eliminar</button>
+            <button className="button-secondary" onClick={() => { track("trip_calendar"); downloadTripIcs(trip); }}>📅 {t("common.calendar")}</button>
+            <button className="button-secondary" onClick={() => { track("trip_print"); window.print(); }}>🖨 {t("common.print")}</button>
+            <button className="button-secondary" onClick={onShare}>🔗 {t("common.share")}</button>
+            <button className="button-secondary" onClick={onEdit}>✎ {t("common.edit")}</button>
+            <button className="button-danger" onClick={onDelete}>🗑 {t("common.delete")}</button>
           </div>
         </div>
         <div className="trip-meta-row">
           <span>📅 {formatDateRange(trip.startDate, trip.endDate)}</span>
           <span>📍 {trip.destinations.join(" → ")}</span>
-          <span>{daysBetween(trip.startDate, trip.endDate)} días</span>
+          <span>{t("tripDetail.days", { n: daysBetween(trip.startDate, trip.endDate) })}</span>
           <span>👥 {trip.travelers}</span>
           <span><Countdown trip={trip} /></span>
         </div>
@@ -149,8 +150,8 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
             />
           ) : (
             <EmptyState
-              message="Todavía no hay opciones de vuelo cargadas."
-              hint="Las opciones de vuelos por ahora se cargan editando el archivo TS del viaje."
+              message={t("tripDetail.emptyFlights")}
+              hint={t("tripDetail.emptyFlightsHint")}
             />
           )
         )}
@@ -171,7 +172,7 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
             <MoonTidePanel phases={computedPhases} windows={computedWindows} />
           ) : (
             <EmptyState
-              message="Marcá este viaje como costero para ver las fases lunares y ventanas de marea."
+              message={t("tripDetail.emptyMoon")}
             />
           )
         )}
@@ -223,6 +224,7 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
 const usd = (n: number) => `US$ ${Math.round(n).toLocaleString("es-AR")}`;
 
 function Overview({ trip }: { trip: Trip }) {
+  const t = useT();
   const top = trip.flightOptions?.find((o) => o.id === trip.recommendedFlightId);
 
   const days = daysBetween(trip.startDate, trip.endDate);
