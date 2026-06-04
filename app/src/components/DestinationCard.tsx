@@ -1,5 +1,7 @@
 import type { RecommendationResult } from "../destinations/types";
 import { CATEGORY_EMOJI, CATEGORY_LABEL, COST_LABEL, COST_RANGE_USD } from "../destinations/types";
+import type { Airport } from "../lib/airports";
+import { flightHoursFromOrigin } from "../lib/originFlight";
 
 const RATING_LABEL = {
   ideal: "🌟 Ideal",
@@ -18,13 +20,16 @@ const RATING_TIP = {
 type Props = {
   result: RecommendationResult;
   isInWishlist: boolean;
+  origin?: Airport | null;
   onOpen: (id: string) => void;
   onToggleWishlist: (id: string) => void;
   onCreateTrip: (id: string) => void;
 };
 
-export function DestinationCard({ result, isInWishlist, onOpen, onToggleWishlist, onCreateTrip }: Props) {
+export function DestinationCard({ result, isInWishlist, origin, onOpen, onToggleWishlist, onCreateTrip }: Props) {
   const { destination: d, climateRating, reasons, warnings, score } = result;
+  const flightHours = flightHoursFromOrigin(d, origin ?? null);
+  const fromCode = origin?.code ?? "EZE";
   return (
     <div className={`dest-card rating-${climateRating}`}>
       <button className="dest-card-main" onClick={() => onOpen(d.id)}>
@@ -58,8 +63,8 @@ export function DestinationCard({ result, isInWishlist, onOpen, onToggleWishlist
 
         <div className="dest-card-footer">
           <span className="dest-meta">💰 {COST_LABEL[d.costTier]} · US$ {COST_RANGE_USD[d.costTier]}/día</span>
-          {d.flightHoursFromEze && (
-            <span className="dest-meta">✈️ {d.flightHoursFromEze}h desde EZE</span>
+          {flightHours !== undefined && (
+            <span className="dest-meta">✈️ {flightHours}h desde {fromCode}</span>
           )}
           <span className="dest-score">{score}</span>
         </div>

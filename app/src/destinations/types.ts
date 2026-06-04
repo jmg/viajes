@@ -60,6 +60,8 @@ export type RecommendationCriteria = {
   maxRainMm?: number;
   maxCostTier?: CostTier;
   maxFlightHours?: number;
+  /** Coordenadas del aeropuerto de origen: si están, las horas de vuelo se calculan desde ahí. */
+  originLatLng?: { lat: number; lng: number };
   /** Regiones a incluir. Vacío/undefined = todas. */
   includeRegions?: string[];
   search?: string;

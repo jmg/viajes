@@ -1,6 +1,8 @@
 import type { Destination } from "../destinations/types";
 import type { Trip } from "../types";
 import { CATEGORY_EMOJI, CATEGORY_LABEL, COST_LABEL, COST_RANGE_USD } from "../destinations/types";
+import type { Airport } from "../lib/airports";
+import { flightHoursFromOrigin } from "../lib/originFlight";
 import { rateClimate } from "../lib/recommender";
 import { ClimateChart } from "./ClimateChart";
 import { BestMonthsChart } from "./BestMonthsChart";
@@ -71,11 +73,14 @@ type Props = {
   destination: Destination;
   highlightMonth?: number;
   isInWishlist: boolean;
+  origin?: Airport | null;
   onToggleWishlist: () => void;
   onCreateTrip: () => void;
 };
 
-export function DestinationDetail({ destination: d, highlightMonth, isInWishlist, onToggleWishlist, onCreateTrip }: Props) {
+export function DestinationDetail({ destination: d, highlightMonth, isInWishlist, origin, onToggleWishlist, onCreateTrip }: Props) {
+  const flightHours = flightHoursFromOrigin(d, origin ?? null);
+  const fromCode = origin?.code ?? "EZE";
   return (
     <div className="dest-detail">
       <div className="dest-detail-header">
@@ -113,10 +118,10 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
           <span className="stat-value">{COST_LABEL[d.costTier]}</span>
           <span className="stat-sub">US$ {COST_RANGE_USD[d.costTier]}</span>
         </div>
-        {d.flightHoursFromEze !== undefined && (
+        {flightHours !== undefined && (
           <div className="stat">
-            <span className="stat-label">Vuelo desde EZE</span>
-            <span className="stat-value">{d.flightHoursFromEze}h</span>
+            <span className="stat-label">Vuelo desde {fromCode}</span>
+            <span className="stat-value">{flightHours}h</span>
           </div>
         )}
         {d.visaForArgentines && (

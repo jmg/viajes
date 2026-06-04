@@ -1,0 +1,55 @@
+import type { Part } from "../dict";
+
+export const recommender: Part = {
+  es: {
+    rec: {
+      tempIdeal: "Temperatura ideal ({lo}–{hi}°C)",
+      cold: "Frío ({lo}–{hi}°C)",
+      hot: "Caluroso ({lo}–{hi}°C)",
+      heavyRain: "Mucha lluvia ({mm} mm)",
+      dry: "Seco",
+      moreRain: "Más lluvia de la buscada ({mm} mm)",
+      seaTemp: "Mar a {c}°C",
+      bestMonth: "Uno de sus mejores meses",
+      matchPrefs: "Coincide {n} preferencia",
+      matchPrefsPlural: "Coincide {n} preferencias",
+      visaRequired: "Requiere visa",
+      evisa: "Requiere e-visa",
+      longFlight: "Vuelo largo ({h}h)",
+    },
+  },
+  pt: {
+    rec: {
+      tempIdeal: "Temperatura ideal ({lo}–{hi}°C)",
+      cold: "Frio ({lo}–{hi}°C)",
+      hot: "Quente ({lo}–{hi}°C)",
+      heavyRain: "Muita chuva ({mm} mm)",
+      dry: "Seco",
+      moreRain: "Mais chuva do que a buscada ({mm} mm)",
+      seaTemp: "Mar a {c}°C",
+      bestMonth: "Um dos seus melhores meses",
+      matchPrefs: "Combina {n} preferência",
+      matchPrefsPlural: "Combina {n} preferências",
+      visaRequired: "Exige visto",
+      evisa: "Exige e-visa",
+      longFlight: "Voo longo ({h}h)",
+    },
+  },
+  en: {
+    rec: {
+      tempIdeal: "Ideal temperature ({lo}–{hi}°C)",
+      cold: "Cold ({lo}–{hi}°C)",
+      hot: "Hot ({lo}–{hi}°C)",
+      heavyRain: "Heavy rain ({mm} mm)",
+      dry: "Dry",
+      moreRain: "More rain than wanted ({mm} mm)",
+      seaTemp: "Sea at {c}°C",
+      bestMonth: "One of its best months",
+      matchPrefs: "Matches {n} preference",
+      matchPrefsPlural: "Matches {n} preferences",
+      visaRequired: "Visa required",
+      evisa: "E-visa required",
+      longFlight: "Long flight ({h}h)",
+    },
+  },
+};

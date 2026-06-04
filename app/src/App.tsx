@@ -9,6 +9,8 @@ import type { FilterId } from "./components/Filters";
 import { ShareDialog } from "./components/ShareDialog";
 import { SharedTripView } from "./components/SharedTripView";
 import { HelpPage } from "./components/HelpPage";
+import { SettingsPanel } from "./components/SettingsPanel";
+import { useLang, useT } from "./i18n";
 
 // Vistas pesadas (dataset de destinos / muchos editores) cargadas on-demand.
 const TripDetail = lazy(() => import("./components/TripDetail").then((m) => ({ default: m.TripDetail })));
@@ -17,7 +19,8 @@ const DestinationDetail = lazy(() => import("./components/DestinationDetail").th
 import { DESTINATIONS } from "./destinations/data";
 import type { Destination, RecommendationCriteria } from "./destinations/types";
 import { autoStatus } from "./lib/status";
-import { loadCurrency, saveCurrency } from "./lib/storage";
+import { loadCurrency, saveCurrency, loadOrigin, saveOrigin } from "./lib/storage";
+import type { Airport } from "./lib/airports";
 import { getSharedTripFromHash, clearShareHash } from "./lib/share";
 import { track } from "./lib/analytics";
 
@@ -92,6 +95,8 @@ function tripFromDestination(d: Destination, month?: number): Trip {
 }
 
 export function App() {
+  const t = useT();
+  useLang(); // suscribe la app entera al cambio de idioma
   const { trips, upsert, remove, restoreSeeds } = useTrips();
   // Estado inicial desde la URL (hash), salvo que sea un link de "compartir".
   const initialRoute = getSharedTripFromHash() ? null : parseHash();
@@ -107,6 +112,8 @@ export function App() {
   const [currency, setCurrency] = useState<Currency>(() => loadCurrency());
   const [sharingTrip, setSharingTrip] = useState<Trip | null>(null);
   const [showHelp, setShowHelp] = useState(initialRoute?.kind === "help");
+  const [showSettings, setShowSettings] = useState(false);
+  const [origin, setOrigin] = useState<Airport | null>(() => loadOrigin());
   const [sharedTrip, setSharedTrip] = useState<Trip | null>(() => getSharedTripFromHash());
   const [wishlist, setWishlist] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem(WISHLIST_KEY) ?? "[]"); } catch { return []; }
@@ -235,11 +242,16 @@ export function App() {
   }, [trips]);
 
   const handleDelete = (id: string) => {
-    const t = trips.find((x) => x.id === id);
-    if (!t) return;
-    if (!confirm(`¿Eliminar "${t.title}"? Esta acción no se puede deshacer.`)) return;
+    const trip = trips.find((x) => x.id === id);
+    if (!trip) return;
+    if (!confirm(t("home.deleteConfirm", { title: trip.title }))) return;
     remove(id);
     if (activeTripId === id) setActiveTripId(null);
+  };
+
+  const handleOrigin = (o: Airport | null) => {
+    setOrigin(o);
+    saveOrigin(o);
   };
 
   // Crear viaje desde un destino: se arma solo y se abre. Sin formularios.
@@ -247,6 +259,7 @@ export function App() {
     const d = DESTINATIONS.find((x) => x.id === destId);
     if (!d) return;
     const trip = tripFromDestination(d, criteria?.month ?? activeDestination?.month);
+    if (origin?.city) trip.origin = origin.city;
     upsert(trip);
     track("trip_create");
     setActiveDestination(null);
@@ -289,19 +302,20 @@ export function App() {
             <div className="home-header-top">
               <div>
                 <h1>✈️ Viajes</h1>
-                <p>Descubrí destinos según el clima y planeá tu próxima aventura.</p>
+                <p>{t("home.tagline")}</p>
               </div>
               <div className="home-actions">
-                <button className="button-secondary" onClick={() => setShowHelp(true)}>❓ Ayuda</button>
+                <button className="button-secondary" onClick={() => setShowSettings(true)}>{t("home.settings")}</button>
+                <button className="button-secondary" onClick={() => setShowHelp(true)}>{t("home.help")}</button>
               </div>
             </div>
             <nav className="main-tabs">
               <button className={`main-tab ${view === "discover" ? "active" : ""}`} onClick={openDiscover}>
-                🌎 Descubrir destinos
+                {t("home.discoverTab")}
                 {wishlist.length > 0 && <span className="wishlist-count">❤️ {wishlist.length}</span>}
               </button>
               <button className={`main-tab ${view === "trips" ? "active" : ""}`} onClick={() => setView("trips")}>
-                📋 Mis viajes ({trips.length})
+                {t("home.tripsTab", { count: trips.length })}
               </button>
             </nav>
           </header>
@@ -314,12 +328,12 @@ export function App() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="🔎 Buscar por título, destino o resumen…"
+                  placeholder={t("home.searchPlaceholder")}
                 />
                 {searchQuery && (
-                  <button className="icon-button" onClick={() => setSearchQuery("")} title="Limpiar">✕</button>
+                  <button className="icon-button" onClick={() => setSearchQuery("")} title={t("common.clear")}>✕</button>
                 )}
-                <button className="button-primary new-trip-btn" onClick={() => setCreating(true)}>+ Nuevo viaje</button>
+                <button className="button-primary new-trip-btn" onClick={() => setCreating(true)}>{t("home.newTrip")}</button>
               </div>
               <Filters value={filter} counts={counts} onChange={setFilter} />
 
@@ -327,30 +341,30 @@ export function App() {
                 <div className="empty-state">
                   {trips.length === 0 ? (
                     <>
-                      <p>Todavía no tenés viajes.</p>
-                      <p>Elegí un destino en <strong>Descubrir</strong> y se crea solo, o armá uno a mano.</p>
+                      <p>{t("home.noTrips")}</p>
+                      <p>{t("home.noTripsHint")}</p>
                       <p className="empty-cta-row">
-                        <button className="button-primary" onClick={openDiscover}>🌎 Descubrir destinos</button>
-                        <button className="button-secondary" onClick={() => setCreating(true)}>+ Nuevo viaje a mano</button>
+                        <button className="button-primary" onClick={openDiscover}>{t("home.discoverDestinations")}</button>
+                        <button className="button-secondary" onClick={() => setCreating(true)}>{t("home.newTripManual")}</button>
                       </p>
                       <p className="hint">
-                        <button className="link-button" onClick={restoreSeeds}>O cargar el ejemplo "Brasil noviembre 2026"</button>
+                        <button className="link-button" onClick={restoreSeeds}>{t("home.loadExample")}</button>
                       </p>
                     </>
                   ) : (
-                    <p>No hay viajes en esta vista. Probá otro filtro.</p>
+                    <p>{t("home.noTripsInView")}</p>
                   )}
                 </div>
               ) : (
                 <div className="trip-grid">
-                  {filtered.map((t) => (
+                  {filtered.map((trip) => (
                     <TripCard
-                      key={t.id}
-                      trip={t}
+                      key={trip.id}
+                      trip={trip}
                       onOpen={setActiveTripId}
                       onEdit={(id) => {
-                        const t = trips.find((x) => x.id === id);
-                        if (t) setEditing(t);
+                        const found = trips.find((x) => x.id === id);
+                        if (found) setEditing(found);
                       }}
                       onDelete={handleDelete}
                     />
@@ -361,8 +375,9 @@ export function App() {
           )}
 
           {view === "discover" && (
-            <Suspense fallback={<div className="loading">Cargando…</div>}>
+            <Suspense fallback={<div className="loading">{t("common.loading")}</div>}>
               <Discover
+                origin={origin}
                 onCreateTripFromDestination={handleCreateTripFromDestination}
                 onOpenDestination={(id, criteria) => setActiveDestination({ id, month: criteria.month })}
                 wishlist={wishlist}
@@ -374,7 +389,7 @@ export function App() {
       )}
 
       {activeTrip && (
-        <Suspense fallback={<div className="loading">Cargando…</div>}>
+        <Suspense fallback={<div className="loading">{t("common.loading")}</div>}>
           <TripDetail
             trip={activeTrip}
             currency={currency}
@@ -390,10 +405,11 @@ export function App() {
 
       {activeDest && (
         <div className="dest-detail-wrap">
-          <button className="back-button" onClick={() => setActiveDestination(null)}>← Volver</button>
-          <Suspense fallback={<div className="loading">Cargando…</div>}>
+          <button className="back-button" onClick={() => setActiveDestination(null)}>← {t("common.back")}</button>
+          <Suspense fallback={<div className="loading">{t("common.loading")}</div>}>
             <DestinationDetail
               destination={activeDest}
+              origin={origin}
               highlightMonth={activeDestination?.month}
               isInWishlist={isInWishlist(activeDest.id)}
               onToggleWishlist={() => toggleWishlist(activeDest.id)}
@@ -406,7 +422,7 @@ export function App() {
       )}
 
       {editing && (
-        <Modal title="Editar viaje" onClose={() => setEditing(null)} wide>
+        <Modal title={t("home.editTripTitle")} onClose={() => setEditing(null)} wide>
           <TripForm
             trip={editing}
             onSave={(trip) => {
@@ -420,8 +436,9 @@ export function App() {
       )}
 
       {creating && (
-        <Modal title="Nuevo viaje" onClose={() => setCreating(false)} wide>
+        <Modal title={t("home.newTripTitle")} onClose={() => setCreating(false)} wide>
           <TripForm
+            defaultOrigin={origin?.city}
             onSave={(trip) => {
               upsert(trip);
               track("trip_create");
@@ -435,8 +452,14 @@ export function App() {
       )}
 
       {sharingTrip && (
-        <Modal title="Compartir viaje" onClose={() => setSharingTrip(null)}>
+        <Modal title={t("home.shareTripTitle")} onClose={() => setSharingTrip(null)}>
           <ShareDialog trip={sharingTrip} />
+        </Modal>
+      )}
+
+      {showSettings && (
+        <Modal title={t("settings.title")} onClose={() => setShowSettings(false)} wide>
+          <SettingsPanel origin={origin} onOriginChange={handleOrigin} />
         </Modal>
       )}
     </div>

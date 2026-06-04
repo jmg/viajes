@@ -1,9 +1,11 @@
 import type { Trip, Currency } from "../types";
 import type { DestinationCategory } from "../destinations/types";
+import type { Airport } from "./airports";
 
 const TRIPS_KEY = "viajes:trips:v1";
 const CURRENCY_KEY = "viajes:currency";
 const DISCOVER_KEY = "viajes:discover-filters:v1";
+const ORIGIN_KEY = "viajes:origin:v1";
 
 export type DiscoverFilters = {
   /** Mes del viaje (1-12). */
@@ -63,4 +65,23 @@ export function loadCurrency(): Currency {
 
 export function saveCurrency(c: Currency): void {
   localStorage.setItem(CURRENCY_KEY, c);
+}
+
+/** Aeropuerto de origen elegido (o autodetectado). null = no configurado. */
+export function loadOrigin(): Airport | null {
+  try {
+    const raw = localStorage.getItem(ORIGIN_KEY);
+    return raw ? (JSON.parse(raw) as Airport) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveOrigin(origin: Airport | null): void {
+  try {
+    if (origin) localStorage.setItem(ORIGIN_KEY, JSON.stringify(origin));
+    else localStorage.removeItem(ORIGIN_KEY);
+  } catch {
+    /* no crítico */
+  }
 }

@@ -14,6 +14,8 @@ type Prefill = {
 type Props = {
   trip?: Trip;
   prefill?: Prefill;
+  /** Ciudad de origen por defecto (del aeropuerto configurado en Ajustes). */
+  defaultOrigin?: string;
   onSave: (trip: Trip) => void;
   onCancel: () => void;
 };
@@ -52,7 +54,7 @@ const suggestDates = (dests: string[]): { start: string; end: string } | null =>
   return null;
 };
 
-export function TripForm({ trip, prefill, onSave, onCancel }: Props) {
+export function TripForm({ trip, prefill, defaultOrigin, onSave, onCancel }: Props) {
   const isEdit = !!trip;
   const prefillDates = computePrefillDates(prefill?.month, prefill?.duration);
 
@@ -60,7 +62,7 @@ export function TripForm({ trip, prefill, onSave, onCancel }: Props) {
   const [subtitle, setSubtitle] = useState(trip?.subtitle ?? "");
   const [startDate, setStartDate] = useState(trip?.startDate ?? prefillDates.start);
   const [endDate, setEndDate] = useState(trip?.endDate ?? prefillDates.end);
-  const [origin, setOrigin] = useState(trip?.origin ?? "");
+  const [origin, setOrigin] = useState(trip?.origin ?? defaultOrigin ?? "");
   const [destinations, setDestinations] = useState<string[]>(
     trip?.destinations ?? (prefill?.destinationName ? [prefill.destinationName] : []),
   );

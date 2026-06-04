@@ -10,6 +10,7 @@ import { loadDiscoverFilters, saveDiscoverFilters } from "../lib/storage";
 import { DestinationCard } from "./DestinationCard";
 import { WorldMap } from "./WorldMap";
 import { InfoTip } from "./InfoTip";
+import type { Airport } from "../lib/airports";
 
 const MONTHS_FULL = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -18,6 +19,7 @@ const CATEGORIES_ORDER: DestinationCategory[] = ["beach", "mountain", "city", "c
 const REGIONS = ["Sudamérica", "Norteamérica", "Centroamérica", "Caribe", "Europa", "Asia", "Oceanía", "África"];
 
 type Props = {
+  origin?: Airport | null;
   onCreateTripFromDestination: (destId: string, criteria: RecommendationCriteria) => void;
   onOpenDestination: (id: string, criteria: RecommendationCriteria) => void;
   wishlist: string[];
@@ -25,7 +27,7 @@ type Props = {
   initialMonth?: number;
 };
 
-export function Discover({ onCreateTripFromDestination, onOpenDestination, wishlist, onToggleWishlist, initialMonth }: Props) {
+export function Discover({ origin, onCreateTripFromDestination, onOpenDestination, wishlist, onToggleWishlist, initialMonth }: Props) {
   const now = new Date();
   // Se relee en cada montaje (al volver de un destino/viaje en la SPA no se pierde nada).
   const saved = useMemo(() => loadDiscoverFilters() ?? {}, []);
@@ -67,9 +69,10 @@ export function Discover({ onCreateTripFromDestination, onOpenDestination, wishl
     maxRainMm,
     maxCostTier,
     maxFlightHours: maxFlightHours === "any" ? undefined : maxFlightHours,
+    originLatLng: origin ? { lat: origin.lat, lng: origin.lng } : undefined,
     search: search.trim() || undefined,
     includeRegions: includeRegions.length ? includeRegions : undefined,
-  }), [month, duration, selectedCategories, minTemp, maxTemp, maxRainMm, maxCostTier, maxFlightHours, search, includeRegions]);
+  }), [month, duration, selectedCategories, minTemp, maxTemp, maxRainMm, maxCostTier, maxFlightHours, origin, search, includeRegions]);
 
   const allResults = useMemo(() => recommendDestinations(DESTINATIONS, criteria), [criteria]);
   const results = useMemo(
@@ -272,6 +275,7 @@ export function Discover({ onCreateTripFromDestination, onOpenDestination, wishl
             <DestinationCard
               key={r.destination.id}
               result={r}
+              origin={origin}
               isInWishlist={wishlist.includes(r.destination.id)}
               onOpen={(id) => onOpenDestination(id, criteria)}
               onToggleWishlist={onToggleWishlist}
