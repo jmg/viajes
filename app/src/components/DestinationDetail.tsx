@@ -66,9 +66,10 @@ type Props = {
   origin?: Airport | null;
   onToggleWishlist: () => void;
   onCreateTrip: () => void;
+  onOpenCountry?: (country: string) => void;
 };
 
-export function DestinationDetail({ destination: d, highlightMonth, isInWishlist, origin, onToggleWishlist, onCreateTrip }: Props) {
+export function DestinationDetail({ destination: d, highlightMonth, isInWishlist, origin, onToggleWishlist, onCreateTrip, onOpenCountry }: Props) {
   const t = useT();
   const flightHours = flightHoursFromOrigin(d, origin ?? null);
   const fromCode = origin?.code ?? "EZE";
@@ -78,7 +79,12 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
         <span className="dest-flag-big">{d.flag}</span>
         <div>
           <h2>{d.name}</h2>
-          <p className="dest-country">{d.country} · {regionLabel(d.region)}</p>
+          <p className="dest-country">
+            {onOpenCountry
+              ? <button type="button" className="country-link" onClick={() => onOpenCountry(d.country)}>{d.country}</button>
+              : d.country}
+            {" · "}{regionLabel(d.region)}
+          </p>
           <a
             className="maps-link"
             href={

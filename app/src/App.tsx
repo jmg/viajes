@@ -19,6 +19,7 @@ import { useLang, useT } from "./i18n";
 const TripDetail = lazy(() => import("./components/TripDetail").then((m) => ({ default: m.TripDetail })));
 const Discover = lazy(() => import("./components/Discover").then((m) => ({ default: m.Discover })));
 const DestinationDetail = lazy(() => import("./components/DestinationDetail").then((m) => ({ default: m.DestinationDetail })));
+const CountryDetail = lazy(() => import("./components/CountryDetail").then((m) => ({ default: m.CountryDetail })));
 import { DESTINATIONS } from "./destinations/data";
 import type { Destination, RecommendationCriteria } from "./destinations/types";
 import { autoStatus } from "./lib/status";
@@ -35,6 +36,7 @@ type Route =
   | { kind: "trips" }
   | { kind: "help" }
   | { kind: "destino"; id: string; month?: number }
+  | { kind: "pais"; country: string }
   | { kind: "viaje"; id: string };
 
 function parseHash(): Route {
@@ -43,6 +45,7 @@ function parseHash(): Route {
   if ((m = h.match(/^#\/destino\/([^/]+)(?:\/(\d+))?$/))) {
     return { kind: "destino", id: decodeURIComponent(m[1]), month: m[2] ? parseInt(m[2], 10) : undefined };
   }
+  if ((m = h.match(/^#\/pais\/([^/]+)$/))) return { kind: "pais", country: decodeURIComponent(m[1]) };
   if ((m = h.match(/^#\/viaje\/([^/]+)$/))) return { kind: "viaje", id: decodeURIComponent(m[1]) };
   if (h === "#/viajes") return { kind: "trips" };
   if (h === "#/ayuda") return { kind: "help" };
@@ -52,6 +55,7 @@ function parseHash(): Route {
 function routeToHash(r: Route): string {
   switch (r.kind) {
     case "destino": return `#/destino/${encodeURIComponent(r.id)}${r.month ? `/${r.month}` : ""}`;
+    case "pais": return `#/pais/${encodeURIComponent(r.country)}`;
     case "viaje": return `#/viaje/${encodeURIComponent(r.id)}`;
     case "trips": return "#/viajes";
     case "help": return "#/ayuda";
@@ -111,6 +115,9 @@ export function App() {
   const [activeDestination, setActiveDestination] = useState<{ id: string; month?: number } | null>(
     initialRoute?.kind === "destino" ? { id: initialRoute.id, month: initialRoute.month } : null,
   );
+  const [activeCountry, setActiveCountry] = useState<string | null>(
+    initialRoute?.kind === "pais" ? initialRoute.country : null,
+  );
   const [editing, setEditing] = useState<Trip | null>(null);
   const [creating, setCreating] = useState(false);
   const [wizard, setWizard] = useState<{ dest: Destination; start: string; end: string } | null>(null);
@@ -164,10 +171,11 @@ export function App() {
     if (showHelp) r = { kind: "help" };
     else if (activeTrip) r = { kind: "viaje", id: activeTrip.id };
     else if (activeDest) r = { kind: "destino", id: activeDest.id, month: activeDestination?.month };
+    else if (activeCountry) r = { kind: "pais", country: activeCountry };
     else r = { kind: view };
     const target = routeToHash(r);
     if (window.location.hash !== target) history.pushState(null, "", target);
-  }, [view, activeTrip, activeDest, activeDestination, showHelp, sharedTrip]);
+  }, [view, activeTrip, activeDest, activeDestination, activeCountry, showHelp, sharedTrip]);
 
   // Título de la ventana + favicon (bandera del país al ver un destino).
   useEffect(() => {
@@ -203,6 +211,7 @@ export function App() {
       setShowHelp(r.kind === "help");
       setActiveTripId(r.kind === "viaje" ? r.id : null);
       setActiveDestination(r.kind === "destino" ? { id: r.id, month: r.month } : null);
+      setActiveCountry(r.kind === "pais" ? r.country : null);
       if (r.kind === "trips") setView("trips");
       else if (r.kind === "discover") setView("discover");
     };
@@ -322,7 +331,14 @@ export function App() {
     );
   }
 
-  const isHome = !activeTrip && !activeDest;
+  const isHome = !activeTrip && !activeDest && !activeCountry;
+
+  // Abrir la página de un país (desde un destino). Cierra la vista de destino.
+  const openCountry = (country: string) => {
+    setActiveDestination(null);
+    setActiveCountry(country);
+    window.scrollTo(0, 0);
+  };
 
   return (
     <div className="app">
@@ -446,6 +462,23 @@ export function App() {
               onCreateTrip={() => handleCreateTripFromDestination(activeDest.id, {
                 month: activeDestination?.month ?? new Date().getMonth() + 1,
               })}
+              onOpenCountry={openCountry}
+            />
+          </Suspense>
+        </div>
+      )}
+
+      {activeCountry && !activeDest && (
+        <div className="dest-detail-wrap">
+          <button className="back-button" onClick={() => setActiveCountry(null)}>← {t("common.back")}</button>
+          <Suspense fallback={<div className="loading">{t("common.loading")}</div>}>
+            <CountryDetail
+              country={activeCountry}
+              origin={origin}
+              wishlist={wishlist}
+              onOpenDestination={(id) => { setActiveCountry(null); setActiveDestination({ id }); }}
+              onToggleWishlist={toggleWishlist}
+              onCreateTrip={(id) => handleCreateTripFromDestination(id)}
             />
           </Suspense>
         </div>

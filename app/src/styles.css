@@ -1420,6 +1420,19 @@ code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
 .book-cta-actions a { text-decoration: none; }
 .book-cta-more { color: var(--accent); white-space: nowrap; }
 
+/* Página de país */
+.country-header { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+.country-header h2 { margin: 0; font-size: 28px; }
+.country-cats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.country-stats { margin-bottom: 8px; }
+.country-dests-title { margin: 24px 0 14px; font-size: 18px; }
+.country-link {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: var(--accent); font: inherit; text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.country-link:hover { color: var(--text); }
+
 /* Responsive */
 @media (max-width: 600px) {
   .field-row { grid-template-columns: 1fr; }
