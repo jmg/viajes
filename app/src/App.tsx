@@ -331,7 +331,7 @@ export function App() {
           <header className="home-header">
             <div className="home-header-top">
               <div>
-                <h1>✈️ Viajes</h1>
+                <h1>✈️ <span className="brand-grad">Viajes</span></h1>
                 <p>{t("home.tagline")}</p>
               </div>
               <div className="home-actions">
