@@ -3,6 +3,9 @@ import type { Currency, Trip } from "./types";
 import { useTrips } from "./hooks/useTrips";
 import { TripCard } from "./components/TripCard";
 import { TripForm } from "./components/TripForm";
+import { CreateTripWizard } from "./components/CreateTripWizard";
+import type { WizardResult } from "./components/CreateTripWizard";
+import { TEMPLATES, applyTemplate } from "./lib/templates";
 import { Modal } from "./components/Modal";
 import { Filters } from "./components/Filters";
 import type { FilterId } from "./components/Filters";
@@ -71,14 +74,16 @@ function computeDates(month?: number, duration?: number): { start: string; end: 
   let year = now.getFullYear();
   if (m <= now.getMonth() + 1) year += 1; // próxima vez que llega ese mes
   const start = new Date(year, m - 1, 1);
-  const end = new Date(year, m - 1, Math.min(28, Math.max(2, duration ?? 7)));
+  // end = ida + duración, de modo que daysBetween(start, end) == los días pedidos
+  // (la app cuenta los días como diferencia de fechas, ver lib/format daysBetween).
+  const end = new Date(year, m - 1, Math.min(28, 1 + Math.max(1, duration ?? 7)));
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
   return { start: fmt(start), end: fmt(end) };
 }
 
 /** Arma un viaje listo para usar a partir de un destino — sin formularios. */
-function tripFromDestination(d: Destination, month?: number): Trip {
-  const { start, end } = computeDates(month, d.suggestedDuration?.min);
+function tripFromDestination(d: Destination, month?: number, duration?: number): Trip {
+  const { start, end } = computeDates(month, duration ?? d.suggestedDuration?.min);
   const coastal = d.categories.some((c) => COASTAL_CATS.has(c));
   return {
     id: newId(),
@@ -108,6 +113,7 @@ export function App() {
   );
   const [editing, setEditing] = useState<Trip | null>(null);
   const [creating, setCreating] = useState(false);
+  const [wizard, setWizard] = useState<{ dest: Destination; start: string; end: string } | null>(null);
   const [filter, setFilter] = useState<FilterId>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currency, setCurrency] = useState<Currency>(() => loadCurrency() ?? defaultCurrencyForCountry(loadOrigin()?.countryCode));
@@ -257,14 +263,34 @@ export function App() {
     if (o && loadCurrency() === null) setCurrency(defaultCurrencyForCountry(o.countryCode));
   };
 
-  // Crear viaje desde un destino: se arma solo y se abre. Sin formularios.
+  // Crear viaje desde un destino: abre un asistente con pasos para que el
+  // usuario confirme fechas, viajeros y estilo antes de crearlo.
   const handleCreateTripFromDestination = (destId: string, criteria?: RecommendationCriteria) => {
     const d = DESTINATIONS.find((x) => x.id === destId);
     if (!d) return;
-    const trip = tripFromDestination(d, criteria?.month ?? activeDestination?.month);
-    if (origin?.city) trip.origin = origin.city;
+    const month = criteria?.month ?? activeDestination?.month;
+    const duration = criteria?.duration ?? d.suggestedDuration?.min;
+    const { start, end } = computeDates(month, duration);
+    setWizard({ dest: d, start, end });
+  };
+
+  // El usuario confirmó el asistente: armamos el viaje con sus respuestas.
+  const handleWizardCreate = (result: WizardResult) => {
+    if (!wizard) return;
+    const d = wizard.dest;
+    const trip = tripFromDestination(d);
+    trip.startDate = result.startDate;
+    trip.endDate = result.endDate;
+    trip.travelers = result.travelers;
+    trip.origin = result.origin || origin?.city || trip.origin;
+    if (result.title) trip.title = result.title;
+    if (result.templateId !== "blank") {
+      const template = TEMPLATES.find((x) => x.id === result.templateId);
+      if (template) Object.assign(trip, applyTemplate(template));
+    }
     upsert(trip);
     track("trip_create");
+    setWizard(null);
     setActiveDestination(null);
     setActiveTripId(trip.id);
   };
@@ -434,6 +460,19 @@ export function App() {
               setEditing(null);
             }}
             onCancel={() => setEditing(null)}
+          />
+        </Modal>
+      )}
+
+      {wizard && (
+        <Modal title={t("tripWizard.title", { name: wizard.dest.name })} onClose={() => setWizard(null)}>
+          <CreateTripWizard
+            destination={wizard.dest}
+            initialStart={wizard.start}
+            initialEnd={wizard.end}
+            defaultOrigin={origin?.city}
+            onCreate={handleWizardCreate}
+            onCancel={() => setWizard(null)}
           />
         </Modal>
       )}
