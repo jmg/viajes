@@ -473,6 +473,58 @@ input:focus, select:focus, textarea:focus {
 .emoji-chip:hover { border-color: var(--accent); }
 .emoji-chip.active { background: rgba(56, 189, 248, 0.2); border-color: var(--accent); }
 
+/* Destination picker (chips + autocompletado) */
+.dest-picker { position: relative; }
+.dest-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 8px; min-height: 42px; cursor: text;
+}
+.dest-chips:focus-within { border-color: var(--accent); }
+.dest-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(56, 189, 248, 0.12); border: 1px solid var(--accent);
+  color: var(--text); border-radius: 999px; padding: 4px 8px 4px 10px;
+  font-size: 13px; line-height: 1; white-space: nowrap;
+}
+.dest-chip-flag { font-size: 14px; }
+.dest-chip-x {
+  background: transparent; border: 0; color: var(--muted);
+  cursor: pointer; font-size: 12px; padding: 0 2px; line-height: 1;
+}
+.dest-chip-x:hover { color: var(--bad); }
+.dest-picker-input {
+  flex: 1; min-width: 140px; background: transparent !important;
+  border: 0 !important; padding: 6px 2px !important; width: auto !important;
+  font-size: 14px; color: var(--text);
+}
+.dest-picker-input:focus { outline: none; }
+.dest-suggestions {
+  position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; right: 0;
+  list-style: none; margin: 0; padding: 4px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  max-height: 280px; overflow-y: auto;
+}
+.dest-suggestion {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  background: transparent; border: 0; color: var(--text);
+  padding: 8px 10px; border-radius: 7px; cursor: pointer; text-align: left;
+  font-size: 14px;
+}
+.dest-suggestion:hover, .dest-suggestion.active { background: var(--surface-3); }
+.dest-suggestion-flag { font-size: 16px; }
+.dest-suggestion-name { font-weight: 500; }
+.dest-suggestion-meta { color: var(--muted); font-size: 12px; margin-left: auto; }
+.dest-suggestion-custom { color: var(--accent); font-size: 13px; }
+
+.new-trip-btn { white-space: nowrap; }
+.empty-cta-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+/* Itinerario — acciones y generador de días */
+.itinerary-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.itinerary-empty-hint { color: var(--muted); font-size: 13px; margin: 4px 0 12px; }
+
 .form-actions {
   display: flex; gap: 8px; justify-content: flex-end;
   margin-top: 8px;

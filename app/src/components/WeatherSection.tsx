@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Trip } from "../types";
-import { DESTINATIONS } from "../destinations/data";
+import type { Destination } from "../destinations/types";
+import { findDestination } from "../destinations/match";
 import { fetchForecast, fetchHistorical, fetchMultiYearAverage, fetchPrecomputedAverage, weatherEmoji } from "../lib/forecast";
 import type { DailyWeather } from "../lib/forecast";
 import { daysUntilStart, daysUntilEnd } from "../lib/status";
@@ -11,6 +12,8 @@ const PRIOR_YEARS = 5;
 
 type Props = {
   trip: Trip;
+  /** Destino concreto a graficar. Si falta, se elige el primero del viaje con coordenadas. */
+  destination?: Destination;
   /** Si está, muestra ~maxDays días salteados cada N (para previsualizar un mes entero). */
   sampleEvery?: number;
   maxDays?: number;
@@ -30,18 +33,10 @@ function dayIcon(d: DailyWeather): string {
   return weatherEmoji(d.weatherCode);
 }
 
-function matchDestination(name: string) {
-  const lower = name.toLowerCase().trim();
-  return DESTINATIONS.find((d) => {
-    const dn = d.name.toLowerCase();
-    return dn === lower || d.id === lower || d.id === lower.replace(/\s+/g, "-") || dn.includes(lower) || lower.includes(dn);
-  });
-}
-
-export function WeatherSection({ trip, sampleEvery, maxDays }: Props) {
+export function WeatherSection({ trip, destination, sampleEvery, maxDays }: Props) {
   const dest = useMemo(
-    () => trip.destinations.map(matchDestination).find((d) => d?.lat != null && d?.lng != null) ?? null,
-    [trip.destinations],
+    () => destination ?? trip.destinations.map(findDestination).find((d) => d?.lat != null && d?.lng != null) ?? null,
+    [destination, trip.destinations],
   );
 
   const dStart = daysUntilStart(trip);

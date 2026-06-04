@@ -101,6 +101,7 @@ export function App() {
     initialRoute?.kind === "destino" ? { id: initialRoute.id, month: initialRoute.month } : null,
   );
   const [editing, setEditing] = useState<Trip | null>(null);
+  const [creating, setCreating] = useState(false);
   const [filter, setFilter] = useState<FilterId>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currency, setCurrency] = useState<Currency>(() => loadCurrency());
@@ -318,6 +319,7 @@ export function App() {
                 {searchQuery && (
                   <button className="icon-button" onClick={() => setSearchQuery("")} title="Limpiar">✕</button>
                 )}
+                <button className="button-primary new-trip-btn" onClick={() => setCreating(true)}>+ Nuevo viaje</button>
               </div>
               <Filters value={filter} counts={counts} onChange={setFilter} />
 
@@ -326,9 +328,10 @@ export function App() {
                   {trips.length === 0 ? (
                     <>
                       <p>Todavía no tenés viajes.</p>
-                      <p>Elegí un destino en <strong>Descubrir</strong> y se crea solo.</p>
-                      <p>
+                      <p>Elegí un destino en <strong>Descubrir</strong> y se crea solo, o armá uno a mano.</p>
+                      <p className="empty-cta-row">
                         <button className="button-primary" onClick={openDiscover}>🌎 Descubrir destinos</button>
+                        <button className="button-secondary" onClick={() => setCreating(true)}>+ Nuevo viaje a mano</button>
                       </p>
                       <p className="hint">
                         <button className="link-button" onClick={restoreSeeds}>O cargar el ejemplo "Brasil noviembre 2026"</button>
@@ -412,6 +415,21 @@ export function App() {
               setEditing(null);
             }}
             onCancel={() => setEditing(null)}
+          />
+        </Modal>
+      )}
+
+      {creating && (
+        <Modal title="Nuevo viaje" onClose={() => setCreating(false)} wide>
+          <TripForm
+            onSave={(trip) => {
+              upsert(trip);
+              track("trip_create");
+              setCreating(false);
+              setView("trips");
+              setActiveTripId(trip.id);
+            }}
+            onCancel={() => setCreating(false)}
           />
         </Modal>
       )}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Trip } from "../types";
 import { TEMPLATES, applyTemplate } from "../lib/templates";
 import type { TemplateId } from "../lib/templates";
+import { DestinationPicker } from "./DestinationPicker";
 
 type Prefill = {
   destinationName?: string;
@@ -42,7 +43,9 @@ export function TripForm({ trip, prefill, onSave, onCancel }: Props) {
   const [startDate, setStartDate] = useState(trip?.startDate ?? prefillDates.start);
   const [endDate, setEndDate] = useState(trip?.endDate ?? prefillDates.end);
   const [origin, setOrigin] = useState(trip?.origin ?? "");
-  const [destinations, setDestinations] = useState(trip?.destinations.join(", ") ?? prefill?.destinationName ?? "");
+  const [destinations, setDestinations] = useState<string[]>(
+    trip?.destinations ?? (prefill?.destinationName ? [prefill.destinationName] : []),
+  );
   const [travelers, setTravelers] = useState(trip?.travelers ?? 1);
   const [status, setStatus] = useState<Trip["status"]>(trip?.status ?? "planning");
   const [coastal, setCoastal] = useState(trip?.coastal ?? false);
@@ -56,7 +59,7 @@ export function TripForm({ trip, prefill, onSave, onCancel }: Props) {
     if (!startDate || !endDate) return setError("Las fechas de ida y vuelta son obligatorias.");
     if (endDate < startDate) return setError("La fecha de vuelta debe ser posterior a la de ida.");
 
-    const dests = destinations.split(",").map((d) => d.trim()).filter(Boolean);
+    const dests = destinations.map((d) => d.trim()).filter(Boolean);
     if (dests.length === 0) return setError("Agregá al menos un destino.");
 
     const next: Trip = {
@@ -152,13 +155,8 @@ export function TripForm({ trip, prefill, onSave, onCancel }: Props) {
       </label>
 
       <label className="field">
-        <span>Destinos * <small>(separados por coma)</small></span>
-        <input
-          type="text"
-          value={destinations}
-          onChange={(e) => setDestinations(e.target.value)}
-          placeholder="Ej: Porto de Galinhas, Maragogi"
-        />
+        <span>Destinos * <small>(uno o varios — buscá en el catálogo o escribí libre)</small></span>
+        <DestinationPicker value={destinations} onChange={setDestinations} placeholder="Ej: Porto de Galinhas, Maragogi…" />
       </label>
 
       <div className="field-row">

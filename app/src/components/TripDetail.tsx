@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import type { Currency, Trip } from "../types";
+import type { Destination } from "../destinations/types";
+import { findDestination } from "../destinations/match";
 import { formatDateRange, daysBetween } from "../lib/format";
 import { autoStatus, STATUS_LABEL } from "../lib/status";
 import { computeMoonPhases, computeTideWindows } from "../lib/moon";
@@ -65,6 +67,21 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
     return computeTideWindows(computedPhases);
   }, [trip.tideWindows, trip.coastal, computedPhases]);
 
+  // Destinos del viaje que existen en el catálogo y tienen coordenadas: mostramos
+  // un pronóstico por cada uno (sin repetir), para viajes de varios destinos.
+  const weatherDests = useMemo(() => {
+    const seen = new Set<string>();
+    const out: Destination[] = [];
+    for (const name of trip.destinations) {
+      const d = findDestination(name);
+      if (d && d.lat != null && d.lng != null && !seen.has(d.id)) {
+        seen.add(d.id);
+        out.push(d);
+      }
+    }
+    return out;
+  }, [trip.destinations]);
+
   return (
     <>
     <div className="trip-detail screen-only">
@@ -112,7 +129,9 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
         {active === "overview" && (
           <>
             <Overview trip={trip} />
-            <WeatherSection trip={trip} />
+            {weatherDests.length > 0
+              ? weatherDests.map((d) => <WeatherSection key={d.id} trip={trip} destination={d} />)
+              : <WeatherSection trip={trip} />}
           </>
         )}
 
@@ -134,6 +153,9 @@ export function TripDetail({ trip, currency, onCurrencyChange, onChange, onEdit,
         {active === "itinerary" && (
           <ItineraryEditor
             days={trip.itinerary ?? []}
+            tripStart={trip.startDate}
+            tripEnd={trip.endDate}
+            destinations={trip.destinations}
             onChange={(itinerary) => onChange({ ...trip, itinerary })}
           />
         )}
