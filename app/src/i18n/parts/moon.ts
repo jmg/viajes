@@ -1,8 +1,55 @@
 import type { Part } from "../dict";
 
-// TODO(i18n): completar traducciones de esta sección.
 export const moon: Part = {
-  es: {},
-  pt: {},
-  en: {},
+  es: {
+    moon: {
+      windowsTitle: "Ventanas de mareas favorables",
+      phasesTitle: "Fases lunares clave",
+      thPhase: "Fase",
+      thDate: "Fecha",
+      thTides: "Mareas",
+      qualityExceptional: "⭐⭐ Excepcional",
+      qualityVeryGood: "⭐ Muy buena",
+      qualityGood: "✅ Buena",
+      qualityRegular: "⚠ Regular",
+      tideLow: "Baja",
+      tideMedium: "Media",
+      tideHigh: "Alta",
+      tideExtreme: "Extrema",
+    },
+  },
+  pt: {
+    moon: {
+      windowsTitle: "Janelas de marés favoráveis",
+      phasesTitle: "Fases lunares principais",
+      thPhase: "Fase",
+      thDate: "Data",
+      thTides: "Marés",
+      qualityExceptional: "⭐⭐ Excepcional",
+      qualityVeryGood: "⭐ Muito boa",
+      qualityGood: "✅ Boa",
+      qualityRegular: "⚠ Regular",
+      tideLow: "Baixa",
+      tideMedium: "Média",
+      tideHigh: "Alta",
+      tideExtreme: "Extrema",
+    },
+  },
+  en: {
+    moon: {
+      windowsTitle: "Favorable tide windows",
+      phasesTitle: "Key moon phases",
+      thPhase: "Phase",
+      thDate: "Date",
+      thTides: "Tides",
+      qualityExceptional: "⭐⭐ Exceptional",
+      qualityVeryGood: "⭐ Very good",
+      qualityGood: "✅ Good",
+      qualityRegular: "⚠ Regular",
+      tideLow: "Low",
+      tideMedium: "Medium",
+      tideHigh: "High",
+      tideExtreme: "Extreme",
+    },
+  },
 };

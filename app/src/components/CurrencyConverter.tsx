@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Currency } from "../types";
 import { CURRENCIES, RATES, SYMBOL } from "../lib/currency";
+import { useT } from "../i18n";
 
 type Props = { defaultTarget?: Currency };
 
@@ -17,6 +18,7 @@ function formatNumber(n: number, c: Currency): string {
 }
 
 export function CurrencyConverter({ defaultTarget = "USD" }: Props) {
+  const t = useT();
   const [from, setFrom] = useState<Currency>("ARS");
   const [to, setTo] = useState<Currency>(defaultTarget);
   const [amount, setAmount] = useState("");
@@ -33,7 +35,7 @@ export function CurrencyConverter({ defaultTarget = "USD" }: Props) {
     <div className="converter">
       <div className="converter-row">
         <div className="converter-field">
-          <label>De</label>
+          <label>{t("currencyConv.from")}</label>
           <div className="converter-input">
             <select value={from} onChange={(e) => setFrom(e.target.value as Currency)}>
               {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -47,9 +49,9 @@ export function CurrencyConverter({ defaultTarget = "USD" }: Props) {
             />
           </div>
         </div>
-        <button type="button" className="icon-button converter-swap" onClick={swap} title="Invertir">⇄</button>
+        <button type="button" className="icon-button converter-swap" onClick={swap} title={t("currencyConv.swap")}>⇄</button>
         <div className="converter-field">
-          <label>A</label>
+          <label>{t("currencyConv.to")}</label>
           <div className="converter-input">
             <select value={to} onChange={(e) => setTo(e.target.value as Currency)}>
               {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -59,8 +61,12 @@ export function CurrencyConverter({ defaultTarget = "USD" }: Props) {
         </div>
       </div>
       <p className="converter-hint">
-        Tasa: 1 {from} = {convert(1, from, to).toLocaleString(undefined, { maximumFractionDigits: 4 })} {to} · tasas
-        aproximadas, editables en <code>src/lib/currency.ts</code>.
+        {t("currencyConv.rate", {
+          from,
+          to,
+          value: convert(1, from, to).toLocaleString(undefined, { maximumFractionDigits: 4 }),
+        })}{" "}
+        <code>src/lib/currency.ts</code>.
       </p>
     </div>
   );

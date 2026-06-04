@@ -1,12 +1,14 @@
 import type { Trip } from "../types";
 import { formatDate, daysBetween } from "../lib/format";
 import { autoStatus, daysUntilEnd } from "../lib/status";
+import { useT } from "../i18n";
 
 type Props = { trip: Trip; onGoToItinerary: () => void };
 
 const today = (): string => new Date().toISOString().slice(0, 10);
 
 export function TodayPanel({ trip, onGoToItinerary }: Props) {
+  const t = useT();
   if (autoStatus(trip) !== "in-progress") return null;
 
   const totalDays = daysBetween(trip.startDate, trip.endDate) + 1;
@@ -21,12 +23,12 @@ export function TodayPanel({ trip, onGoToItinerary }: Props) {
     <div className="today-panel">
       <div className="today-header">
         <div>
-          <span className="today-badge-inline">HOY</span>
-          <strong>Día {dayNumber} de {totalDays}</strong>
-          <span className="today-sub"> · {formatDate(todayIso)} · faltan {remaining} {remaining === 1 ? "día" : "días"}</span>
+          <span className="today-badge-inline">{t("common.today")}</span>
+          <strong>{t("today.day", { n: dayNumber, total: totalDays })}</strong>
+          <span className="today-sub">{remaining === 1 ? t("today.subOne", { date: formatDate(todayIso), n: remaining }) : t("today.sub", { date: formatDate(todayIso), n: remaining })}</span>
         </div>
         {trip.itinerary?.length ? (
-          <button className="link-button" onClick={onGoToItinerary}>Ver itinerario →</button>
+          <button className="link-button" onClick={onGoToItinerary}>{t("today.viewItinerary")}</button>
         ) : null}
       </div>
       {todayDay ? (
@@ -43,9 +45,9 @@ export function TodayPanel({ trip, onGoToItinerary }: Props) {
         </div>
       ) : (
         <p className="today-empty">
-          No tenés actividades cargadas para hoy. {trip.itinerary?.length
-            ? "Revisá el itinerario o agregá una entrada para esta fecha."
-            : "Empezá generando un itinerario o agregando días."}
+          {t("today.noActivities")} {trip.itinerary?.length
+            ? t("today.reviewHint")
+            : t("today.generateHint")}
         </p>
       )}
     </div>

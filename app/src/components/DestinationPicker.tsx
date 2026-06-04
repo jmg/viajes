@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { DESTINATIONS } from "../destinations/data";
 import { findDestination } from "../destinations/match";
+import { useT } from "../i18n";
 
 type Props = {
   value: string[];
@@ -14,6 +15,7 @@ const MAX_SUGGESTIONS = 8;
 // catálogo. Permite también agregar lugares libres (no listados). Elegir del
 // catálogo garantiza que el destino tenga coordenadas → el pronóstico funciona.
 export function DestinationPicker({ value, onChange, placeholder }: Props) {
+  const t = useT();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
@@ -81,7 +83,7 @@ export function DestinationPicker({ value, onChange, placeholder }: Props) {
                 type="button"
                 className="dest-chip-x"
                 onClick={(e) => { e.stopPropagation(); removeAt(i); }}
-                aria-label={`Quitar ${name}`}
+                aria-label={t("picker.removeAria", { name })}
               >✕</button>
             </span>
           );
@@ -95,7 +97,7 @@ export function DestinationPicker({ value, onChange, placeholder }: Props) {
           onKeyDown={onKeyDown}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 120)}
-          placeholder={value.length ? "Agregar otro destino…" : (placeholder ?? "Buscá una ciudad o país…")}
+          placeholder={value.length ? t("picker.addAnother") : (placeholder ?? t("picker.searchPlaceholder"))}
         />
       </div>
 
@@ -124,7 +126,7 @@ export function DestinationPicker({ value, onChange, placeholder }: Props) {
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => add(query)}
               >
-                ➕ Agregar “{query.trim()}” como destino libre
+                {t("picker.addCustom", { name: query.trim() })}
               </button>
             </li>
           )}

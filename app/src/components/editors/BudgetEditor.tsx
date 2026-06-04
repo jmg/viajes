@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { BudgetItem, Currency } from "../../types";
 import { CURRENCIES, formatAmount, SYMBOL } from "../../lib/currency";
+import { useT } from "../../i18n";
 
 type Props = {
   items: BudgetItem[];
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export function BudgetEditor({ items, currency, onCurrencyChange, onChange }: Props) {
+  const t = useT();
   const [label, setLabel] = useState("");
   const [min, setMin] = useState("");
   const [max, setMax] = useState("");
@@ -34,20 +36,20 @@ export function BudgetEditor({ items, currency, onCurrencyChange, onChange }: Pr
     <div className="budget-editor">
       <div className="budget-currency">
         <label>
-          Mostrar en
+          {t("budget.showIn")}
           <select value={currency} onChange={(e) => onCurrencyChange(e.target.value as Currency)}>
             {CURRENCIES.map((c) => <option key={c} value={c}>{c} ({SYMBOL[c]})</option>)}
           </select>
         </label>
-        <small>Los montos se guardan en USD y se convierten al mostrar.</small>
+        <small>{t("budget.storedNote")}</small>
       </div>
 
       <table className="budget-table">
         <thead>
           <tr>
-            <th>Item</th>
-            <th className="num">Mín</th>
-            <th className="num">Máx</th>
+            <th>{t("budget.item")}</th>
+            <th className="num">{t("budget.min")}</th>
+            <th className="num">{t("budget.max")}</th>
             <th />
           </tr>
         </thead>
@@ -58,7 +60,7 @@ export function BudgetEditor({ items, currency, onCurrencyChange, onChange }: Pr
               <td className="num">{formatAmount(i.minUsd, currency)}</td>
               <td className="num">{formatAmount(i.maxUsd, currency)}</td>
               <td>
-                <button className="icon-button small" onClick={() => remove(idx)} aria-label="Eliminar">✕</button>
+                <button className="icon-button small" onClick={() => remove(idx)} aria-label={t("common.delete")}>✕</button>
               </td>
             </tr>
           ))}
@@ -66,7 +68,7 @@ export function BudgetEditor({ items, currency, onCurrencyChange, onChange }: Pr
         {items.length > 0 && (
           <tfoot>
             <tr>
-              <td><strong>Total</strong></td>
+              <td><strong>{t("budget.total")}</strong></td>
               <td className="num"><strong>{formatAmount(totalMin, currency)}</strong></td>
               <td className="num"><strong>{formatAmount(totalMax, currency)}</strong></td>
               <td />
@@ -76,10 +78,10 @@ export function BudgetEditor({ items, currency, onCurrencyChange, onChange }: Pr
       </table>
 
       <div className="budget-add">
-        <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Item (ej: alojamiento)" />
-        <input type="number" value={min} onChange={(e) => setMin(e.target.value)} placeholder="Mín USD" />
-        <input type="number" value={max} onChange={(e) => setMax(e.target.value)} placeholder="Máx USD" />
-        <button className="button-primary" onClick={add}>Agregar</button>
+        <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder={t("budget.itemPlaceholder")} />
+        <input type="number" value={min} onChange={(e) => setMin(e.target.value)} placeholder={t("budget.minPlaceholder")} />
+        <input type="number" value={max} onChange={(e) => setMax(e.target.value)} placeholder={t("budget.maxPlaceholder")} />
+        <button className="button-primary" onClick={add}>{t("common.add")}</button>
       </div>
     </div>
   );

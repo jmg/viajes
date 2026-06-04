@@ -4,6 +4,8 @@ import { TEMPLATES, applyTemplate } from "../lib/templates";
 import type { TemplateId } from "../lib/templates";
 import { DestinationPicker } from "./DestinationPicker";
 import { anyCoastal, findDestination } from "../destinations/match";
+import { useT } from "../i18n";
+import type { t as tFn } from "../i18n/core";
 
 type Prefill = {
   destinationName?: string;
@@ -37,12 +39,12 @@ const computePrefillDates = (month?: number, duration?: number): { start: string
 };
 
 /** Título armado solo con los destinos, para no obligar a escribirlo. */
-const autoTitle = (dests: string[]): string => {
+const autoTitle = (dests: string[], t: typeof tFn): string => {
   const ds = dests.map((d) => d.trim()).filter(Boolean);
   if (ds.length === 0) return "";
-  if (ds.length === 1) return `Viaje a ${ds[0]}`;
-  if (ds.length === 2) return `${ds[0]} + ${ds[1]}`;
-  return `${ds[0]} + ${ds.length - 1} más`;
+  if (ds.length === 1) return t("tripForm.autoTitleOne", { name: ds[0] });
+  if (ds.length === 2) return t("tripForm.autoTitleTwo", { first: ds[0], second: ds[1] });
+  return t("tripForm.autoTitleMore", { first: ds[0], n: ds.length - 1 });
 };
 
 /** Fechas sugeridas a partir del primer destino del catálogo (su mejor mes + duración). */
@@ -55,6 +57,7 @@ const suggestDates = (dests: string[]): { start: string; end: string } | null =>
 };
 
 export function TripForm({ trip, prefill, defaultOrigin, onSave, onCancel }: Props) {
+  const t = useT();
   const isEdit = !!trip;
   const prefillDates = computePrefillDates(prefill?.month, prefill?.duration);
 
@@ -88,14 +91,14 @@ export function TripForm({ trip, prefill, defaultOrigin, onSave, onCancel }: Pro
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const dests = destinations.map((d) => d.trim()).filter(Boolean);
-    if (dests.length === 0) return setError("Agregá al menos un destino.");
-    if (!startDate || !endDate) return setError("Las fechas de ida y vuelta son obligatorias.");
-    if (endDate < startDate) return setError("La fecha de vuelta debe ser posterior a la de ida.");
+    if (dests.length === 0) return setError(t("tripForm.errNoDestination"));
+    if (!startDate || !endDate) return setError(t("tripForm.errNoDates"));
+    if (endDate < startDate) return setError(t("tripForm.errDateOrder"));
 
     const next: Trip = {
       ...trip,
       id: trip?.id ?? newId(),
-      title: title.trim() || autoTitle(dests),
+      title: title.trim() || autoTitle(dests, t),
       subtitle: subtitle.trim() || undefined,
       startDate,
       endDate,
@@ -129,7 +132,7 @@ export function TripForm({ trip, prefill, defaultOrigin, onSave, onCancel }: Pro
     <form className="trip-form" onSubmit={submit}>
       {!isEdit && (
         <label className="field">
-          <span>Empezar desde plantilla <small>(suma checklist según el tipo de viaje)</small></span>
+          <span>{t("tripForm.templateLabel")} <small>{t("tripForm.templateHint")}</small></span>
           <div className="template-grid">
             {TEMPLATES.map((t) => (
               <button
@@ -150,63 +153,63 @@ export function TripForm({ trip, prefill, defaultOrigin, onSave, onCancel }: Pro
       )}
 
       <label className="field">
-        <span>¿A dónde vas? * <small>(uno o varios — buscá en el catálogo o escribí libre)</small></span>
-        <DestinationPicker value={destinations} onChange={handleDestinations} placeholder="Ej: Porto de Galinhas, Maragogi…" />
+        <span>{t("tripForm.whereLabel")} <small>{t("tripForm.whereHint")}</small></span>
+        <DestinationPicker value={destinations} onChange={handleDestinations} placeholder={t("tripForm.wherePlaceholder")} />
       </label>
 
       <div className="field-row">
         <label className="field">
-          <span>Fecha de ida *</span>
+          <span>{t("tripForm.departLabel")}</span>
           <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
         </label>
         <label className="field">
-          <span>Fecha de vuelta *</span>
+          <span>{t("tripForm.returnLabel")}</span>
           <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
         </label>
       </div>
-      {dayCount > 0 && <p className="form-hint">📅 {dayCount} {dayCount === 1 ? "día" : "días"} de viaje</p>}
+      {dayCount > 0 && <p className="form-hint">{t("tripForm.dayCount", { n: dayCount, unit: dayCount === 1 ? t("common.day") : t("common.days") })}</p>}
 
       <label className="field">
-        <span>Título <small>(opcional — si lo dejás vacío lo armamos con los destinos)</small></span>
+        <span>{t("tripForm.titleLabel")} <small>{t("tripForm.titleHint")}</small></span>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder={autoTitle(destinations) || "Ej: Brasil — Porto de Galinhas + Maragogi"}
+          placeholder={autoTitle(destinations, t) || t("tripForm.titlePlaceholder")}
         />
       </label>
 
       {!isEdit && !showMore && (
         <button type="button" className="link-button more-details-btn" onClick={() => setShowMore(true)}>
-          + Más detalles (opcional)
+          {t("tripForm.moreDetails")}
         </button>
       )}
 
       {showDetails && (
         <>
           <label className="field">
-            <span>Subtítulo</span>
+            <span>{t("tripForm.subtitleLabel")}</span>
             <input
               type="text"
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
-              placeholder="Ej: 13 días de playa en el nordeste"
+              placeholder={t("tripForm.subtitlePlaceholder")}
             />
           </label>
 
           <label className="field">
-            <span>Origen</span>
+            <span>{t("tripForm.originLabel")}</span>
             <input
               type="text"
               value={origin}
               onChange={(e) => setOrigin(e.target.value)}
-              placeholder="Ej: Buenos Aires"
+              placeholder={t("tripForm.originPlaceholder")}
             />
           </label>
 
           <div className="field-row">
             <label className="field">
-              <span>Viajeros</span>
+              <span>{t("tripForm.travelersLabel")}</span>
               <input
                 type="number"
                 min={1}
@@ -217,11 +220,11 @@ export function TripForm({ trip, prefill, defaultOrigin, onSave, onCancel }: Pro
             </label>
             {isEdit && (
               <label className="field">
-                <span>Estado</span>
+                <span>{t("tripForm.statusLabel")}</span>
                 <select value={status} onChange={(e) => setStatus(e.target.value as Trip["status"])}>
-                  <option value="planning">Planeando</option>
-                  <option value="booked">Reservado</option>
-                  <option value="past">Pasado</option>
+                  <option value="planning">{t("tripForm.statusPlanning")}</option>
+                  <option value="booked">{t("tripForm.statusBooked")}</option>
+                  <option value="past">{t("tripForm.statusPast")}</option>
                 </select>
               </label>
             )}
@@ -229,16 +232,16 @@ export function TripForm({ trip, prefill, defaultOrigin, onSave, onCancel }: Pro
 
           <label className="field checkbox">
             <input type="checkbox" checked={coastal} onChange={(e) => setCoastal(e.target.checked)} />
-            <span>Viaje costero — calcular fases lunares y mareas automáticamente</span>
+            <span>{t("tripForm.coastalLabel")}</span>
           </label>
 
           <label className="field">
-            <span>Descripción</span>
+            <span>{t("tripForm.descriptionLabel")}</span>
             <textarea
               rows={3}
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
-              placeholder="Resumen del viaje, idea general..."
+              placeholder={t("tripForm.descriptionPlaceholder")}
             />
           </label>
         </>
@@ -247,8 +250,8 @@ export function TripForm({ trip, prefill, defaultOrigin, onSave, onCancel }: Pro
       {error && <p className="form-error">{error}</p>}
 
       <div className="form-actions">
-        <button type="button" className="button-secondary" onClick={onCancel}>Cancelar</button>
-        <button type="submit" className="button-primary">{isEdit ? "Guardar cambios" : "Crear viaje"}</button>
+        <button type="button" className="button-secondary" onClick={onCancel}>{t("common.cancel")}</button>
+        <button type="submit" className="button-primary">{isEdit ? t("common.saveChanges") : t("tripForm.createTrip")}</button>
       </div>
     </form>
   );

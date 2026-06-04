@@ -1,6 +1,6 @@
 import type { Destination } from "../destinations/types";
 import type { Trip } from "../types";
-import { CATEGORY_EMOJI, CATEGORY_LABEL, COST_LABEL, COST_RANGE_USD } from "../destinations/types";
+import { CATEGORY_EMOJI, COST_RANGE_USD } from "../destinations/types";
 import type { Airport } from "../lib/airports";
 import { flightHoursFromOrigin } from "../lib/originFlight";
 import { rateClimate } from "../lib/recommender";
@@ -8,8 +8,9 @@ import { ClimateChart } from "./ClimateChart";
 import { BestMonthsChart } from "./BestMonthsChart";
 import { WeatherSection } from "./WeatherSection";
 import { InfoTip as Info } from "./InfoTip";
-
-const MONTHS_FULL = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+import { useT } from "../i18n";
+import { catLabel, costLabel, ratingLabel, ratingTip, visaLabel } from "../i18n/labels";
+import { monthName } from "../lib/format";
 
 /** Viaje sintético para previsualizar el clima real (Open-Meteo) de un destino en el mes elegido. */
 function previewTrip(d: Destination, month?: number): Trip {
@@ -49,25 +50,12 @@ function rainIcon(mm: number): string {
   return "🌧🌧";
 }
 
-function rainText(mm: number): string {
-  if (mm < 30) return "Seco";
-  if (mm < 100) return "Lluvia moderada";
-  if (mm < 200) return "Lluvioso";
-  return "Muy lluvioso";
+function rainTextKey(mm: number): string {
+  if (mm < 30) return "destDetail.dry";
+  if (mm < 100) return "destDetail.rainModerate";
+  if (mm < 200) return "destDetail.rainy";
+  return "destDetail.veryRainy";
 }
-
-const RATING_INFO: Record<string, { label: string; tip: string }> = {
-  ideal: { label: "🌟 Ideal", tip: "Clima muy cómodo en este destino durante este mes." },
-  good: { label: "✅ Bueno", tip: "Buen clima, con algún detalle menor de temperatura o lluvia." },
-  ok: { label: "⚠ Aceptable", tip: "Se puede viajar, pero hay calor, frío o lluvia para tener en cuenta." },
-  avoid: { label: "❌ Evitar", tip: "Mes poco recomendable por temperatura o lluvia." },
-};
-
-const VISA_LABEL = {
-  none: "Sin visa",
-  evisa: "E-visa",
-  required: "Visa requerida",
-};
 
 type Props = {
   destination: Destination;
@@ -79,6 +67,7 @@ type Props = {
 };
 
 export function DestinationDetail({ destination: d, highlightMonth, isInWishlist, origin, onToggleWishlist, onCreateTrip }: Props) {
+  const t = useT();
   const flightHours = flightHoursFromOrigin(d, origin ?? null);
   const fromCode = origin?.code ?? "EZE";
   return (
@@ -98,13 +87,13 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
             target="_blank"
             rel="noopener noreferrer"
           >
-            📍 Ver en Google Maps
+            {t("destDetail.viewOnMaps")}
           </a>
         </div>
         <button
           className={`wishlist-btn large ${isInWishlist ? "active" : ""}`}
           onClick={onToggleWishlist}
-          title={isInWishlist ? "Quitar de la lista" : "Guardar en wishlist"}
+          title={isInWishlist ? t("destDetail.removeTitle") : t("destDetail.saveTitle")}
         >
           {isInWishlist ? "❤️" : "🤍"}
         </button>
@@ -114,32 +103,32 @@ export function DestinationDetail({ destination: d, highlightMonth, isInWishlist
 
       <div className="dest-stats">
         <div className="stat">
-          <span className="stat-label">Costo diario</span>
-          <span className="stat-value">{COST_LABEL[d.costTier]}</span>
+          <span className="stat-label">{t("destDetail.dailyCost")}</span>
+          <span className="stat-value">{costLabel(d.costTier)}</span>
           <span className="stat-sub">US$ {COST_RANGE_USD[d.costTier]}</span>
         </div>
         {flightHours !== undefined && (
           <div className="stat">
-            <span className="stat-label">Vuelo desde {fromCode}</span>
+            <span className="stat-label">{t("destDetail.flightFrom", { code: fromCode })}</span>
             <span className="stat-value">{flightHours}h</span>
           </div>
         )}
         {d.visaForArgentines && (
           <div className="stat">
-            <span className="stat-label">Para argentinos</span>
-            <span className="stat-value">{VISA_LABEL[d.visaForArgentines]}</span>
+            <span className="stat-label">{t("destDetail.forArgentines")}</span>
+            <span className="stat-value">{visaLabel(d.visaForArgentines)}</span>
           </div>
         )}
         {d.suggestedDuration && (
           <div className="stat">
-            <span className="stat-label">Días sugeridos</span>
+            <span className="stat-label">{t("destDetail.suggestedDays")}</span>
             <span className="stat-value">{d.suggestedDuration.min}–{d.suggestedDuration.max}</span>
           </div>
         )}
       </div>
 
       <div className="dest-section">
-        <h3>Clima durante el año</h3>
+        <h3>{t("destDetail.climateYear")}</h3>
         <ClimateChart climate={d.climate} highlightMonth={highlightMonth} />
         {highlightMonth && (() => {
           const cm = d.climate[highlightMonth - 1];

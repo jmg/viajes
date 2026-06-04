@@ -1,100 +1,103 @@
+import { useT } from "../i18n";
+
 type Props = { onBack: () => void; onDiscover: () => void };
 
 export function HelpPage({ onBack, onDiscover }: Props) {
+  const t = useT();
   return (
     <div className="help-page">
-      <button className="back-button" onClick={onBack}>← Volver</button>
+      <button className="back-button" onClick={onBack}>{t("help.back")}</button>
 
       <header className="help-hero">
-        <h1>❓ Ayuda</h1>
-        <p>Todo lo que necesitás saber para usar Viajes y entender los datos de clima.</p>
+        <h1>{t("help.title")}</h1>
+        <p>{t("help.intro")}</p>
       </header>
 
       <section className="help-section">
-        <h2>🧭 ¿Cómo funciona?</h2>
+        <h2>{t("help.s1Title")}</h2>
         <ol className="help-steps">
-          <li><strong>Descubrir:</strong> elegís el mes en que querés viajar y movés los filtros (clima, presupuesto, horas de vuelo, regiones). Te ordenamos 620 destinos del mejor al peor clima para ese mes.</li>
-          <li><strong>Crear viaje:</strong> tocás <em>“+ Crear viaje”</em> en un destino y se arma solo, con fechas según el mes elegido. Sin formularios.</li>
-          <li><strong>Planificar:</strong> en el viaje cargás itinerario, presupuesto, gastos del grupo y checklist. Exportás al calendario o a PDF, y compartís por link.</li>
+          <li><strong>{t("help.s1Step1Lead")}</strong>{t("help.s1Step1Body")}</li>
+          <li><strong>{t("help.s1Step2Lead")}</strong>{t("help.s1Step2Body")}</li>
+          <li><strong>{t("help.s1Step3Lead")}</strong>{t("help.s1Step3Body")}</li>
         </ol>
-        <p>Todo se guarda <strong>solo en tu navegador</strong> (no hay cuentas ni servidor). Si borrás los datos del navegador, se pierden: por eso conviene compartir el link como respaldo.</p>
+        <p>{t("help.s1Note1")}<strong>{t("help.s1NoteStrong")}</strong>{t("help.s1Note2")}</p>
       </section>
 
       <section className="help-section">
-        <h2>🌡 Cómo leer el clima</h2>
-        <p>Para cada destino mostramos el <strong>clima típico</strong> mes a mes. Estos son los términos que vas a ver:</p>
+        <h2>{t("help.s2Title")}</h2>
+        <p>{t("help.s2Intro1")}<strong>{t("help.s2IntroStrong")}</strong>{t("help.s2Intro2")}</p>
         <div className="help-defs">
           <div className="help-def">
-            <h3>Temperatura (mín – máx)</h3>
-            <p>La <strong>mínima</strong> suele darse de madrugada y la <strong>máxima</strong> al mediodía. El “promedio” es el punto medio del día. Ej.: <em>12° – 24°</em> significa noches frescas y tardes agradables.</p>
+            <h3>{t("help.s2Def1Title")}</h3>
+            <p>{t("help.s2Def1Body1")}<strong>{t("help.s2Def1Strong1")}</strong>{t("help.s2Def1Body2")}<strong>{t("help.s2Def1Strong2")}</strong>{t("help.s2Def1Body3")}<em>{t("help.s2Def1Em")}</em>{t("help.s2Def1Body4")}</p>
           </div>
           <div className="help-def">
-            <h3>Lluvia (mm en el mes)</h3>
-            <p>Los <strong>milímetros (mm)</strong> miden cuánta lluvia cae en <em>todo el mes</em> (no por día). Como referencia:</p>
+            <h3>{t("help.s2Def2Title")}</h3>
+            <p>{t("help.s2Def2Body1")}<strong>{t("help.s2Def2Strong")}</strong>{t("help.s2Def2Body2")}<em>{t("help.s2Def2Em")}</em>{t("help.s2Def2Body3")}</p>
             <ul>
-              <li><strong>&lt; 30 mm</strong> → mes seco ☀️</li>
-              <li><strong>30–100 mm</strong> → lluvia moderada 🌦</li>
-              <li><strong>100–200 mm</strong> → lluvioso 🌧</li>
-              <li><strong>&gt; 200 mm</strong> → muy lluvioso 🌧🌧</li>
+              <li><strong>{t("help.s2Def2Li1Strong")}</strong>{t("help.s2Def2Li1")}</li>
+              <li><strong>{t("help.s2Def2Li2Strong")}</strong>{t("help.s2Def2Li2")}</li>
+              <li><strong>{t("help.s2Def2Li3Strong")}</strong>{t("help.s2Def2Li3")}</li>
+              <li><strong>{t("help.s2Def2Li4Strong")}</strong>{t("help.s2Def2Li4")}</li>
             </ul>
-            <p>Más mm = más días de lluvia o lluvias más intensas. En el filtro, llevá el slider hacia ☀️ para ver solo destinos secos en ese mes.</p>
+            <p>{t("help.s2Def2Foot")}</p>
           </div>
           <div className="help-def">
-            <h3>Temperatura del mar</h3>
-            <p>Cuánto está el agua. Desde <strong>~24°</strong> se siente cálida para nadar sin traje; por debajo de 20° suele estar fría.</p>
+            <h3>{t("help.s2Def3Title")}</h3>
+            <p>{t("help.s2Def3Body1")}<strong>{t("help.s2Def3Strong")}</strong>{t("help.s2Def3Body2")}</p>
           </div>
           <div className="help-def">
-            <h3>Horas de sol</h3>
-            <p>Promedio de horas de sol por día en el mes. Más horas = días más despejados y largos.</p>
+            <h3>{t("help.s2Def4Title")}</h3>
+            <p>{t("help.s2Def4Body")}</p>
           </div>
         </div>
       </section>
 
       <section className="help-section">
-        <h2>🌟 El “rating” del mes</h2>
-        <p>Combinamos temperatura y lluvia para decirte, de un vistazo, qué tan recomendable es cada destino en el mes elegido:</p>
+        <h2>{t("help.s3Title")}</h2>
+        <p>{t("help.s3Intro")}</p>
         <ul className="help-ratings">
-          <li><span className="rating-pill rating-ideal">🌟 Ideal</span> Clima muy cómodo para ese destino.</li>
-          <li><span className="rating-pill rating-good">✅ Bueno</span> Buen clima, con algún detalle menor.</li>
-          <li><span className="rating-pill rating-ok">⚠ Aceptable</span> Se puede, pero hay calor, frío o lluvia a tener en cuenta.</li>
-          <li><span className="rating-pill rating-avoid">❌ Evitar</span> Mes poco recomendable por temperatura o lluvia.</li>
+          <li><span className="rating-pill rating-ideal">{t("help.s3IdealPill")}</span>{t("help.s3IdealBody")}</li>
+          <li><span className="rating-pill rating-good">{t("help.s3GoodPill")}</span>{t("help.s3GoodBody")}</li>
+          <li><span className="rating-pill rating-ok">{t("help.s3OkPill")}</span>{t("help.s3OkBody")}</li>
+          <li><span className="rating-pill rating-avoid">{t("help.s3AvoidPill")}</span>{t("help.s3AvoidBody")}</li>
         </ul>
-        <p>Si ajustás tu temperatura o lluvia ideal en los filtros, el rating se recalcula a tu gusto.</p>
+        <p>{t("help.s3Foot")}</p>
       </section>
 
       <section className="help-section">
-        <h2>📊 “Típico” vs “real” (promedio 5 años)</h2>
-        <p>En la página del destino vas a ver dos cosas distintas:</p>
+        <h2>{t("help.s4Title")}</h2>
+        <p>{t("help.s4Intro")}</p>
         <ul>
-          <li><strong>Clima típico (normales):</strong> los gráficos de barras y líneas con el promedio histórico de cada mes. Sirve para comparar destinos.</li>
-          <li><strong>Clima real día a día:</strong> el <strong>promedio de los últimos 5 años</strong> en esas fechas exactas, con datos satelitales <strong>ERA5</strong> (Open-Meteo). Da una idea más fiel de qué esperar que un solo año, que puede ser atípico.</li>
+          <li><strong>{t("help.s4Li1Strong")}</strong>{t("help.s4Li1Body")}</li>
+          <li><strong>{t("help.s4Li2Strong")}</strong>{t("help.s4Li2Body1")}<strong>{t("help.s4Li2Strong2")}</strong>{t("help.s4Li2Body2")}<strong>{t("help.s4Li2Strong3")}</strong>{t("help.s4Li2Body3")}</li>
         </ul>
-        <p>Mostramos ~10 días salteados (uno cada 3) para que veas cómo viene el mes completo. Tres cosas que aparecen ahí:</p>
+        <p>{t("help.s4Mid")}</p>
         <ul>
-          <li><strong>El ícono ☀️🌤⛅🌦🌧:</strong> refleja la <em>probabilidad de lluvia</em> de ese día, no un pronóstico exacto. Si ves ☀️ con 0 mm, es un día que casi siempre salió seco.</li>
-          <li><strong>“% prob. lluvia”:</strong> en cuántos de los últimos años llovió ese día. Ej.: <em>20%</em> = llovió 1 de cada 5 años (o sea, casi siempre estuvo seco). No es cuánta lluvia, es qué tan probable.</li>
-          <li><strong>± (desvío):</strong> cuánto suele variar ese día de un año a otro. Ej.: <em>28° ±3</em> = la máxima rondó los 28°, moviéndose unos 3° entre años.</li>
-        </ul>
-      </section>
-
-      <section className="help-section">
-        <h2>💰 Presupuesto y gastos</h2>
-        <ul>
-          <li><strong>Presupuesto:</strong> tu estimación antes de viajar (rango en dólares). Te mostramos el total y cuánto sale por persona.</li>
-          <li><strong>Gastos:</strong> lo que realmente vas gastando. Anotás quién pagó qué, lo dividimos entre los viajeros y te decimos cómo saldar las cuentas.</li>
+          <li><strong>{t("help.s4Li3Strong")}</strong>{t("help.s4Li3Body1")}<em>{t("help.s4Li3Em")}</em>{t("help.s4Li3Body2")}</li>
+          <li><strong>{t("help.s4Li4Strong")}</strong>{t("help.s4Li4Body1")}<em>{t("help.s4Li4Em")}</em>{t("help.s4Li4Body2")}</li>
+          <li><strong>{t("help.s4Li5Strong")}</strong>{t("help.s4Li5Body1")}<em>{t("help.s4Li5Em")}</em>{t("help.s4Li5Body2")}</li>
         </ul>
       </section>
 
       <section className="help-section">
-        <h2>✈️ Para argentinos</h2>
-        <p>Cada destino indica el tiempo de vuelo desde <strong>Buenos Aires (EZE)</strong> y la visa: <strong>Sin visa</strong>, <strong>E-visa</strong> (online) o <strong>Visa requerida</strong>. Es orientativo; confirmá siempre con el consulado.</p>
+        <h2>{t("help.s5Title")}</h2>
+        <ul>
+          <li><strong>{t("help.s5Li1Strong")}</strong>{t("help.s5Li1Body")}</li>
+          <li><strong>{t("help.s5Li2Strong")}</strong>{t("help.s5Li2Body")}</li>
+        </ul>
+      </section>
+
+      <section className="help-section">
+        <h2>{t("help.s6Title")}</h2>
+        <p>{t("help.s6Body1")}<strong>{t("help.s6Strong1")}</strong>{t("help.s6Body2")}<strong>{t("help.s6Strong2")}</strong>{t("help.s6Body3")}<strong>{t("help.s6Strong3")}</strong>{t("help.s6Body4")}<strong>{t("help.s6Strong4")}</strong>{t("help.s6Body5")}</p>
       </section>
 
       <div className="help-cta">
-        <button className="button-primary" onClick={onDiscover}>🌎 Empezar a descubrir destinos</button>
+        <button className="button-primary" onClick={onDiscover}>{t("help.cta")}</button>
       </div>
 
-      <p className="help-foot">Fuente de clima: <a href="https://open-meteo.com" target="_blank" rel="noreferrer">Open-Meteo</a> (Forecast + archivo ERA5). Gratis y sin keys.</p>
+      <p className="help-foot">{t("help.footPre")}<a href="https://open-meteo.com" target="_blank" rel="noreferrer">{t("help.footLink")}</a>{t("help.footPost")}</p>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { FlightCriterion, FlightOption } from "../types";
 import { formatDate } from "../lib/format";
+import { useT } from "../i18n";
 
 type Props = {
   options: FlightOption[];
@@ -15,6 +16,7 @@ const CRITERIA_SYMBOL: Record<string, string> = {
 };
 
 export function FlightTable({ options, criteria, recommendedId }: Props) {
+  const t = useT();
   const sorted = [...options].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
   return (
@@ -23,14 +25,14 @@ export function FlightTable({ options, criteria, recommendedId }: Props) {
         <thead>
           <tr>
             <th>#</th>
-            <th>Ida</th>
-            <th>Vuelta</th>
-            <th>Días</th>
+            <th>{t("flights.outbound")}</th>
+            <th>{t("flights.return")}</th>
+            <th>{t("flights.days")}</th>
             {criteria?.map((c) => (
               <th key={c.key}>{c.label}</th>
             ))}
-            <th>Score</th>
-            <th>Comentario</th>
+            <th>{t("flights.score")}</th>
+            <th>{t("flights.comment")}</th>
           </tr>
         </thead>
         <tbody>
@@ -40,9 +42,9 @@ export function FlightTable({ options, criteria, recommendedId }: Props) {
               className={o.id === recommendedId ? "row-top" : ""}
             >
               <td>
-                {o.rank === 1 && <span title="Top">🥇</span>}
-                {o.rank === 2 && <span title="2do">🥈</span>}
-                {o.rank === 3 && <span title="3ro">🥉</span>}
+                {o.rank === 1 && <span title={t("flights.rankTop")}>🥇</span>}
+                {o.rank === 2 && <span title={t("flights.rankSecond")}>🥈</span>}
+                {o.rank === 3 && <span title={t("flights.rankThird")}>🥉</span>}
                 {!o.rank && o.id}
               </td>
               <td>
@@ -52,7 +54,7 @@ export function FlightTable({ options, criteria, recommendedId }: Props) {
                 </div>
                 <div className="leg-time">
                   {o.outbound.depart} → {o.outbound.arrive}
-                  {!o.outbound.direct && " (escala)"}
+                  {!o.outbound.direct && ` (${t("flights.layover")})`}
                 </div>
               </td>
               <td>
@@ -62,7 +64,7 @@ export function FlightTable({ options, criteria, recommendedId }: Props) {
                 </div>
                 <div className="leg-time">
                   {o.inbound.depart} → {o.inbound.arrive}
-                  {!o.inbound.direct && " (escala)"}
+                  {!o.inbound.direct && ` (${t("flights.layover")})`}
                 </div>
               </td>
               <td className="num">{o.days}</td>

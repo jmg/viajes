@@ -4,6 +4,9 @@ import { formatDate } from "../../lib/format";
 import { weatherDayIcon } from "../../lib/forecast";
 import type { DailyWeather } from "../../lib/forecast";
 import type { WeatherLookup } from "../../hooks/useTripWeather";
+import { useT } from "../../i18n";
+
+type T = ReturnType<typeof useT>;
 
 type Props = {
   days: ItineraryDay[];
@@ -22,7 +25,7 @@ const EMOJIS = ["📍", "🛫", "🛬", "🏖", "🌊", "🐢", "🤿", "🏝", 
 const today = (): string => new Date().toISOString().slice(0, 10);
 
 /** Un ItineraryDay por cada fecha del rango, repartiendo los destinos en bloques contiguos. */
-function buildDays(start: string, end: string, destinations: string[]): ItineraryDay[] {
+function buildDays(start: string, end: string, destinations: string[], t: T): ItineraryDay[] {
   const startMs = new Date(start + "T00:00:00Z").getTime();
   const endMs = new Date(end + "T00:00:00Z").getTime();
   if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs < startMs) return [];
@@ -35,7 +38,7 @@ function buildDays(start: string, end: string, destinations: string[]): Itinerar
       dayNumber: i + 1,
       date,
       location,
-      title: location ? `Día en ${location}` : `Día ${i + 1}`,
+      title: location ? t("itinerary.dayInLocation", { location }) : t("itinerary.dayN", { n: i + 1 }),
       highlights: [],
       emoji: "📍",
     };
@@ -43,6 +46,7 @@ function buildDays(start: string, end: string, destinations: string[]): Itinerar
 }
 
 export function ItineraryEditor({ days, tripStart, tripEnd, destinations, weatherFor, onChange }: Props) {
+  const t = useT();
   const todayIso = today();
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -52,8 +56,8 @@ export function ItineraryEditor({ days, tripStart, tripEnd, destinations, weathe
   const canGenerate = !!tripStart && !!tripEnd;
   const generateDays = () => {
     if (!tripStart || !tripEnd) return;
-    if (days.length > 0 && !confirm("Esto reemplaza los días actuales por un día por cada fecha del viaje. ¿Seguir?")) return;
-    const generated = buildDays(tripStart, tripEnd, destinations ?? []);
+    if (days.length > 0 && !confirm(t("itinerary.confirmRegenerate"))) return;
+    const generated = buildDays(tripStart, tripEnd, destinations ?? [], t);
     if (generated.length === 0) return;
     onChange(generated);
     setAdding(false);
@@ -74,7 +78,7 @@ export function ItineraryEditor({ days, tripStart, tripEnd, destinations, weathe
   };
 
   const remove = (n: number) => {
-    if (!confirm("¿Eliminar este día?")) return;
+    if (!confirm(t("itinerary.confirmDelete"))) return;
     onChange(days.filter((d) => d.dayNumber !== n));
   };
 
@@ -83,7 +87,7 @@ export function ItineraryEditor({ days, tripStart, tripEnd, destinations, weathe
       <ol className="itinerary">
         {days.map((d) => (
           <li key={d.dayNumber} className={`itinerary-day${d.date === todayIso ? " today" : ""}`}>
-            {d.date === todayIso && <span className="today-badge">HOY</span>}
+            {d.date === todayIso && <span className="today-badge">{t("itinerary.today")}</span>}
             {editingId === d.dayNumber ? (
               <DayForm
                 initial={d}
@@ -94,12 +98,12 @@ export function ItineraryEditor({ days, tripStart, tripEnd, destinations, weathe
               <>
                 <div className="day-marker">
                   <span className="day-emoji">{d.emoji ?? "📍"}</span>
-                  <span className="day-number">Día {d.dayNumber}</span>
+                  <span className="day-number">{t("itinerary.dayN", { n: d.dayNumber })}</span>
                 </div>
                 <div className="day-body">
                   <div className="day-date">
                     {formatDate(d.date)}{d.location ? ` · ${d.location}` : ""}
-                    <DayWeather weather={weatherFor?.(d.date, d.location)} />
+                    <DayWeather weather={weatherFor?.(d.date, d.location)} t={t} />
                   </div>
                   <h3 className="day-title">{d.title}</h3>
                   <ul className="day-highlights">
@@ -108,8 +112,8 @@ export function ItineraryEditor({ days, tripStart, tripEnd, destinations, weathe
                   {d.notes && <p className="day-notes">{d.notes}</p>}
                 </div>
                 <div className="day-actions">
-                  <button className="icon-button small" onClick={() => setEditingId(d.dayNumber)} title="Editar">✎</button>
-                  <button className="icon-button small" onClick={() => remove(d.dayNumber)} title="Eliminar">✕</button>
+                  <button className="icon-button small" onClick={() => setEditingId(d.dayNumber)} title={t("itinerary.editDay")}>✎</button>
+                  <button className="icon-button small" onClick={() => remove(d.dayNumber)} title={t("itinerary.deleteDay")}>✕</button>
                 </div>
               </>
             )}
@@ -119,7 +123,7 @@ export function ItineraryEditor({ days, tripStart, tripEnd, destinations, weathe
 
       {days.length === 0 && !adding && (
         <p className="itinerary-empty-hint">
-          Todavía no hay días.{canGenerate ? " Generá uno por cada fecha del viaje y después editá cada uno." : ""}
+          {t("itinerary.emptyHint")}{canGenerate ? t("itinerary.emptyHintGenerate") : ""}
         </p>
       )}
 
@@ -133,10 +137,10 @@ export function ItineraryEditor({ days, tripStart, tripEnd, destinations, weathe
         </div>
       ) : (
         <div className="itinerary-actions">
-          <button className="button-primary add-day-btn" onClick={() => setAdding(true)}>+ Agregar día</button>
+          <button className="button-primary add-day-btn" onClick={() => setAdding(true)}>{t("itinerary.addDay")}</button>
           {canGenerate && (
             <button className="button-secondary" onClick={generateDays}>
-              ✨ {days.length === 0 ? "Generar días del viaje" : "Regenerar días"}
+              ✨ {days.length === 0 ? t("itinerary.generateDays") : t("itinerary.regenerateDays")}
             </button>
           )}
         </div>
@@ -145,10 +149,12 @@ export function ItineraryEditor({ days, tripStart, tripEnd, destinations, weathe
   );
 }
 
-function DayWeather({ weather }: { weather?: DailyWeather }) {
+function DayWeather({ weather, t }: { weather?: DailyWeather; t: T }) {
   if (!weather) return null;
   const prob = weather.rainyDayProb != null ? Math.round(weather.rainyDayProb * 100) : null;
-  const tip = `Máx ${weather.tempMax}° / mín ${weather.tempMin}°` + (prob != null ? ` · ${prob}% prob. lluvia` : "");
+  const tip = prob != null
+    ? t("itinerary.weatherTipRain", { max: weather.tempMax, min: weather.tempMin, prob })
+    : t("itinerary.weatherTip", { max: weather.tempMax, min: weather.tempMin });
   return (
     <span className="day-weather" title={tip}>
       <span className="day-weather-icon">{weatherDayIcon(weather)}</span>
@@ -163,6 +169,7 @@ function DayForm({ initial, onSave, onCancel }: {
   onSave: (day: ItineraryDay) => void;
   onCancel: () => void;
 }) {
+  const t = useT();
   const [dayNumber, setDayNumber] = useState(initial.dayNumber);
   const [date, setDate] = useState(initial.date);
   const [location, setLocation] = useState(initial.location);
@@ -188,32 +195,32 @@ function DayForm({ initial, onSave, onCancel }: {
     <div className="day-form">
       <div className="field-row">
         <label className="field">
-          <span>Día</span>
+          <span>{t("itinerary.fieldDay")}</span>
           <input type="number" value={dayNumber} onChange={(e) => setDayNumber(parseInt(e.target.value, 10) || 1)} min={0} />
         </label>
         <label className="field">
-          <span>Fecha</span>
+          <span>{t("itinerary.fieldDate")}</span>
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </label>
       </div>
       <label className="field">
-        <span>Lugar</span>
-        <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Ej: Maragogi" />
+        <span>{t("itinerary.fieldPlace")}</span>
+        <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder={t("itinerary.placePlaceholder")} />
       </label>
       <label className="field">
-        <span>Título</span>
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ej: Tour Galés" />
+        <span>{t("itinerary.fieldTitle")}</span>
+        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("itinerary.titlePlaceholder")} />
       </label>
       <label className="field">
-        <span>Highlights <small>(uno por línea)</small></span>
+        <span>{t("itinerary.fieldHighlights")} <small>{t("itinerary.highlightsHint")}</small></span>
         <textarea rows={4} value={highlights} onChange={(e) => setHighlights(e.target.value)} />
       </label>
       <label className="field">
-        <span>Notas</span>
+        <span>{t("itinerary.fieldNotes")}</span>
         <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)} />
       </label>
       <label className="field">
-        <span>Emoji</span>
+        <span>{t("itinerary.fieldEmoji")}</span>
         <div className="emoji-picker">
           {EMOJIS.map((e) => (
             <button
@@ -226,8 +233,8 @@ function DayForm({ initial, onSave, onCancel }: {
         </div>
       </label>
       <div className="form-actions">
-        <button type="button" className="button-secondary" onClick={onCancel}>Cancelar</button>
-        <button type="button" className="button-primary" onClick={save}>Guardar día</button>
+        <button type="button" className="button-secondary" onClick={onCancel}>{t("common.cancel")}</button>
+        <button type="button" className="button-primary" onClick={save}>{t("itinerary.saveDay")}</button>
       </div>
     </div>
   );

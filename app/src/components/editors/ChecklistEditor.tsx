@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ChecklistItem } from "../../types";
+import { useT } from "../../i18n";
 
 type Props = {
   tripId: string;
@@ -8,6 +9,7 @@ type Props = {
 };
 
 export function ChecklistEditor({ tripId, items, onChange }: Props) {
+  const t = useT();
   const storageKey = `checklist:${tripId}`;
   const [checked, setChecked] = useState<Record<string, boolean>>(() => {
     try { return JSON.parse(localStorage.getItem(storageKey) ?? "{}"); } catch { return {}; }
@@ -36,7 +38,7 @@ export function ChecklistEditor({ tripId, items, onChange }: Props) {
   };
 
   const byCategory = items.reduce<Record<string, ChecklistItem[]>>((acc, i) => {
-    const cat = i.category ?? "General";
+    const cat = i.category ?? t("checklist.general");
     (acc[cat] ??= []).push(i);
     return acc;
   }, {});
@@ -48,7 +50,7 @@ export function ChecklistEditor({ tripId, items, onChange }: Props) {
     <div className="checklist">
       {items.length > 0 && (
         <div className="checklist-progress">
-          {done} / {items.length} completados
+          {t("checklist.completed", { done, total: items.length })}
         </div>
       )}
 
@@ -58,20 +60,20 @@ export function ChecklistEditor({ tripId, items, onChange }: Props) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), add())}
-          placeholder="Item nuevo (ej: pasaporte)"
+          placeholder={t("checklist.newItemPlaceholder")}
         />
         <input
           type="text"
           list="cats"
           value={draftCat}
           onChange={(e) => setDraftCat(e.target.value)}
-          placeholder="Categoría"
+          placeholder={t("checklist.categoryPlaceholder")}
           className="cat-input"
         />
         <datalist id="cats">
           {knownCats.map((c) => <option key={c} value={c} />)}
         </datalist>
-        <button className="button-primary" onClick={add}>Agregar</button>
+        <button className="button-primary" onClick={add}>{t("common.add")}</button>
       </div>
 
       {Object.entries(byCategory).map(([cat, list]) => (
@@ -91,8 +93,8 @@ export function ChecklistEditor({ tripId, items, onChange }: Props) {
                 <button
                   className="icon-button small"
                   onClick={() => remove(i.label)}
-                  aria-label="Eliminar"
-                  title="Eliminar"
+                  aria-label={t("common.delete")}
+                  title={t("common.delete")}
                 >✕</button>
               </li>
             ))}

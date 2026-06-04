@@ -14,6 +14,9 @@ import {
 import type { ChartData, ChartDataset, ChartOptions } from "chart.js";
 import { Chart } from "react-chartjs-2";
 import type { MonthClimate } from "../destinations/types";
+import { useT } from "../i18n";
+import { MONTHS_SHORT } from "../i18n/dates";
+import { getLang } from "../i18n/core";
 
 ChartJS.register(
   CategoryScale,
@@ -26,8 +29,6 @@ ChartJS.register(
   Tooltip,
   Filler,
 );
-
-const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
 const ORANGE = "#fb923c";
 const BLUE = "#60a5fa";

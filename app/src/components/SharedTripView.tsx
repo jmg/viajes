@@ -1,5 +1,6 @@
 import type { Trip } from "../types";
 import { formatDateRange, daysBetween, formatDate } from "../lib/format";
+import { useT } from "../i18n";
 
 type Props = {
   trip: Trip;
@@ -8,13 +9,14 @@ type Props = {
 };
 
 export function SharedTripView({ trip, onSaveCopy, onDismiss }: Props) {
+  const t = useT();
   return (
     <div className="shared-view">
       <div className="shared-banner">
-        <span>🔗 Estás viendo un viaje compartido (solo lectura)</span>
+        <span>{t("sharedView.banner")}</span>
         <div className="shared-banner-actions">
-          <button className="button-primary" onClick={onSaveCopy}>Guardar copia en mis viajes</button>
-          <button className="button-secondary" onClick={onDismiss}>Cerrar</button>
+          <button className="button-primary" onClick={onSaveCopy}>{t("sharedView.saveCopy")}</button>
+          <button className="button-secondary" onClick={onDismiss}>{t("common.close")}</button>
         </div>
       </div>
 
@@ -24,7 +26,7 @@ export function SharedTripView({ trip, onSaveCopy, onDismiss }: Props) {
         <div className="trip-meta-row">
           <span>📅 {formatDateRange(trip.startDate, trip.endDate)}</span>
           <span>📍 {trip.destinations.join(" → ")}</span>
-          <span>{daysBetween(trip.startDate, trip.endDate)} días</span>
+          <span>{daysBetween(trip.startDate, trip.endDate)} {t("common.days")}</span>
           <span>👥 {trip.travelers}</span>
         </div>
       </header>
@@ -33,13 +35,13 @@ export function SharedTripView({ trip, onSaveCopy, onDismiss }: Props) {
 
       {trip.itinerary?.length ? (
         <section className="dest-section">
-          <h3>Itinerario</h3>
+          <h3>{t("sharedView.itinerary")}</h3>
           <ol className="itinerary">
             {trip.itinerary.map((d) => (
               <li key={d.dayNumber} className="itinerary-day">
                 <div className="day-marker">
                   <span className="day-emoji">{d.emoji ?? "📍"}</span>
-                  <span className="day-number">Día {d.dayNumber}</span>
+                  <span className="day-number">{t("sharedView.day", { n: d.dayNumber })}</span>
                 </div>
                 <div className="day-body">
                   <div className="day-date">{formatDate(d.date)} · {d.location}</div>
@@ -57,7 +59,7 @@ export function SharedTripView({ trip, onSaveCopy, onDismiss }: Props) {
 
       {trip.checklist?.length ? (
         <section className="dest-section">
-          <h3>Checklist</h3>
+          <h3>{t("sharedView.checklist")}</h3>
           <ul className="shared-list">
             {trip.checklist.map((c, i) => <li key={i}>{c.label}{c.category ? ` · ${c.category}` : ""}</li>)}
           </ul>
@@ -66,7 +68,7 @@ export function SharedTripView({ trip, onSaveCopy, onDismiss }: Props) {
 
       {trip.links?.length ? (
         <section className="dest-section">
-          <h3>Links</h3>
+          <h3>{t("sharedView.links")}</h3>
           <ul className="shared-list">
             {trip.links.map((l) => (
               <li key={l.url}><a href={l.url} target="_blank" rel="noreferrer">{l.label} ↗</a></li>

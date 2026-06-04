@@ -7,6 +7,7 @@ import type { DailyWeather } from "../lib/forecast";
 import { daysUntilStart, daysUntilEnd } from "../lib/status";
 import { formatDate } from "../lib/format";
 import { InfoTip } from "./InfoTip";
+import { useT } from "../i18n";
 
 type Props = {
   trip: Trip;
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export function WeatherSection({ trip, destination, sampleEvery, maxDays }: Props) {
+  const t = useT();
   const dest = useMemo(
     () => destination ?? trip.destinations.map(findDestination).find((d) => d?.lat != null && d?.lng != null) ?? null,
     [destination, trip.destinations],
@@ -52,18 +54,18 @@ export function WeatherSection({ trip, destination, sampleEvery, maxDays }: Prop
   const maxPrecip = Math.max(...filtered.map((d) => d.precipMm), 5);
 
   const title =
-    mode === "forecast" ? `🌤 Pronóstico — ${dest.name}` :
-    mode === "historical" ? `📜 Tiempo histórico — ${dest.name}` :
-    `📅 Promedio últimos ${PRIOR_YEARS} años en estas fechas — ${dest.name}`;
+    mode === "forecast" ? t("weather.titleForecast", { dest: dest.name }) :
+    mode === "historical" ? t("weather.titleHistorical", { dest: dest.name }) :
+    t("weather.titlePriorYear", { years: PRIOR_YEARS, dest: dest.name });
 
   const titleTip =
-    mode === "forecast" ? "Pronóstico real de Open-Meteo para los próximos días." :
-    mode === "historical" ? "Lo que ocurrió realmente en estas fechas, según el archivo histórico ERA5." :
-    `Promedio día a día de los últimos ${PRIOR_YEARS} años (datos satelitales ERA5). Da una idea realista de qué esperar, mejor que un único año que puede ser atípico.`;
+    mode === "forecast" ? t("weather.tipForecast") :
+    mode === "historical" ? t("weather.tipHistorical") :
+    t("weather.tipPriorYear", { years: PRIOR_YEARS });
 
   const subtitle =
     mode === "prior_year" ? (
-      <p className="settings-hint">Promedio día por día de los últimos {PRIOR_YEARS} años (datos ERA5). Más robusto que un único año atípico.</p>
+      <p className="settings-hint">{t("weather.subtitlePriorYear", { years: PRIOR_YEARS })}</p>
     ) : null;
 
   return (
@@ -71,44 +73,45 @@ export function WeatherSection({ trip, destination, sampleEvery, maxDays }: Prop
       <h3>{title} <InfoTip tip={titleTip} /></h3>
       {subtitle}
       {loading && (
-        <div className="weather-grid" aria-label="Cargando datos de Open-Meteo…">
+        <div className="weather-grid" aria-label={t("weather.loadingAria")}>
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="weather-day weather-skeleton" aria-hidden />
           ))}
         </div>
       )}
       {error && (
-        <p className="form-error">No se pudo cargar ({error}). Las normales climáticas del gráfico siguen disponibles.</p>
+        <p className="form-error">{t("weather.loadError", { error })}</p>
       )}
       {!loading && !error && filtered.length > 0 && (
         <div className="weather-grid">
           {filtered.map((d) => {
             const prob = d.rainyDayProb != null ? Math.round(d.rainyDayProb * 100) : null;
             const cardTip =
-              `${formatDate(d.date)} — máx ${d.tempMax}°, mín ${d.tempMin}°` +
-              (prob != null ? ` · ${prob}% de probabilidad de lluvia` : "");
+              prob != null
+                ? t("weather.cardTipRain", { date: formatDate(d.date), max: d.tempMax, min: d.tempMin, prob })
+                : t("weather.cardTip", { date: formatDate(d.date), max: d.tempMax, min: d.tempMin });
             return (
               <div key={d.date} className="weather-day" title={cardTip}>
                 <div className="weather-date">{formatDate(d.date)}</div>
                 <div className="weather-emoji">{weatherDayIcon(d)}</div>
                 <div className="weather-temp">
-                  <span title="Mínima / máxima promedio del día">{d.tempMin}° / {d.tempMax}°</span>
+                  <span title={t("weather.tempTip")}>{d.tempMin}° / {d.tempMax}°</span>
                   {d.tempMaxStdev != null && d.tempMaxStdev > 0 && (
-                    <span className="weather-stdev" title="Variación típica entre años: cuánto suele cambiar la máxima de ese día de un año a otro."> ±{d.tempMaxStdev}</span>
+                    <span className="weather-stdev" title={t("weather.stdevTip")}> ±{d.tempMaxStdev}</span>
                   )}
                 </div>
                 <div className="weather-rainbar" aria-hidden>
                   <span style={{ width: `${Math.round((d.precipMm / maxPrecip) * 100)}%` }} />
                 </div>
-                <div className="weather-rain" title="Lluvia promedio acumulada en el día">{d.precipMm} mm</div>
+                <div className="weather-rain" title={t("weather.rainTip")}>{d.precipMm} mm</div>
                 {prob != null && (
                   <div
                     className="weather-rainprob"
                     title={mode === "prior_year"
-                      ? `Probabilidad de lluvia: en el ${prob}% de los últimos ${PRIOR_YEARS} años llovió este día (más de 1 mm).`
-                      : `Probabilidad de lluvia ese día: ${prob}%.`}
+                      ? t("weather.rainProbTipPriorYear", { prob, years: PRIOR_YEARS })
+                      : t("weather.rainProbTip", { prob })}
                   >
-                    {prob}% prob. lluvia
+                    {t("weather.rainProbLabel", { prob })}
                   </div>
                 )}
               </div>

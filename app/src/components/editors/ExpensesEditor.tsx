@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { Currency, Expense } from "../../types";
 import { CURRENCIES, formatAmount, SYMBOL } from "../../lib/currency";
 import { CurrencyConverter } from "../CurrencyConverter";
+import { useT } from "../../i18n";
 
 type Props = {
   expenses: Expense[];
@@ -19,8 +20,9 @@ const newId = (): string => {
 };
 
 export function ExpensesEditor({ expenses, travelerNames, travelers, currency, onCurrencyChange, onChange, onNamesChange }: Props) {
+  const t = useT();
   // Si no hay nombres cargados, generamos placeholders según cantidad de viajeros.
-  const people = travelerNames.length ? travelerNames : Array.from({ length: travelers }, (_, i) => `Viajero ${i + 1}`);
+  const people = travelerNames.length ? travelerNames : Array.from({ length: travelers }, (_, i) => t("expenses.defaultTraveler", { n: i + 1 }));
 
   const [label, setLabel] = useState("");
   const [amount, setAmount] = useState("");
@@ -70,13 +72,13 @@ export function ExpensesEditor({ expenses, travelerNames, travelers, currency, o
       <CurrencyConverter defaultTarget={currency} />
       <div className="budget-currency">
         <label>
-          Moneda
+          {t("expenses.currency")}
           <select value={currency} onChange={(e) => onCurrencyChange(e.target.value as Currency)}>
             {CURRENCIES.map((c) => <option key={c} value={c}>{c} ({SYMBOL[c]})</option>)}
           </select>
         </label>
         <button className="button-secondary" onClick={() => { setNamesDraft(people.join(", ")); setEditingNames((v) => !v); }}>
-          {editingNames ? "Cerrar" : "👥 Nombres"}
+          {editingNames ? t("expenses.close") : t("expenses.names")}
         </button>
       </div>
 

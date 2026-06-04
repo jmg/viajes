@@ -1,21 +1,9 @@
 import type { RecommendationResult } from "../destinations/types";
-import { CATEGORY_EMOJI, CATEGORY_LABEL, COST_LABEL, COST_RANGE_USD } from "../destinations/types";
+import { CATEGORY_EMOJI, COST_RANGE_USD } from "../destinations/types";
 import type { Airport } from "../lib/airports";
 import { flightHoursFromOrigin } from "../lib/originFlight";
-
-const RATING_LABEL = {
-  ideal: "🌟 Ideal",
-  good: "✅ Bueno",
-  ok: "⚠ Aceptable",
-  avoid: "❌ Evitar",
-};
-
-const RATING_TIP = {
-  ideal: "Clima muy cómodo en este mes.",
-  good: "Buen clima, con algún detalle menor.",
-  ok: "Se puede, pero hay calor, frío o lluvia a tener en cuenta.",
-  avoid: "Mes poco recomendable por temperatura o lluvia.",
-};
+import { useT } from "../i18n";
+import { catLabel, costLabel, ratingLabel, ratingTip } from "../i18n/labels";
 
 type Props = {
   result: RecommendationResult;
@@ -27,6 +15,7 @@ type Props = {
 };
 
 export function DestinationCard({ result, isInWishlist, origin, onOpen, onToggleWishlist, onCreateTrip }: Props) {
+  const t = useT();
   const { destination: d, climateRating, reasons, warnings, score } = result;
   const flightHours = flightHoursFromOrigin(d, origin ?? null);
   const fromCode = origin?.code ?? "EZE";
@@ -39,7 +28,7 @@ export function DestinationCard({ result, isInWishlist, origin, onOpen, onToggle
             <h3>{d.name}</h3>
             <span className="dest-country">{d.country} · {d.region}</span>
           </div>
-          <span className={`rating-pill rating-${climateRating}`} title={RATING_TIP[climateRating]}>{RATING_LABEL[climateRating]}</span>
+          <span className={`rating-pill rating-${climateRating}`} title={ratingTip(climateRating)}>{ratingLabel(climateRating)}</span>
         </div>
 
         <p className="dest-desc">{d.description}</p>
@@ -47,7 +36,7 @@ export function DestinationCard({ result, isInWishlist, origin, onOpen, onToggle
         <div className="dest-categories">
           {d.categories.slice(0, 5).map((c) => (
             <span key={c} className="cat-chip">
-              {CATEGORY_EMOJI[c]} {CATEGORY_LABEL[c]}
+              {CATEGORY_EMOJI[c]} {catLabel(c)}
             </span>
           ))}
         </div>
@@ -62,9 +51,9 @@ export function DestinationCard({ result, isInWishlist, origin, onOpen, onToggle
         </ul>
 
         <div className="dest-card-footer">
-          <span className="dest-meta">💰 {COST_LABEL[d.costTier]} · US$ {COST_RANGE_USD[d.costTier]}/día</span>
+          <span className="dest-meta">💰 {costLabel(d.costTier)} · US$ {COST_RANGE_USD[d.costTier]}{t("destCard.perDay")}</span>
           {flightHours !== undefined && (
-            <span className="dest-meta">✈️ {flightHours}h desde {fromCode}</span>
+            <span className="dest-meta">✈️ {t("destCard.flightFrom", { h: flightHours, code: fromCode })}</span>
           )}
           <span className="dest-score">{score}</span>
         </div>
@@ -72,17 +61,17 @@ export function DestinationCard({ result, isInWishlist, origin, onOpen, onToggle
       <button
         className={`wishlist-btn ${isInWishlist ? "active" : ""}`}
         onClick={() => onToggleWishlist(d.id)}
-        aria-label={isInWishlist ? "Quitar de la lista" : "Guardar"}
-        title={isInWishlist ? "Quitar de la lista" : "Guardar"}
+        aria-label={isInWishlist ? t("destCard.removeAria") : t("destCard.saveAria")}
+        title={isInWishlist ? t("destCard.removeAria") : t("destCard.saveAria")}
       >
         {isInWishlist ? "❤️" : "🤍"}
       </button>
       <button
         className="dest-create-btn"
         onClick={() => onCreateTrip(d.id)}
-        title={`Crear viaje a ${d.name}`}
+        title={t("destCard.createTripTitle", { name: d.name })}
       >
-        + Crear viaje
+        {t("destCard.createTrip")}
       </button>
     </div>
   );
