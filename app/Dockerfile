@@ -1,6 +1,6 @@
 # Build de Vite en una etapa y, en la final, solo dist/ + un servidor Node de
 # ~100 líneas sin dependencias (nada de node_modules en la imagen que corre).
-FROM node:22-alpine AS build
+FROM node:22.23.4-alpine AS build
 WORKDIR /build
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -9,7 +9,7 @@ COPY . .
 # GitHub Pages es el que setea VITE_BASE=/viajes/).
 RUN npm run build
 
-FROM node:22-alpine
+FROM node:22.23.4-alpine
 WORKDIR /app
 COPY --from=build /build/dist ./site
 COPY server.js .
