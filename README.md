@@ -29,7 +29,7 @@ gastos del grupo y exportás todo al calendario o a PDF. Sin cuentas, sin servid
 | 📅 **Exportar** | A `.ics` para Google/Apple/Outlook Calendar, y a **PDF** vía el diálogo de impresión. |
 | 🔗 **Compartir** | Link de solo lectura que codifica el viaje en la URL — sin servidor. El destinatario puede guardar una copia. |
 | 📱 **PWA** | Instalable en mobile y desktop, funciona offline. |
-| 🔒 **Privacy-first** | Todo vive en tu navegador (localStorage). Sin cuentas, sin servidor, sin tracking. |
+| 🔒 **Privacy-first** | Todo vive en tu navegador (localStorage). Sin cuentas, sin servidor, sin tracking. Si la app falla, el error (mensaje, stack, página y navegador; nunca tus viajes) va a un tracker de errores propio. |
 
 ## Pantallas
 
